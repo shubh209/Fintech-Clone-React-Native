@@ -1,17 +1,30 @@
 import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import { defaultStyles } from '@/constants/Styles'
 import Colors from '@/constants/Colors'
+import { useSignUp } from '@clerk/clerk-expo'
 
 const signup = () => {
 
     const [countryCode, setCountryCode] = useState('+1');
     const [phoneNumber, setPhonenNumber] = useState('');
+    const router = useRouter();
+    const { signUp } = useSignUp();
 
     const onSignUp = async() => {
+        const fullPhoneNumber = `${countryCode}${phoneNumber}`
 
-    }
+        try {
+            await signUp!.create({
+                phoneNumber: fullPhoneNumber
+            });
+            await signUp!.preparePhoneNumberVerification({strategy: 'phone_code'});
+            router.push({pathname: "./verify/[phone]", params: {phone: fullPhoneNumber}});
+        } catch (error) {
+            console.error('Error creating user', error);
+        }
+    };
 
     return (
 
