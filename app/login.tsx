@@ -21,10 +21,10 @@ enum SignInType{
   Apple
 }
 
-const login = () => {
+const Login = () => {
 
-    const [countryCode, setCountryCode] = useState('+1');
-    const [phoneNumber, setPhonenNumber] = useState('');
+    const [countryCode, setCountryCode] = useState("+1");
+    const [phoneNumber, setPhoneNumber] = useState('');
     const router = useRouter();
     const { signIn } = useSignIn();
 
@@ -56,7 +56,7 @@ const login = () => {
             phoneNumberId
           });
 
-          router.push({pathname: "./verify/[phone]", params: {phone: fullPhoneNumber, signin: 'true'}});
+          router.push({ pathname: "/verify/[phone]", params: { phone: fullPhoneNumber, signin: "true" }});
         } 
         catch (err) {
           console.log('error', JSON.stringify(err, null, 2));
@@ -86,12 +86,13 @@ const login = () => {
                 
                 {/* verification. code input */}
                 <View style={styles.inputContainer}> 
-                    {/* country code */}\
+                    {/* country code */}
                     <TextInput 
                         style={styles.Input}
                         placeholder="Country Code"
                         placeholderTextColor={Colors.gray}
                         value={countryCode}
+                        onChangeText={setCountryCode}
                     
                     />
                     {/* your number */}
@@ -101,22 +102,23 @@ const login = () => {
                         placeholderTextColor={Colors.gray}
                         keyboardType='phone-pad'
                         value={phoneNumber}
-                        onChangeText={setPhonenNumber}
+                        onChangeText={setPhoneNumber}
                     />
                 </View>
 
                 {/* signin button */}
                 <TouchableOpacity
-                    style={[
-                        defaultStyles.pillButton, 
-                        phoneNumber !== '' ? styles.enabled : styles.disabled,
-                        {marginBottom: 20},
-
-                    ]}
-                    onPress={() => onlogin(SignInType.Phone)}
+                  disabled={!phoneNumber.trim()}
+                  style={[
+                    defaultStyles.pillButton,
+                    phoneNumber.trim() ? styles.enabled : styles.disabled,
+                    { marginBottom: 20 },
+                  ]}
+                  onPress={() => onlogin(SignInType.Phone)}
                 >
-                    <Text>Continue</Text>
+                  <Text style={defaultStyles.buttonText}>Continue</Text>
                 </TouchableOpacity>
+
                   
 
                 {/* social buttons */}
@@ -179,7 +181,7 @@ const login = () => {
   )
 }
 
-export default login;
+export default Login;
 
 const styles = StyleSheet.create({
     inputContainer:{

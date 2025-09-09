@@ -7,7 +7,7 @@ import { useSignUp } from '@clerk/clerk-expo'
 
 const signup = () => {
 
-    const [countryCode, setCountryCode] = useState('+1');
+    const [countryCode, setCountryCode] = useState("+1");
     const [phoneNumber, setPhonenNumber] = useState('');
     const router = useRouter();
     const { signUp } = useSignUp();
@@ -43,12 +43,13 @@ const signup = () => {
                 
                 {/* verification. code input */}
                 <View style={styles.inputContainer}> 
-                    {/* country code */}\
+                    {/* country code */}
                     <TextInput 
                         style={styles.Input}
                         placeholder="Country Code"
                         placeholderTextColor={Colors.gray}
                         value={countryCode}
+                        onChangeText={setCountryCode}
                     
                     />
                     {/* your number */}
@@ -71,7 +72,7 @@ const signup = () => {
                     </TouchableOpacity>    
                 </Link>
 
-                <View style={{flex: 1}}> </View>
+                <View style={{flex: 1}} />
 
                 {/* signup button */}
                 <TouchableOpacity

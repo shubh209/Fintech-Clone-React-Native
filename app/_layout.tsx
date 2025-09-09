@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import {  TouchableOpacity } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-const CLERK_PUNLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo'
 import { tokenCache } from '@clerk/clerk-expo/token-cache'
 import { Slot } from 'expo-router'
@@ -55,7 +55,8 @@ const IntialLayout = () => {
     return null;
   }
 
-  return <Stack>
+  return ( 
+      <Stack>
             {/* index */}
             <Stack.Screen name="index" options={{ headerShown: false }} />
 
@@ -123,13 +124,13 @@ const IntialLayout = () => {
                 )
               }} 
             />
-         </Stack>
+      </Stack>
+  );
 }
 
 const RootLayoutNav = () => {
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUNLISHABLE_KEY!}>
-      <Slot />
+    <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY!}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar style="light"/>
         <IntialLayout />
