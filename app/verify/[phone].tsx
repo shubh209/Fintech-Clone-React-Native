@@ -18,9 +18,6 @@ const Page = () => {
   const { signIn } = useSignIn();
   const { signUp, setActive } = useSignUp();
 
-    // this is from the docs of react-native-confirmation-code-field
-    // it helps to manage the focus and blur of the code input fields
-    // it also helps to clear the input fields when the user taps on them
   const ref = useBlurOnFulfill({ value: code, cellCount: CELL_COUNT });
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: code,

@@ -2,24 +2,40 @@ import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
-import { Link, Stack, useRouter } from 'expo-router';
+import { Link, Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import {  TouchableOpacity } from 'react-native';
+import {  ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo'
-import { tokenCache } from '@clerk/clerk-expo/token-cache'
-import { Slot } from 'expo-router'
-
-
-
+import * as SecureStore from 'expo-secure-store';
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+
+
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// Cache the Clerk JWT
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch (err) {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -33,6 +49,7 @@ const IntialLayout = () => {
 
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
+  const segments = useSegments();
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -46,13 +63,24 @@ const IntialLayout = () => {
   }, [loaded]);
 
 
-  useEffect ( () => {
-    console.log('isSignedIn', isSignedIn);
-  }, [isSignedIn] );
+  useEffect(() => {
+    if (!isLoaded) return;
 
+    const inAuthGroup = segments[0] === '(authenticated)';
 
-  if (!loaded) {
-    return null;
+    if (isSignedIn && !inAuthGroup) {
+      router.replace('/(authenticated)/(tabs)/home');
+    } else if (!isSignedIn) {
+      router.replace('/');
+    }
+  }, [isSignedIn]);
+
+  if (!loaded || !isLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
   }
 
   return ( 
@@ -124,7 +152,14 @@ const IntialLayout = () => {
                 )
               }} 
             />
-      </Stack>
+
+            {/* authenticated app */}
+            <Stack.Screen 
+              name="(authenticated)/(tabs)" 
+              options={{ headerShown: false }} 
+            />
+        </Stack>
+
   );
 }
 
