@@ -15,6 +15,7 @@ export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
+import { Provider as PaperProvider } from "react-native-paper";
 
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -165,12 +166,14 @@ const IntialLayout = () => {
 
 const Layout = () => {
   return (
-    <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY!}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="light"/>
-        <IntialLayout />
-      </GestureHandlerRootView >
-    </ClerkProvider>
+    <PaperProvider>
+      <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY!}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <StatusBar style="light"/>
+            <IntialLayout />
+          </GestureHandlerRootView >
+      </ClerkProvider>
+    </PaperProvider>
   );
 }
 

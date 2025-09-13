@@ -3,10 +3,11 @@ import React from 'react'
 import Colors from '@/constants/Colors';
 import RoundButton from '@/Components/RoundButton';
 import DropDown from '@/Components/DropDown';
+import { useBalanceStore } from '@/Store/balanceStore';
 
 const home = () => {
   
-  const balance = 1240;
+  const {balance, runTransaction, clearTansactions, transactions} = useBalanceStore();
 
   const onAddMoney = () => {
 
@@ -19,7 +20,7 @@ const home = () => {
       <View style={styles.account}>
         {/* the balance and curreency view */}
         <View style={styles.row}>
-          <Text style={styles.balance}>{balance}</Text>
+          <Text style={styles.balance}>{balance()}</Text>
           <Text style={styles.currency}>$</Text>
         </View>
       </View>

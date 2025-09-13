@@ -1,51 +1,59 @@
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { Menu } from 'react-native-paper';
 import RoundButton from './RoundButton';
-import * as DropdownMenu from 'zeego/dropdown-menu';
 
 const Dropdown = () => {
+  const [visible, setVisible] = useState(false);
+
+  const openMenu = () => setVisible(true);
+  const closeMenu = () => setVisible(false);
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger>
-        <RoundButton icon={'ellipsis-horizontal'} text={'More'} />
-      </DropdownMenu.Trigger>
-
-      <DropdownMenu.Content>
-        <DropdownMenu.Item key="statement">
-          <DropdownMenu.ItemTitle>Statement</DropdownMenu.ItemTitle>
-          <DropdownMenu.ItemIcon
-            ios={{
-              name: 'list.bullet.rectangle.fill',
-              pointSize: 24,
-            }}></DropdownMenu.ItemIcon>
-        </DropdownMenu.Item>
-
-        <DropdownMenu.Item key="converter">
-          <DropdownMenu.ItemTitle>Converter</DropdownMenu.ItemTitle>
-          <DropdownMenu.ItemIcon
-            ios={{
-              name: 'coloncurrencysign.arrow.circlepath',
-              pointSize: 24,
-            }}></DropdownMenu.ItemIcon>
-        </DropdownMenu.Item>
-
-        <DropdownMenu.Item key="background">
-          <DropdownMenu.ItemTitle>Background</DropdownMenu.ItemTitle>
-          <DropdownMenu.ItemIcon
-            ios={{
-              name: 'photo.fill',
-              pointSize: 24,
-            }}></DropdownMenu.ItemIcon>
-        </DropdownMenu.Item>
-
-        <DropdownMenu.Item key="account">
-          <DropdownMenu.ItemTitle>Add new account</DropdownMenu.ItemTitle>
-          <DropdownMenu.ItemIcon
-            ios={{
-              name: 'plus.rectangle.on.folder.fill',
-              pointSize: 24,
-            }}></DropdownMenu.ItemIcon>
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <View style={{ flexDirection: 'row' }}>
+      <Menu
+        visible={visible}
+        onDismiss={closeMenu}
+        anchor={
+          <RoundButton
+            icon="ellipsis-horizontal"
+            text="More"
+            onPress={openMenu}
+          />
+        }
+        contentStyle={{ backgroundColor: 'white', borderRadius: 10 }}
+      >
+        <Menu.Item
+          onPress={() => {
+            console.log('Statement');
+            closeMenu();
+          }}
+          title="Statement"
+        />
+        <Menu.Item
+          onPress={() => {
+            console.log('Converter');
+            closeMenu();
+          }}
+          title="Converter"
+        />
+        <Menu.Item
+          onPress={() => {
+            console.log('Background');
+            closeMenu();
+          }}
+          title="Background"
+        />
+        <Menu.Item
+          onPress={() => {
+            console.log('Add new account');
+            closeMenu();
+          }}
+          title="Add new account"
+        />
+      </Menu>
+    </View>
   );
 };
+
 export default Dropdown;

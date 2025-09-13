@@ -2,8 +2,6 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "skipLibCheck": true,        // ✅ Skip type checks inside node_modules
-    "types": [],                 // ✅ Prevents TypeScript from looking for Node-only type defs
     "paths": {
       "@/*": ["./*"]
     }
@@ -11,6 +9,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "global.d.ts",   // ⬅ add this line
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]

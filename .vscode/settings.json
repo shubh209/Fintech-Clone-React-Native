@@ -1,3 +1,37 @@
 {
-    "git.ignoreLimitWarning": true
+  // Ignore node_modules in file watcher (prevents performance + false errors)
+  "files.watcherExclude": {
+    "**/node_modules": true,
+    "**/android": true,
+    "**/ios": true
+  },
+
+  // Hide node_modules, android, and ios from Explorer (optional)
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/android": true,
+    "**/ios": true
+  },
+
+  // Disable Java/Groovy language diagnostics inside node_modules
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/android/**",
+    "**/ios/**"
+  ],
+
+  // Tell VS Code TS server to ignore Gradle/Groovy files
+  "typescript.tsserver.exclude": [
+    "**/node_modules",
+    "**/android",
+    "**/ios"
+  ],
+
+  // Optional: speed up search by ignoring heavy folders
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/android": true,
+    "**/ios": true
+},
+"files.autoSave": "afterDelay"
 }

@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 
 type RoundButtonProps = {
+  icon: typeof Ionicons.defaultProps;
   text: string;
-  icon: ComponentProps<typeof Ionicons>['name'];  // ✅ Fix here
   onPress?: () => void;
 }
 
