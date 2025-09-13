@@ -163,7 +163,7 @@ const IntialLayout = () => {
   );
 }
 
-const RootLayoutNav = () => {
+const Layout = () => {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY!}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -174,4 +174,4 @@ const RootLayoutNav = () => {
   );
 }
 
-export default RootLayoutNav;
+export default Layout;

@@ -12,6 +12,7 @@ import {
 } from 'react-native-confirmation-code-field';
 const CELL_COUNT = 6;
 
+
 const Page = () => {
   const { phone, signin } = useLocalSearchParams<{ phone: string; signin: string }>();
   const [code, setCode] = useState('');

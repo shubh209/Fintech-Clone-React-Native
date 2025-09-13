@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   row:{
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '90%',
   },
   balance:{

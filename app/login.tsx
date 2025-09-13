@@ -37,6 +37,7 @@ const Page = () => {
         const { supportedFirstFactors } = await signIn!.create({
           identifier: fullPhoneNumber,
         });
+
         let firstPhoneFactor: any = null;
         if (supportedFirstFactors) {
           firstPhoneFactor = supportedFirstFactors.find((factor: any) => {
@@ -60,7 +61,8 @@ const Page = () => {
           pathname: '/verify/[phone]',
           params: { phone: fullPhoneNumber, signin: 'true' },
         });
-      } catch (err) {
+      } 
+      catch (err) {
         console.log('error', JSON.stringify(err, null, 2));
         if (isClerkAPIResponseError(err)) {
           if (err.errors[0].code === 'form_identifier_not_found') {
