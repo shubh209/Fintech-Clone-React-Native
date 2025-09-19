@@ -4,12 +4,21 @@ import Colors from '@/constants/Colors';
 import RoundButton from '@/Components/RoundButton';
 import DropDown from '@/Components/DropDown';
 import { useBalanceStore } from '@/Store/balanceStore';
+import { defaultStyles } from '@/constants/Styles';
+import { Ionicons } from '@expo/vector-icons';
+import WidgetList from '@/Components/SortableList/WidgetList';
 
 const home = () => {
   
   const {balance, runTransaction, clearTansactions, transactions} = useBalanceStore();
 
   const onAddMoney = () => {
+    runTransaction({
+        id: Math.random().toString(),
+        amount: Math.floor(Math.random() * 1000) * (Math.random() > 0.5 ? 1 : -1),
+        date: new Date(),
+        title: 'Added Money',
+    });
 
   };
 
@@ -28,10 +37,40 @@ const home = () => {
       {/* the action buttons row */}
       <View style={styles.actionRow}>
         <RoundButton icon={'add'} text={'Add Money'} onPress={onAddMoney}/>
-        <RoundButton icon={'refresh'} text={'Exchange'} />
+        <RoundButton icon={'refresh'} text={'Exchange'} onPress={clearTansactions}/>
         <RoundButton icon={'list'} text={'Details'} onPress={onAddMoney}/>
         <DropDown />
       </View>
+
+
+      {/* the transaction history */}
+      <Text style={defaultStyles.sectionHeader}>Transactions</Text>
+      <View style={styles.transaction}>
+        {transactions.length === 0 && (
+          <Text style={{textAlign: 'center', marginTop: 20, color: Colors.lightGray}}>No Transactions Yet</Text>)  
+        }
+        {
+          // + or -  sign based on the amount
+          transactions.reverse().map((transactions) => (
+            <View key={transactions.id} style={{flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 20}}>
+              <View style={styles.circle}>
+                <Ionicons name={transactions.amount > 0 ? 'add' : 'remove'} size={24} color={Colors.dark}/>
+              </View>
+
+              {/* transaction details */}
+              <View style={{flex: 1}}>  
+                <Text style={{fontSize: 16, fontWeight: '600'}}>{transactions.title}</Text>
+                <Text style={{color: Colors.gray, fontSize: 12}}>{transactions.date.toLocaleDateString()}</Text>
+              </View>
+              <Text>{transactions.amount}$</Text>
+            </View>
+          ))
+        }
+      </View>
+      
+      {/* the widgets section */}
+      <Text style={defaultStyles.sectionHeader}>Widgets</Text>
+      <WidgetList />
     </ScrollView>
   )
 }
@@ -62,4 +101,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 20,
   },
+  transaction:{
+    marginHorizontal: 20,
+    padding: 14,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    gap:20,
+  },
+  circle:{
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: Colors.lightGray,
+  }
 })
