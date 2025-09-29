@@ -162,6 +162,33 @@ const IntialLayout = () => {
               name="(authenticated)/(tabs)" 
               options={{ headerShown: false }} 
             />
+
+            <Stack.Screen 
+              name="(authenticated)/(tabs)/[id]"
+              options={{
+                title: '',
+                headerBackTitle: '',
+                headerShadowVisible: false,
+                headerStyle: {backgroundColor: Colors.background},
+                headerLeft: () => (
+                  <TouchableOpacity onPress={router.back}>
+                    <Ionicons name="arrow-back" size={30} color={Colors.dark} />
+                  </TouchableOpacity>
+                ),
+                headerLargeTitle: true,
+                headerTransparent: true,
+                headerRight: () => (
+                  <View>
+                    <TouchableOpacity>
+                      <Ionicons name='notifications-outline' size={30} color={Colors.dark}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity>
+                      <Ionicons name='star-outline' size={30} color={Colors.dark}/>
+                    </TouchableOpacity>
+                  </View>
+                )
+              }}  
+            />
         </Stack>
 
   );
