@@ -3,12 +3,33 @@ import React from 'react'
 import { Tabs } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
+import { BlurView } from 'expo-blur';
+import CustomHeader from '@/Components/CustomHeader';
 
 const Layout = () => {
   return (
     <Tabs
         screenOptions={{
             tabBarActiveTintColor: Colors.primary,
+            tabBarBackground: () => (
+                <BlurView 
+                    intensity={50}
+                    tint='extraLight'
+                    style={{
+                        flex:1,
+                        backgroundColor: 'rgba(0,0,0,0.05)'
+                    }}
+                />
+            ),
+            tabBarStyle: {
+                backgroundColor: 'transparent',
+                borderTopWidth: 0,
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                elevation: 0,
+            }
         }}
     >
         <Tabs.Screen 
@@ -18,6 +39,8 @@ const Layout = () => {
                 tabBarIcon: ({color, size}) => (
                     <FontAwesome name="registered" size={size} color={color} />
                 ),
+                header: () => <CustomHeader />,
+                headerTransparent: true, 
             }}
         />
 
@@ -48,6 +71,8 @@ const Layout = () => {
                 tabBarIcon: ({color, size}) => (
                     <FontAwesome name="bitcoin" size={size} color={color} />
                 ),
+                header: () => <CustomHeader />,
+                headerTransparent: true, 
             }}
         />
 

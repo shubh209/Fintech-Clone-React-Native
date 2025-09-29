@@ -16,6 +16,9 @@ export {
   ErrorBoundary,
 } from 'expo-router';
 import { Provider as PaperProvider } from "react-native-paper";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -168,10 +171,12 @@ const Layout = () => {
   return (
     <PaperProvider>
       <ClerkProvider tokenCache={tokenCache} publishableKey={CLERK_PUBLISHABLE_KEY!}>
+        <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <StatusBar style="light"/>
             <IntialLayout />
           </GestureHandlerRootView >
+        </QueryClientProvider>
       </ClerkProvider>
     </PaperProvider>
   );
