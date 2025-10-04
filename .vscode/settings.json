@@ -9,8 +9,8 @@
   // Hide node_modules, android, and ios from Explorer (optional)
   "files.exclude": {
     "**/node_modules": true,
-    "**/android": true,
-    "**/ios": true
+    // "**/android": true,
+    // "**/ios": true
   },
 
   // Disable Java/Groovy language diagnostics inside node_modules
@@ -33,5 +33,6 @@
     "**/android": true,
     "**/ios": true
 },
-"files.autoSave": "afterDelay"
+"files.autoSave": "afterDelay",
+"postman.settings.dotenv-detection-notification-visibility": false
 }
