@@ -2,6 +2,7 @@ import Colors from '@/constants/Colors';
 import { defaultStyles } from '@/constants/Styles';
 import { isClerkAPIResponseError, useSignIn, useSignUp } from '@clerk/clerk-expo';
 import { Link, useLocalSearchParams } from 'expo-router';
+import React from 'react';
 import { Fragment, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import {

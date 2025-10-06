@@ -3,6 +3,7 @@ import { defaultStyles } from '@/constants/Styles';
 import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
+import React from 'react';
 import { useState } from 'react';
 import {
   View,

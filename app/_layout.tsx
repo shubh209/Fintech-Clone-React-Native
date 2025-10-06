@@ -17,6 +17,7 @@ export {
 } from 'expo-router';
 import { Provider as PaperProvider } from "react-native-paper";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as React from 'react';
 
 const queryClient = new QueryClient();
 

@@ -13,7 +13,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { animationConfig, COL, getOrder, getPosition, Positions, SIZE } from './Config';
 
 interface ItemProps {
@@ -117,8 +116,8 @@ const Item = ({ children, positions, id, onDragEnd, scrollView, scrollY, editing
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
-      { scale: withSpring(isGestureActive.value ? 1.05 : 1) },
-    ],
+      { scale: withSpring(isGestureActive.value ? 1.05 : 1) }
+    ] as const,
   }));
 
   return (
