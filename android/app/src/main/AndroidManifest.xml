@@ -28,6 +28,7 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="Fintech-Clone-React-Native"/>
         <data android:scheme="exp+fintech-clone-react-native"/>
+        <data android:scheme="fintechclone"/>
       </intent-filter>
     </activity>
   </application>

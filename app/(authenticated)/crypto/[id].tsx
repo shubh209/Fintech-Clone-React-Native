@@ -6,12 +6,17 @@ import { defaultStyles } from '@/constants/Styles';
 import Colors from '@/constants/Colors';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { CartesianChart, Line } from "victory-native";
+import { useFont } from '@shopify/react-native-skia';
+import { format, formatDate } from 'date-fns';
+
 
 const page = () => {
   const { id } = useLocalSearchParams();
   const headerHeight = useHeaderHeight();
   const categories = ['Overview', 'News', 'Orders', 'Transactions'];
   const [activeIndex, setActiveIndex] = useState(0);
+  const font = useFont(require('../../../assets/fonts/SpaceMono-Regular.ttf'), 12); 
 
   const { data } = useQuery({
     queryKey: ['info', id],
@@ -20,6 +25,11 @@ const page = () => {
       return info[+id];
     },
 
+  });
+
+  const { data: tickers } = useQuery({
+    queryKey: ['tickers'],
+    queryFn: async (): Promise<any[]> => fetch(`/api/tickers`).then((res) => res.json()),
   });
   
   return (
@@ -94,16 +104,37 @@ const page = () => {
         )}
         renderItem={({item}) => 
           <>
-              <View style={[defaultStyles.block, { marginTop: 20 }]}>
-                <Text style={styles.subtitle}>Overview</Text>
-                <Text style={{ color: Colors.gray }}>
-                  Bitcoin is a decentralized digital currency, without a central bank or single
-                  administrator, that can be sent from user to user on the peer-to-peer bitcoin
-                  network without the need for intermediaries. Transactions are verified by network
-                  nodes through cryptography and recorded in a public distributed ledger called a
-                  blockchain.
-                </Text>
-              </View>
+            <View style={[defaultStyles.block, {height: 300} ]}>
+              {tickers && (
+                <CartesianChart 
+                  data={tickers} 
+                  xKey="timestamp" 
+                  yKeys={["price"]}
+                  axisOptions={{
+                    font,
+                    tickCount: 5,
+                    labelOffset: {x: -5, y: 0},
+                    labelColor: Colors.gray,
+                    formatXLabel: (v) => `${v} $`,
+                    formatYLabel: (ms) => format(new Date(ms), 'MM/yy')
+                  }}
+                >
+                  {({ points }) => (
+                    <Line points={points.price} color={Colors.primary} strokeWidth={3} />
+                  )}
+                </CartesianChart>
+              )}
+            </View>
+            <View style={[defaultStyles.block, { marginTop: 20 }]}>
+              <Text style={styles.subtitle}>Overview</Text>
+              <Text style={{ color: Colors.gray }}>
+                Bitcoin is a decentralized digital currency, without a central bank or single
+                administrator, that can be sent from user to user on the peer-to-peer bitcoin
+                network without the need for intermediaries. Transactions are verified by network
+                nodes through cryptography and recorded in a public distributed ledger called a
+                blockchain.
+              </Text>
+            </View>
           </>
         }
       />

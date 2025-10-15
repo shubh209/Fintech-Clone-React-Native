@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>Fintech-Clone-React-Native</string>
+          <string>fintechclone</string>
           <string>com.anonymous.FintechCloneReactNative</string>
         </array>
       </dict>
