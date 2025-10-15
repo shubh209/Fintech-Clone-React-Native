@@ -57,7 +57,21 @@ const crypto = () => {
             >
 
             <TouchableOpacity style={{flexDirection: 'row', gap: 16, alignItems:'center' }}>
-              <Image source={{uri: data?.[currency.id].logo }} style={{ width: 40, height: 40}}/>
+              {data?.[currency.id]?.logo ? (
+                  <Image
+                    source={{ uri: data[currency.id].logo }}
+                    style={{ width: 40, height: 40 }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#e0e0e0',
+                    }}
+                  />
+                )}
               {/* Crypto name */}
               <View style={{flex:1, gap:10}}>
                 <Text style={{fontWeight: '600', color: Colors.dark}}>{currency.name}</Text>

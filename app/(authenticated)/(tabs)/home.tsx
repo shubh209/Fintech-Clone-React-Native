@@ -81,7 +81,6 @@ const home = () => {
   )
 }
 
-export default home;
 
 const styles = StyleSheet.create({
   account:{
@@ -121,3 +120,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lightGray,
   }
 })
+
+export default home;

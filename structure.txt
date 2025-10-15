@@ -1,0 +1,60 @@
+.
+├── Components
+│   ├── CustomHeader.tsx
+│   ├── DropDown.tsx
+│   ├── RoundButton.tsx
+│   └── SortableList
+│       ├── Config.tsx
+│       ├── Item.tsx
+│       ├── SortableList.tsx
+│       ├── Tile.tsx
+│       └── WidgetList.tsx
+├── Store
+│   ├── balanceStore.ts
+│   └── mmkv-storage.ts
+├── app
+│   ├── (authenticated)
+│   │   ├── (tabs)
+│   │   │   ├── _layout.tsx
+│   │   │   ├── crypto.tsx
+│   │   │   ├── home.tsx
+│   │   │   ├── invest.tsx
+│   │   │   ├── lifestyle.tsx
+│   │   │   └── transfer.tsx
+│   │   └── crypto
+│   │       └── [id].tsx
+│   ├── _layout.tsx
+│   ├── api
+│   │   ├── info+api.ts
+│   │   ├── listings+api.ts
+│   │   └── tickers+api.ts
+│   ├── help.tsx
+│   ├── index.tsx
+│   ├── login.tsx
+│   ├── signup.tsx
+│   └── verify
+│       └── [phone].tsx
+├── app.json
+├── assets
+│   ├── fonts
+│   │   └── SpaceMono-Regular.ttf
+│   ├── images
+│   │   ├── adaptive-icon.png
+│   │   ├── favicon.png
+│   │   ├── icon.png
+│   │   └── splash-icon.png
+│   └── videos
+│       └── intro.mp4
+├── constants
+│   ├── Colors.ts
+│   └── Styles.ts
+├── expo-env.d.ts
+├── interfaces
+│   └── crypto.ts
+├── package-lock.json
+├── package.json
+├── structure.txt
+├── tsconfig.json
+└── types.d.ts
+
+16 directories, 42 files
