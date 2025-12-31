@@ -2,7 +2,7 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Colors from '@/constants/Colors';
+import Colors from '../../../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getAppIcon, setAppIcon } from 'expo-dynamic-app-icon';
@@ -22,7 +22,7 @@ const ICONS = [
   },
 ];
 
-const account = () => {
+export default function AccountScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName);
@@ -208,5 +208,3 @@ const styles = StyleSheet.create({
     gap: 20,
   },
 });
-
-export default account;

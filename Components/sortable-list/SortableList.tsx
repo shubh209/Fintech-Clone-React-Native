@@ -1,60 +1,67 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useEffect, useMemo } from 'react';
 import Animated, {
   useAnimatedRef,
   useAnimatedScrollHandler,
   useSharedValue,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
-import Item from "./Item";
-import { COL, Positions, SIZE } from "./Config";
+import Item from './Item';
+import { COL, Positions, SIZE } from './Config';
 
 interface ListProps {
   children: ReactElement<{ id: string }>[];
   editing: boolean;
-  onDragEnd: (diff: Positions) => void;
+  onDragEnd: (positions: Positions) => void;
 }
 
 const List = ({ children, editing, onDragEnd }: ListProps) => {
   const scrollY = useSharedValue(0);
   const scrollView = useAnimatedRef<Animated.ScrollView>();
-  const positions = useSharedValue<Positions>(
-    Object.assign(
-      {},
-      ...children.map((child, index) => ({ [child.props.id]: index }))
-    )
+  const positions = useSharedValue<Positions>({});
+
+  useEffect(() => {
+    const initial: Positions = {};
+    children.forEach((child, index) => {
+      initial[child.props.id] = index;
+    });
+    positions.value = initial;
+  }, [children, positions]);
+
+  const contentHeight = useMemo(
+    () => Math.ceil(children.length / COL) * SIZE,
+    [children.length],
   );
+
   const onScroll = useAnimatedScrollHandler({
-    onScroll: ({ contentOffset: { y } }) => {
-      scrollY.value = y;
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
     },
   });
 
   return (
     <Animated.ScrollView
-      onScroll={onScroll}
       ref={scrollView}
-      contentContainerStyle={{
-        height: Math.ceil(children.length / COL) * SIZE,
-      }}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
       bounces={false}
-      scrollEventThrottle={16}
+      contentContainerStyle={{
+        height: contentHeight,
+      }}
     >
-      {children.map((child) => {
-        return (
-          <Item
-            key={child.props.id}
-            positions={positions}
-            id={child.props.id}
-            editing={editing}
-            onDragEnd={onDragEnd}
-            scrollView={scrollView}
-            scrollY={scrollY}
-          >
-            {child}
-          </Item>
-        );
-      })}
+      {children.map((child) => (
+        <Item
+          key={child.props.id}
+          id={child.props.id}
+          positions={positions}
+          editing={editing}
+          onDragEnd={onDragEnd}
+          scrollView={scrollView}
+          scrollY={scrollY}
+        >
+          {child}
+        </Item>
+      ))}
     </Animated.ScrollView>
   );
 };

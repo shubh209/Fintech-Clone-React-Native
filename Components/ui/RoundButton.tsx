@@ -1,15 +1,15 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { ComponentProps } from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 
 type RoundButtonProps = {
-  icon: typeof Ionicons.defaultProps;
+  icon: ComponentProps<typeof Ionicons>['name'];
   text: string;
   onPress?: () => void;
-}
+};
 
-const RoundButton = ({text, icon, onPress}: RoundButtonProps) => {
+const RoundButton = ({ text, icon, onPress }: RoundButtonProps) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.circle}>
@@ -17,10 +17,8 @@ const RoundButton = ({text, icon, onPress}: RoundButtonProps) => {
       </View>
       <Text style={styles.label}>{text}</Text>
     </TouchableOpacity>
-  )
-}
-
-export default RoundButton;
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -41,3 +39,5 @@ const styles = StyleSheet.create({
     color: Colors.dark,
   },
 });
+
+export default RoundButton;

@@ -50,9 +50,9 @@ const Layout = () => {
         }}
       />
       <Tabs.Screen
-        name="transfers"
+        name="transfer"
         options={{
-          title: 'Transfers',
+          title: 'Transfer',
           tabBarIcon: ({ size, color }) => (
             <FontAwesome name="exchange" size={size} color={color} />
           ),

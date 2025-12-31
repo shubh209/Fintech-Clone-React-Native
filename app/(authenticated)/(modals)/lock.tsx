@@ -15,7 +15,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-const lock = () => {
+export default function LockScreen() {
   const { user } = useUser();
   const [firstName, setFirstName] = useState(user?.firstName);
   const [code, setCode] = useState<number[]>([]);
@@ -171,4 +171,3 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
 });
-export default lock;
