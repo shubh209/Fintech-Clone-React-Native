@@ -1,22 +1,45 @@
-import { Image, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import { Stack, useLocalSearchParams } from 'expo-router';
+import {
+  View,
+  Text,
+  SectionList,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { Stack, useLocalSearchParams } from 'expo-router'
 import { defaultStyles } from '@/constants/Styles';
 import Colors from '@/constants/Colors';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
-import { CartesianChart, Line } from "victory-native";
-import { useFont } from '@shopify/react-native-skia';
-import { format, formatDate } from 'date-fns';
+import { useEffect, useState } from 'react';
+const categories = ['Overview', 'News', 'Orders', 'Transactions'];
+import { CartesianChart, Line, useChartPressState } from 'victory-native';
+import { Circle, useFont } from '@shopify/react-native-skia';
+import { format } from 'date-fns';
+import * as Haptics from 'expo-haptics';
+import Animated, { SharedValue, useAnimatedProps } from 'react-native-reanimated';
 
+Animated.addWhitelistedNativeProps({ text: true });
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-const page = () => {
+function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
+  return <Circle cx={x} cy={y} r={8} color={Colors.primary} />;
+}
+
+const Page = () => {
   const { id } = useLocalSearchParams();
   const headerHeight = useHeaderHeight();
-  const categories = ['Overview', 'News', 'Orders', 'Transactions'];
   const [activeIndex, setActiveIndex] = useState(0);
-  const font = useFont(require('../../../assets/fonts/SpaceMono-Regular.ttf'), 12); 
+  const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12);
+  const { state, isActive } = useChartPressState({ x: 0, y: { price: 0 } });
+
+  useEffect(() => {
+    console.log(isActive);
+    if (isActive) Haptics.selectionAsync();
+  }, [isActive]);
 
   const { data } = useQuery({
     queryKey: ['info', id],
@@ -24,44 +47,58 @@ const page = () => {
       const info = await fetch(`/api/info?ids=${id}`).then((res) => res.json());
       return info[+id];
     },
-
   });
 
   const { data: tickers } = useQuery({
     queryKey: ['tickers'],
     queryFn: async (): Promise<any[]> => fetch(`/api/tickers`).then((res) => res.json()),
   });
-  
+
+  const animatedText = useAnimatedProps(() => {
+    return {
+      text: `${state.y.price.value.value.toFixed(2)} €`,
+      defaultValue: '',
+    };
+  });
+
+  const animatedDateText = useAnimatedProps(() => {
+    const date = new Date(state.x.value.value);
+    return {
+      text: `${date.toLocaleDateString()}`,
+      defaultValue: '',
+    };
+  });
+
   return (
     <>
       <Stack.Screen options={{ title: data?.name }} />
       <SectionList
-        style={{ paddingTop: headerHeight }}
-        contentInsetAdjustmentBehavior='automatic'
+        style={{ marginTop: headerHeight }}
+        contentInsetAdjustmentBehavior="automatic"
+        // scrollEnabled={true}
         keyExtractor={(i) => i.title}
-        sections={[{data: [{title:'Chart'}] }]}
+        sections={[{ data: [{ title: 'Chart' }] }]}
         renderSectionHeader={() => (
-          <ScrollView 
-            horizontal={true} 
+          <ScrollView
+            horizontal={true}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               alignItems: 'center',
-              justifyContent: 'space-between',
               width: '100%',
-              paddingHorizontal: 15,
-              paddingBottom: 6,
+              justifyContent: 'space-between',
+              paddingHorizontal: 16,
+              paddingBottom: 8,
               backgroundColor: Colors.background,
               borderBottomColor: Colors.lightGray,
               borderBottomWidth: StyleSheet.hairlineWidth,
-            }}
-          >
-            {categories.map((item, index)=> (
+            }}>
+            {categories.map((item, index) => (
               <TouchableOpacity
                 key={index}
-                style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}
                 onPress={() => setActiveIndex(index)}
-              >
-                <Text style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
+                style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}>
+                <Text
+                  style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
                   {item}
                 </Text>
               </TouchableOpacity>
@@ -75,11 +112,10 @@ const page = () => {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginHorizontal: 16
-              }}
-            >
+                marginHorizontal: 16,
+              }}>
               <Text style={styles.subtitle}>{data?.symbol}</Text>
-              <Image source={{uri: data?.logo}} style={{width:50, height: 50}} />
+              <Image source={{ uri: data?.logo }} style={{ width: 60, height: 60 }} />
             </View>
 
             <View style={{ flexDirection: 'row', gap: 10, margin: 12 }}>
@@ -102,27 +138,54 @@ const page = () => {
             </View>
           </>
         )}
-        renderItem={({item}) => 
+        renderItem={({ item }) => (
           <>
-            <View style={[defaultStyles.block, {height: 300} ]}>
+            <View style={[defaultStyles.block, { height: 500 }]}>
               {tickers && (
-                <CartesianChart 
-                  data={tickers} 
-                  xKey="timestamp" 
-                  yKeys={["price"]}
-                  axisOptions={{
-                    font,
-                    tickCount: 5,
-                    labelOffset: {x: -5, y: 0},
-                    labelColor: Colors.gray,
-                    formatXLabel: (v) => `${v} $`,
-                    formatYLabel: (ms) => format(new Date(ms), 'MM/yy')
-                  }}
-                >
-                  {({ points }) => (
-                    <Line points={points.price} color={Colors.primary} strokeWidth={3} />
+                <>
+                  {!isActive && (
+                    <View>
+                      <Text style={{ fontSize: 30, fontWeight: 'bold', color: Colors.dark }}>
+                        {tickers[tickers.length - 1].price.toFixed(2)} €
+                      </Text>
+                      <Text style={{ fontSize: 18, color: Colors.gray }}>Today</Text>
+                    </View>
                   )}
-                </CartesianChart>
+                  {isActive && (
+                    <View>
+                      <AnimatedTextInput
+                        editable={false}
+                        underlineColorAndroid={'transparent'}
+                        style={{ fontSize: 30, fontWeight: 'bold', color: Colors.dark }}
+                        animatedProps={animatedText}></AnimatedTextInput>
+                      <AnimatedTextInput
+                        editable={false}
+                        underlineColorAndroid={'transparent'}
+                        style={{ fontSize: 18, color: Colors.gray }}
+                        animatedProps={animatedDateText}></AnimatedTextInput>
+                    </View>
+                  )}
+                  <CartesianChart
+                    chartPressState={state}
+                    axisOptions={{
+                      font,
+                      tickCount: 5,
+                      labelOffset: { x: -2, y: 0 },
+                      labelColor: Colors.gray,
+                      formatYLabel: (v) => `${v} €`,
+                      formatXLabel: (ms) => format(new Date(ms), 'MM/yy'),
+                    }}
+                    data={tickers!}
+                    xKey="timestamp"
+                    yKeys={['price']}>
+                    {({ points }) => (
+                      <>
+                        <Line points={points.price} color={Colors.primary} strokeWidth={3} />
+                        {isActive && <ToolTip x={state.x.position} y={state.y.price.position} />}
+                      </>
+                    )}
+                  </CartesianChart>
+                </>
               )}
             </View>
             <View style={[defaultStyles.block, { marginTop: 20 }]}>
@@ -136,12 +199,10 @@ const page = () => {
               </Text>
             </View>
           </>
-        }
-      />
+        )}></SectionList>
     </>
-  )
-}
-
+  );
+};
 const styles = StyleSheet.create({
   subtitle: {
     fontSize: 20,
@@ -167,11 +228,11 @@ const styles = StyleSheet.create({
   categoriesBtnActive: {
     padding: 10,
     paddingHorizontal: 14,
+
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
     borderRadius: 20,
   },
 });
-
-export default page;
+export default Page;
