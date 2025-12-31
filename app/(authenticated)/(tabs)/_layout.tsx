@@ -2,7 +2,7 @@ import Colors from '@/constants/Colors';
 import { FontAwesome } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import CustomHeader from '@/Components/CustomHeader';
+import CustomHeader from '@/Components/layout/CustomHeader';
 
 const Layout = () => {
   return (

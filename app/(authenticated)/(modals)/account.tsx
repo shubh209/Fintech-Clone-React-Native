@@ -10,19 +10,19 @@ import { getAppIcon, setAppIcon } from 'expo-dynamic-app-icon';
 const ICONS = [
   {
     name: 'Default',
-    icon: require('@/assets/images/icon.png'),
+    icon: require('../../../assets/images/icon.png'),
   },
   {
     name: 'Dark',
-    icon: require('@/assets/images/icon-dark.png'),
+    icon: require('../../../assets/images/icon-dark.png'),
   },
   {
     name: 'Vivid',
-    icon: require('@/assets/images/icon-vivid.png'),
+    icon: require('../../../assets/images/icon-vivid.png'),
   },
 ];
 
-const Page = () => {
+const account = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
   const [firstName, setFirstName] = useState(user?.firstName);
@@ -208,4 +208,5 @@ const styles = StyleSheet.create({
     gap: 20,
   },
 });
-export default Page;
+
+export default account;

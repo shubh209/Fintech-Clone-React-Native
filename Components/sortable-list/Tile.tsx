@@ -2,7 +2,7 @@
 import React from "react";
 import { StyleSheet, View, Text } from "react-native";
 import { MARGIN, SIZE } from "./Config";
-import { useBalanceStore } from "@/Store/balanceStore";
+import { useBalanceStore } from "@/Store/balance/balanceStore";
 import Colors from "@/constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 

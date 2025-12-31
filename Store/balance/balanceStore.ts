@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { zustandStorage } from "./mmkv-storage";
+import { zustandStorage } from "../storage/mmkv-storage";
 
 // This file defines a Zustand store for managing user transactions and balance in the app.
 // - Uses Zustand's persist middleware with MMKV storage to ensure all transaction data is saved to device storage and restored on app restart.

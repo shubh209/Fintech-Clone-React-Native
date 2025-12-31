@@ -1,12 +1,12 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Colors from '@/constants/Colors';
-import RoundButton from '@/Components/RoundButton';
-import DropDown from '@/Components/DropDown';
-import { useBalanceStore } from '@/Store/balanceStore';
+import RoundButton from '@/Components/ui/RoundButton';
+import DropDown from '@/Components/ui/DropDown';
+import { useBalanceStore } from '@/Store/balance/balanceStore';
 import { defaultStyles } from '@/constants/Styles';
 import { Ionicons } from '@expo/vector-icons';
-import WidgetList from '@/Components/SortableList/WidgetList';
+import WidgetList from '@/Components/sortable-list/WidgetList';
 import { useHeaderHeight } from '@react-navigation/elements';
 
 const home = () => {
