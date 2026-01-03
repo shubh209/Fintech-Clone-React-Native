@@ -12,6 +12,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Colors from '../constants/Colors';
 import { UserInactivityProvider } from '../context/UserInactivity';
+import { Provider as PaperProvider } from 'react-native-paper';
+
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -195,13 +197,16 @@ export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
-        <UserInactivityProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar style="light" />
-            <InitialLayout />
-          </GestureHandlerRootView>
-        </UserInactivityProvider>
+        <PaperProvider>
+          <UserInactivityProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <StatusBar style="light" />
+              <InitialLayout />
+            </GestureHandlerRootView>
+          </UserInactivityProvider>
+        </PaperProvider>
       </QueryClientProvider>
     </ClerkProvider>
+
   );
 }

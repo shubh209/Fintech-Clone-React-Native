@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { defaultStyles } from '@/constants/Styles';
@@ -15,7 +16,6 @@ import Colors from '@/constants/Colors';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-const categories = ['Overview', 'News', 'Orders', 'Transactions'];
 import { CartesianChart, Line, useChartPressState } from 'victory-native';
 import { Circle, useFont } from '@shopify/react-native-skia';
 import { format } from 'date-fns';
@@ -25,80 +25,129 @@ import Animated, { SharedValue, useAnimatedProps } from 'react-native-reanimated
 Animated.addWhitelistedNativeProps({ text: true });
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
+const categories = ['Overview', 'News', 'Orders', 'Transactions'];
+
+type TickerPoint = {
+  timestamp: number;
+  price: number;
+};
+
+type CryptoInfo = {
+  id: number;
+  name: string;
+  symbol: string;
+  logo: string;
+};
+
+function ToolTip({
+  x,
+  y,
+}: {
+  x: SharedValue<number>;
+  y: SharedValue<number>;
+}) {
   return <Circle cx={x} cy={y} r={8} color={Colors.primary} />;
 }
 
-const Page = () => {
-  const { id } = useLocalSearchParams();
+const CryptoDetailScreen = () => {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const headerHeight = useHeaderHeight();
   const [activeIndex, setActiveIndex] = useState(0);
+
   const font = useFont(require('@/assets/fonts/SpaceMono-Regular.ttf'), 12);
-  const { state, isActive } = useChartPressState({ x: 0, y: { price: 0 } });
+
+  // ⚠️ DO NOT OVER-TYPE THIS — victory-native typings are wrong
+  const chartPress = useChartPressState({
+    x: 0,
+    y: { price: 0 },
+  }) as any;
+
+  const { state, isActive } = chartPress;
 
   useEffect(() => {
-    console.log(isActive);
-    if (isActive) Haptics.selectionAsync();
+    if (isActive) {
+      Haptics.selectionAsync();
+    }
   }, [isActive]);
 
-  const { data } = useQuery({
+  const infoQuery = useQuery<CryptoInfo>({
     queryKey: ['info', id],
+    enabled: !!id,
     queryFn: async () => {
-      const info = await fetch(`/api/info?ids=${id}`).then((res) => res.json());
-      return info[+id];
+      if (!id) throw new Error('Missing id');
+      const res = await fetch(`/api/info?ids=${id}`);
+      if (!res.ok) throw new Error('Failed to fetch info');
+      const data = await res.json();
+      return data[id];
     },
   });
 
-  const { data: tickers } = useQuery({
-    queryKey: ['tickers'],
-    queryFn: async (): Promise<any[]> => fetch(`/api/tickers`).then((res) => res.json()),
+  const tickersQuery = useQuery<TickerPoint[]>({
+    queryKey: ['tickers', id],
+    enabled: !!id,
+    queryFn: async () => {
+      const res = await fetch('/api/tickers');
+      if (!res.ok) throw new Error('Failed to fetch tickers');
+      return res.json();
+    },
   });
 
-  const animatedText = useAnimatedProps(() => {
-    return {
-      text: `${state.y.price.value.value.toFixed(2)} €`,
-      defaultValue: '',
-    };
-  });
+  if (infoQuery.isLoading || tickersQuery.isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
-  const animatedDateText = useAnimatedProps(() => {
+  if (infoQuery.isError || tickersQuery.isError || !infoQuery.data) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ color: Colors.gray }}>Failed to load crypto data.</Text>
+      </View>
+    );
+  }
+
+  const info = infoQuery.data;
+  const tickers = tickersQuery.data ?? [];
+
+  const animatedPrice = useAnimatedProps(() => ({
+    text: `${state.y.price.value.value.toFixed(2)} €`,
+    defaultValue: '',
+  }));
+
+  const animatedDate = useAnimatedProps(() => {
     const date = new Date(state.x.value.value);
-    return {
-      text: `${date.toLocaleDateString()}`,
-      defaultValue: '',
-    };
+    return { text: date.toLocaleDateString(), defaultValue: '' };
   });
 
   return (
     <>
-      <Stack.Screen options={{ title: data?.name }} />
+      <Stack.Screen options={{ title: info.name }} />
+
       <SectionList
         style={{ marginTop: headerHeight }}
-        contentInsetAdjustmentBehavior="automatic"
-        // scrollEnabled={true}
-        keyExtractor={(i) => i.title}
+        keyExtractor={(item) => item.title}
         sections={[{ data: [{ title: 'Chart' }] }]}
         renderSectionHeader={() => (
-          <ScrollView
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              alignItems: 'center',
-              width: '100%',
-              justifyContent: 'space-between',
-              paddingHorizontal: 16,
-              paddingBottom: 8,
-              backgroundColor: Colors.background,
-              borderBottomColor: Colors.lightGray,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-            }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {categories.map((item, index) => (
               <TouchableOpacity
-                key={index}
+                key={item}
                 onPress={() => setActiveIndex(index)}
-                style={activeIndex === index ? styles.categoriesBtnActive : styles.categoriesBtn}>
+                style={
+                  activeIndex === index
+                    ? styles.categoriesBtnActive
+                    : styles.categoriesBtn
+                }
+              >
                 <Text
-                  style={activeIndex === index ? styles.categoryTextActive : styles.categoryText}>
+                  style={
+                    activeIndex === index
+                      ? styles.categoryTextActive
+                      : styles.categoryText
+                  }
+                >
                   {item}
                 </Text>
               </TouchableOpacity>
@@ -106,109 +155,108 @@ const Page = () => {
           </ScrollView>
         )}
         ListHeaderComponent={() => (
-          <>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginHorizontal: 16,
-              }}>
-              <Text style={styles.subtitle}>{data?.symbol}</Text>
-              <Image source={{ uri: data?.logo }} style={{ width: 60, height: 60 }} />
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: 10, margin: 12 }}>
-              <TouchableOpacity
-                style={[
-                  defaultStyles.pillButtonSmall,
-                  { backgroundColor: Colors.primary, flexDirection: 'row', gap: 16 },
-                ]}>
-                <Ionicons name="add" size={24} color={'#fff'} />
-                <Text style={[defaultStyles.buttonText, { color: '#fff' }]}>Buy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  defaultStyles.pillButtonSmall,
-                  { backgroundColor: Colors.primaryMuted, flexDirection: 'row', gap: 16 },
-                ]}>
-                <Ionicons name="arrow-back" size={24} color={Colors.primary} />
-                <Text style={[defaultStyles.buttonText, { color: Colors.primary }]}>Receive</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+          <View style={styles.header}>
+            <Text style={styles.subtitle}>{info.symbol}</Text>
+            <Image source={{ uri: info.logo }} style={{ width: 60, height: 60 }} />
+          </View>
         )}
-        renderItem={({ item }) => (
-          <>
-            <View style={[defaultStyles.block, { height: 500 }]}>
-              {tickers && (
-                <>
-                  {!isActive && (
-                    <View>
-                      <Text style={{ fontSize: 30, fontWeight: 'bold', color: Colors.dark }}>
-                        {tickers[tickers.length - 1].price.toFixed(2)} €
-                      </Text>
-                      <Text style={{ fontSize: 18, color: Colors.gray }}>Today</Text>
-                    </View>
+        renderItem={() => (
+          <View style={[defaultStyles.block, { height: 500 }]}>
+            {tickers.length > 0 && (
+              <>
+                {!isActive ? (
+                  <View>
+                    <Text style={styles.price}>
+                      {tickers[tickers.length - 1].price.toFixed(2)} €
+                    </Text>
+                    <Text style={styles.gray}>Today</Text>
+                  </View>
+                ) : (
+                  <View>
+                    <AnimatedTextInput
+                      editable={false}
+                      style={styles.price}
+                      animatedProps={animatedPrice}
+                    />
+                    <AnimatedTextInput
+                      editable={false}
+                      style={styles.gray}
+                      animatedProps={animatedDate}
+                    />
+                  </View>
+                )}
+
+                <CartesianChart
+                  chartPressState={state}
+                  data={tickers}
+                  xKey="timestamp"
+                  yKeys={['price']}
+                  axisOptions={{
+                    font,
+                    tickCount: 5,
+                    labelColor: Colors.gray,
+                    formatYLabel: (v) => `${v} €`,
+                    formatXLabel: (ms) => format(new Date(ms), 'MM/yy'),
+                  }}
+                >
+                  {({ points }: any) => (
+                    <>
+                      <Line
+                        points={points.price}
+                        color={Colors.primary}
+                        strokeWidth={3}
+                      />
+                      {isActive && (
+                        <ToolTip
+                          x={state.x.position}
+                          y={state.y.price.position}
+                        />
+                      )}
+                    </>
                   )}
-                  {isActive && (
-                    <View>
-                      <AnimatedTextInput
-                        editable={false}
-                        underlineColorAndroid={'transparent'}
-                        style={{ fontSize: 30, fontWeight: 'bold', color: Colors.dark }}
-                        animatedProps={animatedText}></AnimatedTextInput>
-                      <AnimatedTextInput
-                        editable={false}
-                        underlineColorAndroid={'transparent'}
-                        style={{ fontSize: 18, color: Colors.gray }}
-                        animatedProps={animatedDateText}></AnimatedTextInput>
-                    </View>
-                  )}
-                  <CartesianChart
-                    chartPressState={state}
-                    axisOptions={{
-                      font,
-                      tickCount: 5,
-                      labelOffset: { x: -2, y: 0 },
-                      labelColor: Colors.gray,
-                      formatYLabel: (v) => `${v} €`,
-                      formatXLabel: (ms) => format(new Date(ms), 'MM/yy'),
-                    }}
-                    data={tickers!}
-                    xKey="timestamp"
-                    yKeys={['price']}>
-                    {({ points }) => (
-                      <>
-                        <Line points={points.price} color={Colors.primary} strokeWidth={3} />
-                        {isActive && <ToolTip x={state.x.position} y={state.y.price.position} />}
-                      </>
-                    )}
-                  </CartesianChart>
-                </>
-              )}
-            </View>
-            <View style={[defaultStyles.block, { marginTop: 20 }]}>
-              <Text style={styles.subtitle}>Overview</Text>
-              <Text style={{ color: Colors.gray }}>
-                Bitcoin is a decentralized digital currency, without a central bank or single
-                administrator, that can be sent from user to user on the peer-to-peer bitcoin
-                network without the need for intermediaries. Transactions are verified by network
-                nodes through cryptography and recorded in a public distributed ledger called a
-                blockchain.
-              </Text>
-            </View>
-          </>
-        )}></SectionList>
+                </CartesianChart>
+              </>
+            )}
+          </View>
+        )}
+      />
     </>
   );
 };
+
 const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    margin: 16,
+  },
   subtitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
     color: Colors.gray,
+  },
+  price: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: Colors.dark,
+  },
+  gray: {
+    fontSize: 18,
+    color: Colors.gray,
+  },
+  categoriesBtn: {
+    padding: 10,
+    borderRadius: 20,
+  },
+  categoriesBtnActive: {
+    padding: 10,
+    borderRadius: 20,
+    backgroundColor: '#fff',
   },
   categoryText: {
     fontSize: 14,
@@ -218,21 +266,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
   },
-  categoriesBtn: {
-    padding: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-  },
-  categoriesBtnActive: {
-    padding: 10,
-    paddingHorizontal: 14,
-
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 20,
-  },
 });
-export default Page;
+
+export default CryptoDetailScreen;

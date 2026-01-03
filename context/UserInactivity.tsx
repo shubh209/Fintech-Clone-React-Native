@@ -8,9 +8,7 @@ let storage: MMKV | null = null;
 
 function getStorage() {
   if (!storage) {
-    storage = new MMKV({
-      id: 'inactivity-storage',
-    });
+    storage = new MMKV({ id: 'inactivity-storage' });
   }
   return storage;
 }
@@ -21,18 +19,19 @@ export function UserInactivityProvider({ children }: { children: React.ReactNode
   const { isSignedIn } = useAuth();
 
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => subscription.remove();
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => sub.remove();
   }, [isSignedIn]);
 
-  const handleAppStateChange = (nextAppState: AppStateStatus) => {
+  const handleAppStateChange = (nextState: AppStateStatus) => {
+    // MMKV is only touched here, on actual state change
     const storage = getStorage();
 
-    if (nextAppState === 'background') {
+    if (nextState === 'background') {
       storage.set('startTime', Date.now());
     }
 
-    if (nextAppState === 'active' && appState.current === 'background') {
+    if (nextState === 'active' && appState.current === 'background') {
       const elapsed = Date.now() - (storage.getNumber('startTime') ?? 0);
 
       if (elapsed > 3000 && isSignedIn) {
@@ -40,7 +39,7 @@ export function UserInactivityProvider({ children }: { children: React.ReactNode
       }
     }
 
-    appState.current = nextAppState;
+    appState.current = nextState;
   };
 
   return <>{children}</>;

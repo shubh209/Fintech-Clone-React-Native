@@ -12,29 +12,28 @@
 import { StateStorage } from 'zustand/middleware';
 import { MMKV } from 'react-native-mmkv';
 
-let storage: MMKV | null = null;
+let instance: MMKV | null = null;
 
 export function getMMKV() {
-  if (!storage) {
-    storage = new MMKV({
-      id: 'balance-storage',
-    });
+  if (!instance) {
+    instance = new MMKV({ id: 'app-storage' });
   }
-  return storage;
+  return instance;
 }
 
-export const zustandStorage: StateStorage = {
-  setItem: (name, value) => {
-    const storage = getMMKV(); // ✅ ensure initialized
-    storage.set(name, value);
+
+export const zustandStorage = {
+  getItem: (key: string) => {
+    const storage = getMMKV();
+    const value = storage.getString(key);
+    return value ? JSON.parse(value) : null;
   },
-  getItem: (name) => {
-    const storage = getMMKV(); // ✅ ensure initialized
-    const value = storage.getString(name);
-    return value ?? null;
+  setItem: (key: string, value: any) => {
+    const storage = getMMKV();
+    storage.set(key, JSON.stringify(value));
   },
-  removeItem: (name) => {
-    const storage = getMMKV(); // ✅ ensure initialized
-    storage.delete(name);
+  removeItem: (key: string) => {
+    const storage = getMMKV();
+    storage.delete(key);
   },
 };
