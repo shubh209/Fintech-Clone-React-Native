@@ -20,7 +20,7 @@
 - Then inspect `app/api/listings+api.ts`, `app/api/info+api.ts`, and `app/api/tickers+api.ts`.
 - Confirm whether fetch behavior is expected to work on native, web, or both before changing transport code.
 - Listings and info use live CoinMarketCap data when `CRYPTO_API_KEY` is present, then fall back to local data.
-- Historical tickers use a rolling 365-day CoinPaprika daily window when available and fall back to local BTC data.
+- Historical tickers currently return local BTC data immediately to avoid slow crypto detail-screen loads.
 - Keep hooks above early returns in `app/(authenticated)/crypto/[id].tsx`.
 - Normalize ticker data through `utils/tickers.ts` before chart rendering.
 

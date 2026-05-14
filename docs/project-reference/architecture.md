@@ -27,7 +27,7 @@
   - `app/api/info+api.ts`
   - `app/api/tickers+api.ts`
 - Listings and info routes use live CoinMarketCap responses when the upstream request succeeds and fall back to static local data.
-- The ticker route uses live CoinPaprika historical data for a rolling 365-day daily window when the upstream request succeeds and falls back to static local data.
+- The ticker route currently returns static local BTC historical data immediately to keep the detail chart fast and stable.
 
 ## Metrics
 

@@ -7,7 +7,7 @@ If crypto screens fail to load:
 1. Check whether the app is relying on local Expo Router API routes or should call an external endpoint directly.
 2. Inspect `app/api/listings+api.ts`, `app/api/info+api.ts`, and `app/api/tickers+api.ts`.
 3. Confirm whether `CRYPTO_API_KEY` is configured. Listings and info use live CoinMarketCap data only when the key is present and the upstream request succeeds.
-4. Remember that `app/api/tickers+api.ts` is BTC-specific and uses a rolling 365-day daily CoinPaprika window before falling back to local historical data.
+4. Remember that `app/api/tickers+api.ts` is BTC-specific and currently returns local historical data immediately.
 5. For production native builds, choose a real Expo Router server origin before relying on `/api/...` routes.
 
 If the crypto detail screen reports a hook-order error:

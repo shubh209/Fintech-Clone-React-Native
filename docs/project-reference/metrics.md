@@ -57,11 +57,8 @@ Each event has:
   - Measures the server route call to CoinMarketCap metadata.
 - `crypto.api.info.fallback`
   - Records local metadata fallback use.
-- `crypto.api.tickers.upstream`
-  - Measures the server route call to CoinPaprika historical tickers.
-  - Metadata: `provider`, `asset`, `startDate`.
-- `crypto.api.tickers.fallback`
-  - Records local ticker fallback use.
+- `crypto.api.tickers.local`
+  - Records immediate local ticker data use.
 
 ### Auth
 

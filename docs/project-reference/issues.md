@@ -64,12 +64,12 @@
 - Fix: `utils/tickers.ts` normalizes API ticker points to `{ timestamp: number, price: number }` before chart rendering.
 - Verification: `utils/tickers.test.ts`.
 
-### 9. CoinPaprika historical ticker request used a stale fixed start date
+### 9. Crypto detail tickers waited on an unreliable CoinPaprika historical request
 
 - Status: Fixed
 - Severity: Medium
-- Symptom: `/api/tickers` requested historical data from `2024-01-01`, which can fall outside free-plan historical limits over time.
-- Fix: The route now uses a rolling 365-day daily window.
+- Symptom: `/api/tickers` could spend hundreds of milliseconds waiting on CoinPaprika and then fall back to local data anyway.
+- Fix: The route now returns local BTC historical data immediately.
 - Verification: `__tests__/api/tickers-api.test.ts`.
 
 ### 10. `app.json` contained a sample Expo Router `origin` value

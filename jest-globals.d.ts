@@ -6,6 +6,7 @@ declare function afterEach(fn: () => void): void;
 declare function expect<T>(value: T): {
   any(constructor: unknown): unknown;
   not: {
+    toHaveBeenCalled(): void;
     toThrow(): void;
   };
   toBe(expected: unknown): void;

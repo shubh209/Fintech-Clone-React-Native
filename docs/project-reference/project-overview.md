@@ -24,6 +24,6 @@
 
 - Crypto data currently depends on local `app/api/*+api.ts` handlers.
 - Listings and info endpoints now use live CoinMarketCap data when `CRYPTO_API_KEY` is configured and fall back to local data otherwise.
-- Historical ticker data is fetched from CoinPaprika when available and falls back to local/static data.
+- Historical ticker data currently uses local/static BTC data to keep the crypto detail screen fast and stable.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - The README is generic, so these reference docs are a more reliable map of the project.
