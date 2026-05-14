@@ -2,16 +2,8 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { MMKV } from 'react-native-mmkv';
-
-let storage: MMKV | null = null;
-
-function getStorage() {
-  if (!storage) {
-    storage = new MMKV({ id: 'inactivity-storage' });
-  }
-  return storage;
-}
+import { recordMetric } from '@/utils/metrics';
+import { getInactivityStorage } from './userInactivityStorage';
 
 export function UserInactivityProvider({ children }: { children: React.ReactNode }) {
   const appState = useRef<AppStateStatus>(AppState.currentState);
@@ -25,7 +17,7 @@ export function UserInactivityProvider({ children }: { children: React.ReactNode
 
   const handleAppStateChange = (nextState: AppStateStatus) => {
     // MMKV is only touched here, on actual state change
-    const storage = getStorage();
+    const storage = getInactivityStorage();
 
     if (nextState === 'background') {
       storage.set('startTime', Date.now());
@@ -35,6 +27,12 @@ export function UserInactivityProvider({ children }: { children: React.ReactNode
       const elapsed = Date.now() - (storage.getNumber('startTime') ?? 0);
 
       if (elapsed > 3000 && isSignedIn) {
+        recordMetric({
+          name: 'security.inactivity_lock.triggered',
+          durationMs: 0,
+          status: 'success',
+          metadata: { elapsedMs: elapsed },
+        });
         router.replace('/(authenticated)/(modals)/lock');
       }
     }

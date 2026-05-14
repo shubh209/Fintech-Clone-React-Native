@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { timeAsync } from '@/utils/metrics';
 const Page = () => {
   const [countryCode, setCountryCode] = useState('+1');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -24,10 +25,12 @@ const Page = () => {
     const fullPhoneNumber = `${countryCode}${phoneNumber}`;
 
     try {
-      await signUp!.create({
-        phoneNumber: fullPhoneNumber,
+      await timeAsync('auth.sign_up.phone.prepare', async () => {
+        await signUp!.create({
+          phoneNumber: fullPhoneNumber,
+        });
+        await signUp!.preparePhoneNumberVerification();
       });
-      signUp!.preparePhoneNumberVerification();
 
       router.push({ pathname: '/verify/[phone]', params: { phone: fullPhoneNumber } });
     } catch (error) {

@@ -11,6 +11,7 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
+import { timeAsync } from '@/utils/metrics';
 const CELL_COUNT = 6;
 
 
@@ -38,10 +39,12 @@ const Page = () => {
 
   const verifyCode = async () => {
     try {
-      await signUp!.attemptPhoneNumberVerification({
-        code,
+      await timeAsync('auth.sign_up.phone.verify', async () => {
+        await signUp!.attemptPhoneNumberVerification({
+          code,
+        });
+        await setActive!({ session: signUp!.createdSessionId });
       });
-      await setActive!({ session: signUp!.createdSessionId });
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
       if (isClerkAPIResponseError(err)) {
@@ -52,11 +55,13 @@ const Page = () => {
 
   const verifySignIn = async () => {
     try {
-      await signIn!.attemptFirstFactor({
-        strategy: 'phone_code',
-        code,
+      await timeAsync('auth.sign_in.phone.verify', async () => {
+        await signIn!.attemptFirstFactor({
+          strategy: 'phone_code',
+          code,
+        });
+        await setActive!({ session: signIn!.createdSessionId });
       });
-      await setActive!({ session: signIn!.createdSessionId });
     } catch (err) {
       console.log('error', JSON.stringify(err, null, 2));
       if (isClerkAPIResponseError(err)) {

@@ -1,20 +1,50 @@
-const API_KEY = process.env.CRYPTO_API_KEY;
+import { recordMetric, timeAsync } from "@/utils/metrics";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const limit = url.searchParams.get("limit") || 5;
+  const apiKey = process.env.CRYPTO_API_KEY;
 
-  const response = await fetch(
-    `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${limit}&convert=EUR`,
-    {
-      headers: {
-        "X-CMC_PRO_API_KEY": API_KEY!,
-      },
+  if (apiKey) {
+    try {
+      const response = await timeAsync(
+        'crypto.api.listings.upstream',
+        async () => {
+          const response = await fetch(
+            `https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest?start=1&limit=${limit}&convert=EUR`,
+            {
+              headers: {
+                "X-CMC_PRO_API_KEY": apiKey,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`CoinMarketCap listings request failed: ${response.status}`);
+          }
+
+          return response;
+        },
+        { limit: Number(limit), provider: 'coinmarketcap' }
+      );
+
+      const res = await response.json();
+
+      if (Array.isArray(res.data)) {
+        return Response.json(res.data);
+      }
+    } catch {
+      // Fall through to local data so the UI still works offline or without keys.
     }
-  );
+  }
 
-  const res = await response.json();
-  // return Response.json(res.data);
+  recordMetric({
+    name: 'crypto.api.listings.fallback',
+    durationMs: 0,
+    status: 'success',
+    metadata: { limit: Number(limit), source: 'local' },
+  });
+
   return Response.json(data);
 }
 

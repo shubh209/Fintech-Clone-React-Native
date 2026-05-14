@@ -15,6 +15,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { timeAsync } from '@/utils/metrics';
 
 enum SignInType {
   Phone,
@@ -35,27 +36,29 @@ const Page = () => {
       try {
         const fullPhoneNumber = `${countryCode}${phoneNumber}`;
 
-        const { supportedFirstFactors } = await signIn!.create({
-          identifier: fullPhoneNumber,
-        });
-
-        let firstPhoneFactor: any = null;
-        if (supportedFirstFactors) {
-          firstPhoneFactor = supportedFirstFactors.find((factor: any) => {
-            return factor.strategy === 'phone_code';
+        await timeAsync('auth.sign_in.phone.prepare', async () => {
+          const { supportedFirstFactors } = await signIn!.create({
+            identifier: fullPhoneNumber,
           });
-        }
 
-        if (!firstPhoneFactor) {
-          Alert.alert('Error', 'No supported phone factor found.');
-          return;
-        }
+          let firstPhoneFactor: any = null;
+          if (supportedFirstFactors) {
+            firstPhoneFactor = supportedFirstFactors.find((factor: any) => {
+              return factor.strategy === 'phone_code';
+            });
+          }
 
-        const { phoneNumberId } = firstPhoneFactor;
+          if (!firstPhoneFactor) {
+            Alert.alert('Error', 'No supported phone factor found.');
+            throw new Error('No supported phone factor found.');
+          }
 
-        await signIn!.prepareFirstFactor({
-          strategy: 'phone_code',
-          phoneNumberId,
+          const { phoneNumberId } = firstPhoneFactor;
+
+          await signIn!.prepareFirstFactor({
+            strategy: 'phone_code',
+            phoneNumberId,
+          });
         });
 
         router.push({

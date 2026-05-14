@@ -14,6 +14,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { recordMetric, timeAsync } from '@/utils/metrics';
 
 export default function LockScreen() {
   const { user } = useUser();
@@ -36,9 +37,19 @@ export default function LockScreen() {
   useEffect(() => {
     if (code.length === 6) {
       if (code.join('') === '111111') {
+        recordMetric({
+          name: 'security.passcode_unlock',
+          durationMs: 0,
+          status: 'success',
+        });
         router.replace('/(authenticated)/(tabs)/home');
         setCode([]);
       } else {
+        recordMetric({
+          name: 'security.passcode_unlock',
+          durationMs: 0,
+          status: 'error',
+        });
         offset.value = withSequence(
           withTiming(-OFFSET, { duration: TIME / 2 }),
           withRepeat(withTiming(OFFSET, { duration: TIME }), 4, true),
@@ -61,10 +72,18 @@ export default function LockScreen() {
   };
 
   const onBiometricAuthPress = async () => {
-    const { success } = await LocalAuthentication.authenticateAsync();
-    if (success) {
+    try {
+      await timeAsync('security.biometric_unlock', async () => {
+        const result = await LocalAuthentication.authenticateAsync();
+
+        if (!result.success) {
+          throw new Error('Biometric authentication failed.');
+        }
+
+        return result;
+      });
       router.replace('/(authenticated)/(tabs)/home');
-    } else {
+    } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };

@@ -1,10 +1,44 @@
-export async function GET(request: Request) {
-//   const response = await fetch(
-//     `https://api.coinpaprika.com/v1/tickers/btc-bitcoin/historical?start=2024-01-01&interval=1d`
-//   );
+import { recordMetric, timeAsync } from "@/utils/metrics";
 
-//   const res = await response.json();
-//   return Response.json(res.data);
+export function getHistoricalTickerStartDate(now = new Date()) {
+  const start = new Date(now);
+  start.setUTCDate(start.getUTCDate() - 365);
+  return start.toISOString().slice(0, 10);
+}
+
+export async function GET(request: Request) {
+  const startDate = getHistoricalTickerStartDate();
+
+  try {
+    const response = await timeAsync(
+      'crypto.api.tickers.upstream',
+      async () => {
+        const response = await fetch(
+          `https://api.coinpaprika.com/v1/tickers/btc-bitcoin/historical?start=${startDate}&interval=1d`
+        );
+
+        if (!response.ok) {
+          throw new Error(`CoinPaprika tickers request failed: ${response.status}`);
+        }
+
+        return response;
+      },
+      { provider: 'coinpaprika', asset: 'btc-bitcoin', startDate }
+    );
+
+    const res = await response.json();
+    return Response.json(res);
+  } catch {
+    // Fall through to local data so the chart still renders if the upstream call fails.
+  }
+
+  recordMetric({
+    name: 'crypto.api.tickers.fallback',
+    durationMs: 0,
+    status: 'success',
+    metadata: { source: 'local', asset: 'btc-bitcoin', startDate },
+  });
+
   return Response.json(data);
 }
 

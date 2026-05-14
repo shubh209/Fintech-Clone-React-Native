@@ -7,6 +7,8 @@ import { Link } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { defaultStyles } from '@/constants/Styles';
 import { Ionicons } from '@expo/vector-icons';
+import { formatEuroPrice } from '@/utils/currency';
+import { timeAsync } from '@/utils/metrics';
 
 const CryptoScreen = () => {
   const headerHeight = useHeaderHeight();
@@ -14,7 +16,11 @@ const CryptoScreen = () => {
   const listingsQuery = useQuery({
     queryKey: ['listings'],
     queryFn: async () => {
-      const res = await fetch('/api/listings');
+      const res = await timeAsync(
+        'crypto.client.listings.fetch',
+        () => fetch('/api/listings'),
+        { endpoint: '/api/listings' }
+      );
       if (!res.ok) throw new Error('Failed to fetch listings');
       return res.json();
     },
@@ -28,7 +34,11 @@ const CryptoScreen = () => {
     enabled: !!ids,
     queryFn: async () => {
       if (!ids) throw new Error('Missing ids');
-      const res = await fetch(`/api/info?ids=${ids}`);
+      const res = await timeAsync(
+        'crypto.client.info.fetch',
+        () => fetch(`/api/info?ids=${ids}`),
+        { endpoint: '/api/info', ids }
+      );
       if (!res.ok) throw new Error('Failed to fetch info');
       return res.json();
     },
@@ -75,7 +85,7 @@ const CryptoScreen = () => {
               </View>
 
               <View style={{ gap: 6, alignItems: 'flex-end' }}>
-                <Text>${currency.quote.EUR.price.toFixed(2)}</Text>
+                <Text>{formatEuroPrice(currency.quote.EUR.price)}</Text>
                 <View style={{ flexDirection: 'row', gap: 4 }}>
                   <Ionicons
                     name={

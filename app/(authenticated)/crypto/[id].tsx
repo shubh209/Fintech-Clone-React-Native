@@ -21,16 +21,13 @@ import { Circle, useFont } from '@shopify/react-native-skia';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import Animated, { SharedValue, useAnimatedProps } from 'react-native-reanimated';
+import { timeAsync } from '@/utils/metrics';
+import { normalizeTickerPoints, ChartTickerPoint, TickerApiPoint } from '@/utils/tickers';
 
 Animated.addWhitelistedNativeProps({ text: true });
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 const categories = ['Overview', 'News', 'Orders', 'Transactions'];
-
-type TickerPoint = {
-  timestamp: number;
-  price: number;
-};
 
 type CryptoInfo = {
   id: number;
@@ -75,21 +72,40 @@ const CryptoDetailScreen = () => {
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error('Missing id');
-      const res = await fetch(`/api/info?ids=${id}`);
+      const res = await timeAsync(
+        'crypto.client.detail_info.fetch',
+        () => fetch(`/api/info?ids=${id}`),
+        { endpoint: '/api/info', id }
+      );
       if (!res.ok) throw new Error('Failed to fetch info');
       const data = await res.json();
       return data[id];
     },
   });
 
-  const tickersQuery = useQuery<TickerPoint[]>({
+  const tickersQuery = useQuery<ChartTickerPoint[]>({
     queryKey: ['tickers', id],
     enabled: !!id,
     queryFn: async () => {
-      const res = await fetch('/api/tickers');
+      const res = await timeAsync(
+        'crypto.client.tickers.fetch',
+        () => fetch('/api/tickers'),
+        { endpoint: '/api/tickers', id: id ?? null }
+      );
       if (!res.ok) throw new Error('Failed to fetch tickers');
-      return res.json();
+      const data: TickerApiPoint[] = await res.json();
+      return normalizeTickerPoints(data);
     },
+  });
+
+  const animatedPrice = useAnimatedProps(() => ({
+    text: `${state.y.price.value.value.toFixed(2)} €`,
+    defaultValue: '',
+  }));
+
+  const animatedDate = useAnimatedProps(() => {
+    const date = new Date(state.x.value.value);
+    return { text: date.toLocaleDateString(), defaultValue: '' };
   });
 
   if (infoQuery.isLoading || tickersQuery.isLoading) {
@@ -110,16 +126,6 @@ const CryptoDetailScreen = () => {
 
   const info = infoQuery.data;
   const tickers = tickersQuery.data ?? [];
-
-  const animatedPrice = useAnimatedProps(() => ({
-    text: `${state.y.price.value.value.toFixed(2)} €`,
-    defaultValue: '',
-  }));
-
-  const animatedDate = useAnimatedProps(() => {
-    const date = new Date(state.x.value.value);
-    return { text: date.toLocaleDateString(), defaultValue: '' };
-  });
 
   return (
     <>

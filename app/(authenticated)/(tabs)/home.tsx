@@ -8,12 +8,14 @@ import { defaultStyles } from '@/constants/Styles';
 import { Ionicons } from '@expo/vector-icons';
 import WidgetList from '@/Components/sortable-list/WidgetList';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { formatTransactionDate, getTransactionsNewestFirst } from '@/Store/balance/transactionUtils';
 
 const home = () => {
   
   const {balance, runTransaction, clearTansactions, transactions} = useBalanceStore();
 
   const headerHeight = useHeaderHeight();
+  const displayedTransactions = getTransactionsNewestFirst(transactions);
 
   const onAddMoney = () => {
     runTransaction({
@@ -57,7 +59,7 @@ const home = () => {
         }
         {
           // + or -  sign based on the amount
-          transactions.reverse().map((transactions) => (
+          displayedTransactions.map((transactions) => (
             <View key={transactions.id} style={{flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 20}}>
               <View style={styles.circle}>
                 <Ionicons name={transactions.amount > 0 ? 'add' : 'remove'} size={24} color={Colors.dark}/>
@@ -66,7 +68,7 @@ const home = () => {
               {/* transaction details */}
               <View style={{flex: 1}}>  
                 <Text style={{fontSize: 16, fontWeight: '600'}}>{transactions.title}</Text>
-                <Text style={{color: Colors.gray, fontSize: 12}}>{transactions.date.toLocaleDateString()}</Text>
+                <Text style={{color: Colors.gray, fontSize: 12}}>{formatTransactionDate(transactions.date)}</Text>
               </View>
               <Text>{transactions.amount}$</Text>
             </View>
