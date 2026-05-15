@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import React, { useMemo, useState } from 'react';
 import {
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,30 +13,30 @@ import {
 import Colors from '@/constants/Colors';
 import { useBalanceStore } from '@/Store/balance/balanceStore';
 import {
+  DEFAULT_TRANSACTION_CATEGORIES,
+  DefaultTransactionCategory,
   filterTransactions,
+  formatTransactionCategoryLabel,
   formatTransactionDate,
   getMonthlyTransactionSummary,
+  getTransactionCategories,
   getTransactionsNewestFirst,
   TransactionCategory,
 } from '@/Store/balance/transactionUtils';
 
-const categories: Array<{ label: string; value: TransactionCategory | 'all' }> = [
-  { label: 'All', value: 'all' },
-  { label: 'Income', value: 'income' },
-  { label: 'Food', value: 'food' },
-  { label: 'Transport', value: 'transport' },
-  { label: 'Shopping', value: 'shopping' },
-  { label: 'Crypto', value: 'crypto' },
-  { label: 'Other', value: 'other' },
-];
-
-const categoryIcons: Record<TransactionCategory, keyof typeof Ionicons.glyphMap> = {
+const categoryIcons: Record<DefaultTransactionCategory, keyof typeof Ionicons.glyphMap> = {
   income: 'trending-up',
   food: 'restaurant-outline',
   transport: 'train-outline',
   shopping: 'card-outline',
   crypto: 'logo-bitcoin',
   other: 'wallet-outline',
+};
+
+const getCategoryIcon = (category: TransactionCategory): keyof typeof Ionicons.glyphMap => {
+  return category in categoryIcons
+    ? categoryIcons[category as DefaultTransactionCategory]
+    : 'pricetag-outline';
 };
 
 const formatDollarAmount = (amount: number) => {
@@ -45,9 +46,11 @@ const formatDollarAmount = (amount: number) => {
 
 const Activity = () => {
   const headerHeight = useHeaderHeight();
-  const { transactions } = useBalanceStore();
+  const { transactions, updateTransactionCategory } = useBalanceStore();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<TransactionCategory | 'all'>('all');
+  const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
+  const [categoryInput, setCategoryInput] = useState('');
 
   const normalizedTransactions = useMemo(
     () => getTransactionsNewestFirst(transactions),
@@ -65,6 +68,40 @@ const Activity = () => {
     () => getMonthlyTransactionSummary(transactions),
     [transactions]
   );
+  const categoryOptions = useMemo(
+    () => [
+      { label: 'All', value: 'all' as const },
+      ...getTransactionCategories(transactions).map((category) => ({
+        label: formatTransactionCategoryLabel(category),
+        value: category,
+      })),
+    ],
+    [transactions]
+  );
+  const editingTransaction = useMemo(
+    () =>
+      editingTransactionId
+        ? transactions.find((transaction) => transaction.id === editingTransactionId)
+        : undefined,
+    [editingTransactionId, transactions]
+  );
+
+  const openCategoryEditor = (transactionId: string, category: TransactionCategory) => {
+    setEditingTransactionId(transactionId);
+    setCategoryInput(formatTransactionCategoryLabel(category));
+  };
+
+  const closeCategoryEditor = () => {
+    setEditingTransactionId(null);
+    setCategoryInput('');
+  };
+
+  const saveCategory = (category: string) => {
+    if (!editingTransactionId) return;
+
+    updateTransactionCategory(editingTransactionId, category);
+    closeCategoryEditor();
+  };
 
   return (
     <ScrollView
@@ -115,7 +152,7 @@ const Activity = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categoryRow}
       >
-        {categories.map((category) => {
+        {categoryOptions.map((category) => {
           const isActive = activeCategory === category.value;
 
           return (
@@ -147,19 +184,30 @@ const Activity = () => {
         ) : (
           filteredTransactions.map((transaction) => (
             <View key={transaction.id} style={styles.transactionRow}>
-              <View style={styles.transactionIcon}>
+              <TouchableOpacity
+                accessibilityLabel={`Edit category for ${transaction.title}`}
+                style={styles.transactionIcon}
+                onPress={() => openCategoryEditor(transaction.id, transaction.category)}
+              >
                 <Ionicons
-                  name={categoryIcons[transaction.category]}
+                  name={getCategoryIcon(transaction.category)}
                   size={21}
                   color={Colors.primary}
                 />
-              </View>
+              </TouchableOpacity>
               <View style={styles.transactionDetails}>
                 <Text style={styles.transactionTitle}>{transaction.title}</Text>
                 <Text style={styles.transactionMeta}>
-                  {transaction.category} • {formatTransactionDate(transaction.date)}
+                  {formatTransactionCategoryLabel(transaction.category)} • {formatTransactionDate(transaction.date)}
                 </Text>
               </View>
+              <TouchableOpacity
+                accessibilityLabel={`Edit category for ${transaction.title}`}
+                style={styles.editCategoryButton}
+                onPress={() => openCategoryEditor(transaction.id, transaction.category)}
+              >
+                <Text style={styles.editCategoryText}>Edit category</Text>
+              </TouchableOpacity>
               <Text
                 style={[
                   styles.transactionAmount,
@@ -172,6 +220,51 @@ const Activity = () => {
           ))
         )}
       </View>
+
+      <Modal
+        transparent
+        visible={Boolean(editingTransaction)}
+        animationType="fade"
+        onRequestClose={closeCategoryEditor}
+      >
+        <View style={styles.modalScrim}>
+          <View style={styles.categoryEditor}>
+            <Text style={styles.editorTitle}>Edit category</Text>
+            <Text style={styles.editorSubtitle}>{editingTransaction?.title}</Text>
+            <View style={styles.editorOptionGrid}>
+              {DEFAULT_TRANSACTION_CATEGORIES.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={styles.editorOption}
+                  onPress={() => saveCategory(category)}
+                >
+                  <Text style={styles.editorOptionText}>
+                    {formatTransactionCategoryLabel(category)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              value={categoryInput}
+              onChangeText={setCategoryInput}
+              placeholder="Custom category"
+              placeholderTextColor={Colors.gray}
+              style={styles.customCategoryInput}
+            />
+            <View style={styles.editorActions}>
+              <TouchableOpacity style={styles.editorSecondaryButton} onPress={closeCategoryEditor}>
+                <Text style={styles.editorSecondaryText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editorPrimaryButton}
+                onPress={() => saveCategory(categoryInput)}
+              >
+                <Text style={styles.editorPrimaryText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -337,6 +430,90 @@ const styles = StyleSheet.create({
   },
   transactionAmount: {
     fontSize: 15,
+    fontWeight: '800',
+  },
+  editCategoryButton: {
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  editCategoryText: {
+    color: Colors.dark,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  modalScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(17, 24, 39, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  categoryEditor: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    gap: 14,
+  },
+  editorTitle: {
+    color: Colors.dark,
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  editorSubtitle: {
+    color: Colors.gray,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  editorOptionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  editorOption: {
+    borderRadius: 18,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  editorOptionText: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  customCategoryInput: {
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    color: Colors.dark,
+    fontSize: 15,
+    fontWeight: '700',
+    paddingHorizontal: 14,
+  },
+  editorActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+  },
+  editorSecondaryButton: {
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  editorSecondaryText: {
+    color: Colors.gray,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  editorPrimaryButton: {
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  editorPrimaryText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '800',
   },
   amountPositive: {

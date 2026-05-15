@@ -21,7 +21,19 @@ describe('activity tab wiring', () => {
     );
 
     expect(activitySource.includes('Search transactions')).toBe(true);
-    expect(activitySource.includes('categories')).toBe(true);
+    expect(activitySource.includes('categoryOptions')).toBe(true);
     expect(activitySource.includes('getMonthlyTransactionSummary')).toBe(true);
+  });
+
+  it('activity screen exposes category editing controls', () => {
+    const activitySource = readFileSync(
+      join(process.cwd(), 'app/(authenticated)/(tabs)/activity.tsx'),
+      'utf8'
+    );
+
+    expect(activitySource.includes('Edit category')).toBe(true);
+    expect(activitySource.includes('Custom category')).toBe(true);
+    expect(activitySource.includes('updateTransactionCategory')).toBe(true);
+    expect(activitySource.includes('getTransactionCategories')).toBe(true);
   });
 });
