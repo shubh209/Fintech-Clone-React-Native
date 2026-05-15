@@ -1,10 +1,14 @@
-export type TransactionCategory =
-  | 'income'
-  | 'food'
-  | 'transport'
-  | 'shopping'
-  | 'crypto'
-  | 'other';
+export const DEFAULT_TRANSACTION_CATEGORIES = [
+  'income',
+  'food',
+  'transport',
+  'shopping',
+  'crypto',
+  'other',
+] as const;
+
+export type DefaultTransactionCategory = (typeof DEFAULT_TRANSACTION_CATEGORIES)[number];
+export type TransactionCategory = DefaultTransactionCategory | (string & {});
 
 export interface PersistedTransaction {
   id: string;
@@ -31,7 +35,9 @@ export function normalizeTransaction(transaction: TransactionInput): PersistedTr
   return {
     ...transaction,
     date: new Date(transaction.date).toISOString(),
-    category: transaction.category ?? inferTransactionCategory(transaction),
+    category: normalizeTransactionCategory(
+      transaction.category ?? inferTransactionCategory(transaction)
+    ),
   };
 }
 
@@ -40,7 +46,9 @@ export function normalizePersistedTransactions(
 ): PersistedTransaction[] {
   return transactions.map((transaction) => ({
     ...transaction,
-    category: transaction.category ?? inferTransactionCategory(transaction),
+    category: normalizeTransactionCategory(
+      transaction.category ?? inferTransactionCategory(transaction)
+    ),
   }));
 }
 
@@ -102,6 +110,30 @@ export function inferTransactionCategory({
   return 'other';
 }
 
+export function normalizeTransactionCategory(category: string): TransactionCategory {
+  const normalized = category.trim().toLowerCase().replace(/\s+/g, ' ');
+  return normalized.length > 0 ? normalized : 'other';
+}
+
+export function formatTransactionCategoryLabel(category: string) {
+  return normalizeTransactionCategory(category)
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+export function getTransactionCategories<T extends Pick<PersistedTransaction, 'category'>>(
+  transactions: T[]
+) {
+  const categories = new Set<TransactionCategory>(DEFAULT_TRANSACTION_CATEGORIES);
+
+  transactions.forEach((transaction) => {
+    categories.add(normalizeTransactionCategory(transaction.category));
+  });
+
+  return Array.from(categories);
+}
+
 export function filterTransactions<T extends PersistedTransaction>(
   transactions: T[],
   {
@@ -113,13 +145,16 @@ export function filterTransactions<T extends PersistedTransaction>(
   }
 ) {
   const normalizedQuery = query.trim().toLowerCase();
+  const normalizedCategory = category === 'all' ? 'all' : normalizeTransactionCategory(category);
 
   return transactions.filter((transaction) => {
     const matchesQuery =
       normalizedQuery.length === 0 ||
       transaction.title.toLowerCase().includes(normalizedQuery) ||
       transaction.amount.toString().includes(normalizedQuery);
-    const matchesCategory = category === 'all' || transaction.category === category;
+    const matchesCategory =
+      normalizedCategory === 'all' ||
+      normalizeTransactionCategory(transaction.category) === normalizedCategory;
 
     return matchesQuery && matchesCategory;
   });

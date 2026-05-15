@@ -1,11 +1,15 @@
 import {
+  DEFAULT_TRANSACTION_CATEGORIES,
   filterTransactions,
+  formatTransactionCategoryLabel,
   formatTransactionDate,
   getMonthlyTransactionSummary,
+  getTransactionCategories,
   getTransactionsNewestFirst,
   inferTransactionCategory,
   normalizeTransaction,
   normalizePersistedTransactions,
+  normalizeTransactionCategory,
 } from './transactionUtils';
 
 describe('transaction utils', () => {
@@ -107,5 +111,65 @@ describe('transaction utils', () => {
       net: 250,
       count: 2,
     });
+  });
+
+  it('normalizes custom category names before persistence', () => {
+    expect(normalizeTransactionCategory('  Weekend   Dining  ')).toBe('weekend dining');
+    expect(normalizeTransactionCategory('')).toBe('other');
+    expect(normalizeTransactionCategory('     ')).toBe('other');
+  });
+
+  it('formats category labels for default and custom names', () => {
+    expect(formatTransactionCategoryLabel('food')).toBe('Food');
+    expect(formatTransactionCategoryLabel('weekend dining')).toBe('Weekend Dining');
+  });
+
+  it('keeps default categories first and adds custom categories from transactions', () => {
+    const categories = getTransactionCategories([
+      {
+        id: 'custom',
+        amount: -80,
+        title: 'Dinner',
+        category: 'weekend dining',
+        date: '2024-01-02T12:00:00.000Z',
+      },
+      {
+        id: 'default',
+        amount: -8,
+        title: 'Coffee',
+        category: 'food',
+        date: '2024-01-03T12:00:00.000Z',
+      },
+    ]);
+
+    expect(categories.slice(0, DEFAULT_TRANSACTION_CATEGORIES.length)).toEqual(
+      DEFAULT_TRANSACTION_CATEGORIES
+    );
+    expect(categories).toContain('weekend dining');
+  });
+
+  it('filters transactions by normalized custom category names', () => {
+    const transactions = [
+      {
+        id: 'custom',
+        amount: -80,
+        title: 'Dinner',
+        category: 'weekend dining',
+        date: '2024-01-02T12:00:00.000Z',
+      },
+      {
+        id: 'food',
+        amount: -8,
+        title: 'Coffee',
+        category: 'food',
+        date: '2024-01-03T12:00:00.000Z',
+      },
+    ];
+
+    expect(
+      filterTransactions(transactions, { query: '', category: ' Weekend   Dining ' }).map(
+        (transaction) => transaction.id
+      )
+    ).toEqual(['custom']);
   });
 });
