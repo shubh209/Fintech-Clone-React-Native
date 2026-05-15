@@ -14,6 +14,8 @@ describe('ticker utilities', () => {
     expect(point).toEqual({
       timestamp: Date.parse('2024-01-01T00:00:00Z'),
       price: 42850.26,
+      volume_24h: 12058361624,
+      market_cap: 839292148428,
     });
   });
 

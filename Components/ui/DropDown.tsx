@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Menu } from 'react-native-paper';
+import Colors from '@/constants/Colors';
 import RoundButton from './RoundButton';
 
 const Dropdown = () => {
   const [visible, setVisible] = useState(false);
 
-  const openMenu = () => setVisible(true);
+  const toggleMenu = () => setVisible((current) => !current);
   const closeMenu = () => setVisible(false);
 
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={styles.container}>
       <Menu
         visible={visible}
         onDismiss={closeMenu}
@@ -18,10 +19,12 @@ const Dropdown = () => {
           <RoundButton
             icon="ellipsis-horizontal"
             text="More"
-            onPress={openMenu}
+            onPress={toggleMenu}
+            accentColor="#EFEFF7"
+            iconColor={Colors.dark}
           />
         }
-        contentStyle={{ backgroundColor: 'white', borderRadius: 10 }}
+        contentStyle={styles.menu}
       >
         <Menu.Item
           onPress={() => {
@@ -55,5 +58,15 @@ const Dropdown = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  menu: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+  },
+});
 
 export default Dropdown;

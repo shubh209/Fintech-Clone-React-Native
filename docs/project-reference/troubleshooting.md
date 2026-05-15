@@ -6,9 +6,10 @@ If crypto screens fail to load:
 
 1. Check whether the app is relying on local Expo Router API routes or should call an external endpoint directly.
 2. Inspect `app/api/listings+api.ts`, `app/api/info+api.ts`, and `app/api/tickers+api.ts`.
-3. Confirm whether `CRYPTO_API_KEY` is configured. Listings and info use live CoinMarketCap data only when the key is present and the upstream request succeeds.
-4. Remember that `app/api/tickers+api.ts` is BTC-specific and currently returns local historical data immediately.
-5. For production native builds, choose a real Expo Router server origin before relying on `/api/...` routes.
+3. Confirm whether `CRYPTO_API_KEY` is configured. Listings, info, and selected-asset ticker quotes use live CoinMarketCap data only when the key is present and the upstream request succeeds.
+4. Check `utils/cryptoValidators.ts` if live API calls succeed but fallback data appears; malformed live payloads intentionally fall back locally.
+5. Remember that `app/api/tickers+api.ts` falls back to local BTC historical data only when live quote data is unavailable.
+6. For production native builds, choose a real Expo Router server origin before relying on `/api/...` routes.
 
 If the crypto detail screen reports a hook-order error:
 
@@ -20,7 +21,8 @@ If the crypto chart renders oddly:
 
 1. Check `utils/tickers.ts`.
 2. API ticker timestamps should be normalized to numbers before reaching `CartesianChart`.
-3. Run `npx jest --runTestsByPath utils/tickers.test.ts --runInBand --watchman=false`.
+3. Live ticker quote responses may contain only one point; the detail screen should show the live quote panel instead of forcing a line chart when there is not enough history.
+4. Run `npx jest --runTestsByPath utils/tickers.test.ts --runInBand --watchman=false`.
 
 ## Metrics
 
@@ -93,6 +95,12 @@ For metrics-specific changes:
 npx jest --runTestsByPath utils/metrics.test.ts __tests__/api/listings-api.test.ts __tests__/api/info-api.test.ts __tests__/api/tickers-api.test.ts --runInBand --watchman=false
 ```
 
+For API trust and validator changes:
+
+```bash
+npx jest --runTestsByPath utils/apiResult.test.ts utils/cryptoValidators.test.ts __tests__/api/listings-api.test.ts __tests__/api/info-api.test.ts __tests__/api/tickers-api.test.ts __tests__/crypto-list-api-wiring.test.ts __tests__/crypto-detail-api-wiring.test.ts --runInBand --watchman=false
+```
+
 Watchman can fail under local sandbox permissions, so prefer `--watchman=false` for Jest in this workspace.
 
 ## Manual Test Steps
@@ -104,5 +112,6 @@ Watchman can fail under local sandbox permissions, so prefer `--watchman=false` 
 5. Confirm the newest transactions appear first.
 6. Open the Crypto tab and confirm prices show EUR formatting such as `€93,478.44`.
 7. Run without `CRYPTO_API_KEY` and confirm crypto listings still render from local fallback data.
-8. Run with `CRYPTO_API_KEY` and confirm listings/info routes return live CoinMarketCap data.
-9. Watch logs for `[metric]` entries while using Home, Crypto, auth, and lock flows.
+8. Run with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
+9. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>`.
+10. Watch logs for `[metric]` entries while using Home, Crypto, auth, and lock flows.

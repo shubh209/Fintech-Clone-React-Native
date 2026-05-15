@@ -1,11 +1,50 @@
-import { recordMetric } from "@/utils/metrics";
+import { recordMetric, timeAsync } from "@/utils/metrics";
+import { normalizeQuoteTicker } from "@/utils/cryptoValidators";
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id") || "1";
+  const apiKey = process.env.CRYPTO_API_KEY;
+
+  if (apiKey && id) {
+    try {
+      const response = await timeAsync(
+        'crypto.api.tickers.upstream',
+        async () => {
+          const response = await fetch(
+            `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=${id}&convert=EUR`,
+            {
+              headers: {
+                "X-CMC_PRO_API_KEY": apiKey,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`CoinMarketCap quote request failed: ${response.status}`);
+          }
+
+          return response;
+        },
+        { id, provider: 'coinmarketcap' }
+      );
+
+      const res = await response.json();
+      const ticker = normalizeQuoteTicker(res.data?.[id]);
+
+      if (ticker) {
+        return Response.json([ticker]);
+      }
+    } catch {
+      // Fall through to local data so the UI still works offline or without keys.
+    }
+  }
+
   recordMetric({
     name: 'crypto.api.tickers.local',
     durationMs: 0,
     status: 'success',
-    metadata: { source: 'local', asset: 'btc-bitcoin' },
+    metadata: { source: 'local', asset: id },
   });
 
   return Response.json(data);

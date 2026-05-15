@@ -8,6 +8,13 @@
 - `app/(authenticated)/(modals)` contains lock and account modal flows.
 - `app/(authenticated)/crypto/[id].tsx` is the crypto detail screen.
 
+## Product Architecture Direction
+
+- The app should favor fewer reliable workflows over many placeholder features.
+- New primary tabs should have a clear job, tests, and documented data behavior before being described as complete.
+- Architecture decisions belong in `docs/architecture/decisions/`.
+- Current reliability work is planned in `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md`.
+
 ## State And Persistence
 
 - Clerk auth state is provided from `app/_layout.tsx`.
@@ -21,13 +28,14 @@
 ## Crypto Data Flow
 
 - `app/(authenticated)/(tabs)/crypto.tsx` fetches listings and logo/info metadata.
-- `app/(authenticated)/crypto/[id].tsx` fetches detail metadata and chart ticker data, then normalizes ticker timestamps through `utils/tickers.ts`.
+- `app/(authenticated)/crypto/[id].tsx` fetches detail metadata and selected-asset ticker quote data, then normalizes ticker timestamps through `utils/tickers.ts`.
 - The fetch targets are local API routes:
   - `app/api/listings+api.ts`
   - `app/api/info+api.ts`
   - `app/api/tickers+api.ts`
-- Listings and info routes use live CoinMarketCap responses when the upstream request succeeds and fall back to static local data.
-- The ticker route currently returns static local BTC historical data immediately to keep the detail chart fast and stable.
+- Listings, info, and ticker quote routes use live CoinMarketCap responses when the upstream request succeeds and fall back to static local data.
+- The ticker route accepts `id=<coinMarketCapId>` and uses CoinMarketCap latest EUR quote data for the selected asset when configured. Local BTC historical data remains the offline fallback.
+- API-backed screens should expose loading, error, retry, source, freshness, and fallback states to users instead of silently rendering stale or fixture data.
 
 ## Metrics
 
@@ -37,6 +45,13 @@
 - The event catalog lives in `docs/project-reference/metrics.md`.
 - Major instrumented surfaces include auth, lock/unlock, inactivity lock, home transactions, crypto client fetches, and crypto API upstream/fallback paths.
 
+## API Trust Helpers
+
+- `utils/apiResult.ts` defines shared source/fallback/freshness metadata helpers.
+- `utils/cryptoValidators.ts` validates the subset of CoinMarketCap payloads the app renders.
+- API routes should validate live provider data before returning it and fall back locally when the live shape is malformed.
+- Crypto UI should expose `Data source`, `Last updated`, and `Retry` affordances for API-backed data.
+
 ## Test Coverage Added
 
 - `Store/balance/transactionUtils.test.ts`
@@ -45,7 +60,11 @@
 - `utils/currency.test.ts`
 - `utils/metrics.test.ts`
 - `utils/tickers.test.ts`
+- `utils/apiResult.test.ts`
+- `utils/cryptoValidators.test.ts`
 - `__tests__/crypto-detail-hooks.test.ts`
+- `__tests__/crypto-detail-api-wiring.test.ts`
+- `__tests__/crypto-list-api-wiring.test.ts`
 - `__tests__/api/listings-api.test.ts`
 - `__tests__/api/info-api.test.ts`
 - `__tests__/api/tickers-api.test.ts`

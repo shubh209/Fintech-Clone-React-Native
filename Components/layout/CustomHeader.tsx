@@ -1,10 +1,9 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { TextInput } from 'react-native-paper';
 
 const CustomHeader = () => {
     const { top } = useSafeAreaInsets();
@@ -14,7 +13,9 @@ const CustomHeader = () => {
             intensity={80}
             tint='extraLight'
             style={{
-                padding: top,
+                paddingTop: top + 10,
+                paddingHorizontal: 20,
+                paddingBottom: 12,
             }}
         >
             <View style={styles.container} >
@@ -26,11 +27,11 @@ const CustomHeader = () => {
                 
                 {/* search option */}
                 <View style={styles.searchSection}>
-                    <Ionicons name="search" size={20} color={Colors.gray} style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color={Colors.gray} />
                     <TextInput 
                         style={styles.input}
                         placeholder='Search'
-                        placeholderTextColor={Colors.dark}
+                        placeholderTextColor={Colors.gray}
                     />
                 </View>
 
@@ -53,15 +54,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         gap: 10,
-        height: 60,
+        minHeight: 54,
         backgroundColor: 'transparent',
-        paddingHorizontal: 20,
     },
     RoundBtn:{
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.gray,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: Colors.dark,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -69,23 +69,25 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         backgroundColor: Colors.lightGray,
-        borderRadius: 30,
+        borderRadius: 24,
         alignItems: 'center',
         justifyContent: 'flex-start',
-    },
-    searchIcon:{
-        padding: 20,
-
+        minWidth: 120,
+        height: 48,
+        paddingHorizontal: 16,
+        gap: 8,
     },
     input:{
         flex: 1,
-        padding: 10,
+        height: 48,
+        padding: 0,
         color: Colors.dark,
+        fontSize: 16,
     },
     circle: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         backgroundColor: Colors.lightGray,
         justifyContent: 'center',
         alignItems: 'center',

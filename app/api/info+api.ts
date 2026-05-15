@@ -1,4 +1,5 @@
 import { recordMetric, timeAsync } from "@/utils/metrics";
+import { isCryptoInfoMap } from "@/utils/cryptoValidators";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
       const res = await response.json();
 
-      if (res.data) {
+      if (isCryptoInfoMap(res.data)) {
         return Response.json(res.data);
       }
     } catch {

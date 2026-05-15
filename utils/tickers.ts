@@ -12,13 +12,23 @@ export interface ChartTickerPoint {
 
 export function normalizeTickerPoints(points: TickerApiPoint[]): ChartTickerPoint[] {
   return points
-    .map((point) => ({
-      timestamp:
+    .map((point) => {
+      const normalizedPoint: ChartTickerPoint = {
+        timestamp:
         typeof point.timestamp === 'number'
           ? point.timestamp
           : Date.parse(point.timestamp),
-      price: point.price,
-    }))
+        price: point.price,
+      };
+
+      Object.entries(point).forEach(([key, value]) => {
+        if (key !== 'timestamp' && key !== 'price' && typeof value === 'number') {
+          normalizedPoint[key] = value;
+        }
+      });
+
+      return normalizedPoint;
+    })
     .filter(
       (point) =>
         Number.isFinite(point.timestamp) &&

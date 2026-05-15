@@ -36,4 +36,20 @@ describe('info API route', () => {
       'crypto.api.info.upstream',
     ]);
   });
+
+  it('falls back when live metadata is malformed', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: { '999': { id: 999, name: 'Broken' } } }),
+    } as Response);
+
+    const response = await GET(new Request('https://example.test/api/info?ids=999'));
+    const body = await response.json();
+
+    expect(body['1'].symbol).toBe('BTC');
+    expect(getMetricsSnapshot().map((metric) => metric.name)).toEqual([
+      'crypto.api.info.upstream',
+      'crypto.api.info.fallback',
+    ]);
+  });
 });

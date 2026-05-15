@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import React, { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
@@ -7,13 +7,27 @@ type RoundButtonProps = {
   icon: ComponentProps<typeof Ionicons>['name'];
   text: string;
   onPress?: () => void;
+  accentColor?: string;
+  iconColor?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
-const RoundButton = ({ text, icon, onPress }: RoundButtonProps) => {
+const RoundButton = ({
+  text,
+  icon,
+  onPress,
+  accentColor = Colors.lightGray,
+  iconColor = Colors.dark,
+  style,
+}: RoundButtonProps) => {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View style={styles.circle}>
-        <Ionicons name={icon} size={30} color={Colors.dark} />
+    <TouchableOpacity
+      activeOpacity={0.76}
+      style={[styles.container, style]}
+      onPress={onPress}
+    >
+      <View style={[styles.circle, { backgroundColor: accentColor }]}>
+        <Ionicons name={icon} size={28} color={iconColor} />
       </View>
       <Text style={styles.label}>{text}</Text>
     </TouchableOpacity>
@@ -23,20 +37,22 @@ const RoundButton = ({ text, icon, onPress }: RoundButtonProps) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
+    flex: 1,
+    minWidth: 70,
   },
   circle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.lightGray,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     justifyContent: 'center',
     alignItems: 'center',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
     color: Colors.dark,
+    textAlign: 'center',
   },
 });
 

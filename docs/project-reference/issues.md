@@ -72,23 +72,39 @@
 - Fix: The route now returns local BTC historical data immediately.
 - Verification: `__tests__/api/tickers-api.test.ts`.
 
-### 10. `app.json` contained a sample Expo Router `origin` value
+### 10. Crypto detail prices were BTC-specific/static
+
+- Status: Fixed
+- Severity: Medium
+- Symptom: `app/api/tickers+api.ts` returned BTC fallback data regardless of the selected crypto asset, so detail prices could be stale or wrong for non-BTC assets.
+- Fix: `/api/tickers?id=<coinMarketCapId>` now uses CoinMarketCap `quotes/latest` when `CRYPTO_API_KEY` is configured, returns the selected asset's latest EUR quote, and falls back to local data only when live data is unavailable.
+- Verification: `__tests__/api/tickers-api.test.ts`, `__tests__/crypto-detail-api-wiring.test.ts`, and `utils/tickers.test.ts`.
+
+### 11. `app.json` contained a sample Expo Router `origin` value
 
 - Status: Fixed
 - Severity: High
 - Fix: Removed the `https://evanbacon.dev/` sample origin from `app.json`.
 - Remaining note: A real production native API origin still needs to be chosen before shipping API routes to production native builds.
 
+### 12. Live crypto provider payloads were trusted without runtime validation
+
+- Status: Fixed
+- Severity: Medium
+- Symptom: Listings, info, and ticker routes could return malformed live provider payloads directly to screens.
+- Fix: `utils/cryptoValidators.ts` now validates the rendered CoinMarketCap fields and API routes fall back locally when live payloads are malformed.
+- Verification: `utils/cryptoValidators.test.ts`, `__tests__/api/listings-api.test.ts`, `__tests__/api/info-api.test.ts`, and `__tests__/api/tickers-api.test.ts`.
+
 ## Remaining Issues Or Risk Areas
 
-### 11. Several tabs are placeholders
+### 13. Several tabs are placeholders
 
 - Severity: Low
 - Symptom: Invest, transfer, and lifestyle screens are minimal placeholder views.
 - Affected files: `app/(authenticated)/(tabs)/invest.tsx`, `app/(authenticated)/(tabs)/transfer.tsx`, `app/(authenticated)/(tabs)/lifestyle.tsx`
 - Next step: Treat these screens as incomplete during future planning and demos.
 
-### 12. Relative `/api/...` fetches may need production origin planning
+### 14. Relative `/api/...` fetches may need production origin planning
 
 - Severity: High
 - Symptom: Native screens call `fetch('/api/...')` for crypto data.
@@ -96,16 +112,17 @@
 - Current state: The sample origin was removed, but a production server origin still needs to be configured when the app has a real deployment host.
 - Next step: Decide the production API host strategy before shipping native builds.
 
-### 13. Historical ticker data is BTC-specific
-
-- Severity: Medium
-- Symptom: `app/api/tickers+api.ts` fetches/falls back to historical BTC data regardless of the selected crypto asset.
-- Affected files: `app/api/tickers+api.ts`, `app/(authenticated)/crypto/[id].tsx`
-- Next step: Key ticker data by selected crypto asset if multi-asset chart accuracy becomes a product goal.
-
-### 14. Root README is too generic to onboard future sessions
+### 15. Historical fallback ticker data is BTC-specific
 
 - Severity: Low
+- Symptom: When CoinMarketCap quote requests are unavailable, `app/api/tickers+api.ts` still falls back to local BTC historical data.
+- Affected files: `app/api/tickers+api.ts`, `app/(authenticated)/crypto/[id].tsx`
+- Current state: Live selected-asset quotes are used when `CRYPTO_API_KEY` is configured and the upstream request succeeds. The fallback is intentionally local/offline-only.
+- Next step: Add per-asset fallback fixtures if offline multi-asset chart accuracy becomes a product goal.
+
+### 16. Root README is too generic to onboard future sessions
+
+- Status: Fixed
+- Severity: Low
 - Symptom: `README.md` does not describe actual routes, data flow, or known issues.
-- Affected files: `README.md`
-- Next step: Update the README in a future docs pass if external-facing onboarding matters.
+- Fix: `README.md` now describes reliability-first product direction, reliability guarantees, known limits, verification commands, and project references.
