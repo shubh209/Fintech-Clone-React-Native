@@ -3,8 +3,10 @@ import { useBalanceStore } from './balanceStore';
 
 const mockValues = new Map<string, string>();
 
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn(() => ({
+jest.mock('react-native-mmkv', () => {
+  const mockMMKV: any = jest.fn();
+
+  mockMMKV.mockImplementation(() => ({
     getString: (key: string) => mockValues.get(key),
     set: (key: string, value: string) => {
       mockValues.set(key, value);
@@ -12,13 +14,17 @@ jest.mock('react-native-mmkv', () => ({
     delete: (key: string) => {
       mockValues.delete(key);
     },
-  })),
-}));
+  }));
+
+  return {
+    MMKV: mockMMKV,
+  };
+});
 
 describe('balance store', () => {
   beforeEach(() => {
     mockValues.clear();
-    (MMKV as jest.Mock).mockClear();
+    (MMKV as any).mockClear();
     useBalanceStore.setState({ transactions: [] });
   });
 
