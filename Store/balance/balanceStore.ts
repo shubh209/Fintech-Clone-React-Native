@@ -4,6 +4,7 @@ import { zustandStorage } from "../storage/mmkv-storage";
 import {
     normalizeTransaction,
     normalizePersistedTransactions,
+    normalizeTransactionCategory,
     PersistedTransaction,
     TransactionInput,
 } from "./transactionUtils";
@@ -23,6 +24,7 @@ export type Transaction = PersistedTransaction;
 export interface BalanceState{
     transactions:  Array<Transaction>;
     runTransaction: (transaction: TransactionInput) => void;
+    updateTransactionCategory: (transactionId: string, category: string) => void;
     balance: () => number;
     clearTansactions: () => void;
 }
@@ -43,6 +45,18 @@ export const useBalanceStore = create<BalanceState>()(
                         amountDirection: transaction.amount >= 0 ? 'positive' : 'negative',
                     }
                 );
+            },
+            updateTransactionCategory: (transactionId: string, category: string) => {
+                set((state) => ({
+                    transactions: state.transactions.map((transaction) =>
+                        transaction.id === transactionId
+                            ? {
+                                ...transaction,
+                                category: normalizeTransactionCategory(category),
+                            }
+                            : transaction
+                    ),
+                }));
             },
             balance: () => get().transactions.reduce((acc, transaction) => acc + transaction.amount, 0),
             clearTansactions: () => {
