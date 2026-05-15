@@ -28,11 +28,13 @@ Before making changes:
 - Read `docs/product-strategy/reliable-finance-app-roadmap.md` before planning broad product work.
 - Use `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` as the current implementation sequence for reliability scaffolding.
 - The repo uses mixed directory casing such as `Components`, `Store`, and `app`.
-- Several tabs are placeholders and should not be described as complete features.
+- Activity is a real tab for searchable/filterable transaction history and monthly totals.
+- Invest and lifestyle are placeholders and should not be described as complete features.
 - Listings and info crypto API routes use live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then fall back to local data.
 - Ticker data uses live selected-asset CoinMarketCap latest quotes when `CRYPTO_API_KEY` is configured, then falls back to local BTC historical data.
 - Crypto detail chart hooks must stay above loading/error early returns.
 - Persisted transaction dates are normalized to ISO strings through `Store/balance/transactionUtils.ts`.
+- Persisted transaction categories are inferred and backfilled for legacy transactions through `Store/balance/transactionUtils.ts`.
 - MMKV storage has an in-memory fallback for remote debugger/non-JSI environments.
 - Metrics are centralized in `utils/metrics.ts`; event names are cataloged in `docs/project-reference/metrics.md`.
 - Run `npx jest --runInBand --watchman=false` and `npx tsc --noEmit` after storage or crypto changes.
@@ -41,7 +43,7 @@ Before making changes:
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-14 10:56pm MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-15 1:43pm MST
 
 No previous sessions found.
 </claude-mem-context>

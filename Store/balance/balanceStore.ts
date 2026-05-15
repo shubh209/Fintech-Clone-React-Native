@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { zustandStorage } from "../storage/mmkv-storage";
 import {
     normalizeTransaction,
+    normalizePersistedTransactions,
     PersistedTransaction,
     TransactionInput,
 } from "./transactionUtils";
@@ -50,7 +51,16 @@ export const useBalanceStore = create<BalanceState>()(
         }), 
         {
             name: 'balance',
+            version: 1,
             storage: createJSONStorage(() => zustandStorage),
+            migrate: (persistedState) => {
+                const state = persistedState as Partial<BalanceState>;
+
+                return {
+                    ...state,
+                    transactions: normalizePersistedTransactions(state.transactions ?? []),
+                };
+            },
         }
     )
 )

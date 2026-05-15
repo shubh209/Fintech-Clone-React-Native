@@ -17,7 +17,9 @@
 
 - Start with `Store/balance/balanceStore.ts`, `Store/balance/transactionUtils.ts`, and `Store/storage/mmkv-storage.ts`.
 - Persist transaction dates as ISO strings.
+- Persist transaction categories as inferred category strings and preserve the version `1` backfill migration.
 - Use `getTransactionsNewestFirst()` instead of mutating arrays from the Zustand store.
+- Use `filterTransactions()` and `getMonthlyTransactionSummary()` for Activity views instead of duplicating transaction logic in screens.
 - Keep `Store/storage/mmkv-storage.ts` raw-string based because `createJSONStorage()` owns JSON parsing and stringifying.
 - Preserve the legacy double-encoded MMKV read compatibility unless all users have migrated storage.
 - Preserve the in-memory fallback path for environments where MMKV cannot create a JSI-backed native instance.

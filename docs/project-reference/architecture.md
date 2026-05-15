@@ -5,6 +5,7 @@
 - `app/index.tsx` is the landing route.
 - `app/login.tsx`, `app/signup.tsx`, `app/help.tsx`, and `app/verify/[phone].tsx` are public auth flows.
 - `app/(authenticated)/(tabs)` contains the main signed-in tab shell.
+- `app/(authenticated)/(tabs)/activity.tsx` is the full transaction activity screen with search, category filters, and monthly totals.
 - `app/(authenticated)/(modals)` contains lock and account modal flows.
 - `app/(authenticated)/crypto/[id].tsx` is the crypto detail screen.
 
@@ -21,7 +22,8 @@
 - React Query is initialized globally in `app/_layout.tsx`.
 - Transaction state is held in `Store/balance/balanceStore.ts`.
 - The balance store persists through MMKV via `Store/storage/mmkv-storage.ts`.
-- Transaction normalization and display helpers live in `Store/balance/transactionUtils.ts`.
+- Transaction normalization, category inference, filtering, monthly summaries, and display helpers live in `Store/balance/transactionUtils.ts`.
+- The balance store uses persist version `1` to backfill categories for legacy persisted transactions.
 - Inactivity lock timing uses `context/userInactivityStorage.ts`.
 - Zustand and inactivity storage fall back to in-memory storage when MMKV cannot create an on-device JSI instance.
 
@@ -63,6 +65,7 @@
 - `utils/apiResult.test.ts`
 - `utils/cryptoValidators.test.ts`
 - `__tests__/crypto-detail-hooks.test.ts`
+- `__tests__/activity-tab-wiring.test.ts`
 - `__tests__/crypto-detail-api-wiring.test.ts`
 - `__tests__/crypto-list-api-wiring.test.ts`
 - `__tests__/api/listings-api.test.ts`

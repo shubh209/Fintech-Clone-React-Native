@@ -45,7 +45,7 @@ Portfolio signal: demonstrates correctness, failure handling, and system boundar
 
 Goal: build one genuinely useful finance workflow.
 
-- Activity screen: searchable/filterable transaction history, category labels, monthly totals.
+- Activity screen: searchable/filterable transaction history, category labels, monthly totals. Initial implementation is complete; future work should add richer category management and recurring item detection.
 - Budget snapshot: income, spending, recurring items, and month-over-month change.
 - Goal tracker: emergency fund, savings target, or debt payoff simulation.
 - Alerts: low balance, unusual spending, and budget threshold warnings.

@@ -95,16 +95,32 @@
 - Fix: `utils/cryptoValidators.ts` now validates the rendered CoinMarketCap fields and API routes fall back locally when live payloads are malformed.
 - Verification: `utils/cryptoValidators.test.ts`, `__tests__/api/listings-api.test.ts`, `__tests__/api/info-api.test.ts`, and `__tests__/api/tickers-api.test.ts`.
 
+### 13. Transfer tab was a placeholder instead of a reliable finance workflow
+
+- Status: Fixed
+- Severity: Low
+- Symptom: The transfer tab was a minimal placeholder and did not provide a reliable, testable user workflow.
+- Fix: Replaced it with `app/(authenticated)/(tabs)/activity.tsx`, which provides searchable/filterable transaction history, category labels, monthly income/spending/net totals, and a tested tab route.
+- Verification: `__tests__/activity-tab-wiring.test.ts` and `Store/balance/transactionUtils.test.ts`.
+
+### 14. Legacy persisted transactions lacked category metadata
+
+- Status: Fixed
+- Severity: Medium
+- Symptom: Older persisted transactions only had `id`, `amount`, `title`, and `date`, so category-based Activity filters could render undefined categories.
+- Fix: `Store/balance/transactionUtils.ts` infers categories and `Store/balance/balanceStore.ts` migrates persisted balance state to version `1`.
+- Verification: `Store/balance/transactionUtils.test.ts`.
+
 ## Remaining Issues Or Risk Areas
 
-### 13. Several tabs are placeholders
+### 15. Several tabs are placeholders
 
 - Severity: Low
-- Symptom: Invest, transfer, and lifestyle screens are minimal placeholder views.
-- Affected files: `app/(authenticated)/(tabs)/invest.tsx`, `app/(authenticated)/(tabs)/transfer.tsx`, `app/(authenticated)/(tabs)/lifestyle.tsx`
+- Symptom: Invest and lifestyle screens are minimal placeholder views.
+- Affected files: `app/(authenticated)/(tabs)/invest.tsx`, `app/(authenticated)/(tabs)/lifestyle.tsx`
 - Next step: Treat these screens as incomplete during future planning and demos.
 
-### 14. Relative `/api/...` fetches may need production origin planning
+### 16. Relative `/api/...` fetches may need production origin planning
 
 - Severity: High
 - Symptom: Native screens call `fetch('/api/...')` for crypto data.
@@ -112,7 +128,7 @@
 - Current state: The sample origin was removed, but a production server origin still needs to be configured when the app has a real deployment host.
 - Next step: Decide the production API host strategy before shipping native builds.
 
-### 15. Historical fallback ticker data is BTC-specific
+### 17. Historical fallback ticker data is BTC-specific
 
 - Severity: Low
 - Symptom: When CoinMarketCap quote requests are unavailable, `app/api/tickers+api.ts` still falls back to local BTC historical data.
@@ -120,7 +136,7 @@
 - Current state: Live selected-asset quotes are used when `CRYPTO_API_KEY` is configured and the upstream request succeeds. The fallback is intentionally local/offline-only.
 - Next step: Add per-asset fallback fixtures if offline multi-asset chart accuracy becomes a product goal.
 
-### 16. Root README is too generic to onboard future sessions
+### 18. Root README is too generic to onboard future sessions
 
 - Status: Fixed
 - Severity: Low

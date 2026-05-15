@@ -22,12 +22,14 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 
 - Auth routes exist for signup, login, help, and phone verification through Clerk.
 - Home tracks balance and transactions through Zustand plus MMKV persistence.
+- Activity provides searchable/filterable transaction history, category labels, and monthly totals.
 - Crypto uses local Expo Router API handlers that call CoinMarketCap when configured and fall back to local data.
-- Invest, transfer, and lifestyle are placeholders and should not be presented as complete product features.
+- Invest and lifestyle are placeholders and should not be presented as complete product features.
 
 ## Reliability Guarantees
 
 - Persisted transaction dates are normalized to ISO strings.
+- Persisted transaction categories are inferred and legacy transactions are backfilled during store migration.
 - Transaction sorting uses copies and does not mutate store arrays during render.
 - MMKV storage falls back to memory when native JSI storage is unavailable.
 - Crypto list and detail screens use EUR formatting for EUR quote data.

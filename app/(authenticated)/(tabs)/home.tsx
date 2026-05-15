@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Colors from '@/constants/Colors';
 import RoundButton from '@/Components/ui/RoundButton';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import WidgetList from '@/Components/sortable-list/WidgetList';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { formatTransactionDate, getTransactionsNewestFirst } from '@/Store/balance/transactionUtils';
+import { Href, useRouter } from 'expo-router';
 
 const formatDollarAmount = (amount: number) => {
   const absoluteAmount = Math.abs(amount).toLocaleString('en-US');
@@ -17,9 +18,10 @@ const formatDollarAmount = (amount: number) => {
 const Home = () => {
   
   const {balance, runTransaction, clearTansactions, transactions} = useBalanceStore();
+  const router = useRouter();
 
   const headerHeight = useHeaderHeight();
-  const displayedTransactions = getTransactionsNewestFirst(transactions);
+  const displayedTransactions = getTransactionsNewestFirst(transactions).slice(0, 3);
   const currentBalance = balance();
   const incomeTotal = transactions
     .filter((transaction) => transaction.amount > 0)
@@ -41,10 +43,7 @@ const Home = () => {
   };
 
   const onDetails = () => {
-    Alert.alert(
-      'Account details',
-      `${transactions.length} transactions recorded\nCurrent balance: ${formatDollarAmount(currentBalance)}`
-    );
+    router.push('/(authenticated)/(tabs)/activity' as Href);
   };
 
   return (
@@ -114,7 +113,7 @@ const Home = () => {
 
 
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>Transactions</Text>
+        <Text style={styles.sectionHeader}>Recent Activity</Text>
         <Text style={styles.sectionCaption}>{transactions.length} total</Text>
       </View>
       <View style={styles.transactionCard}>

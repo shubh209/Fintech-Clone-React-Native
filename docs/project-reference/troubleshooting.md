@@ -72,6 +72,13 @@ If a screen appears missing:
 
 - Confirm whether it is one of the placeholder tabs before treating it as a regression.
 - Check whether the route exists but has only presentation scaffolding.
+- Transfer was intentionally replaced by Activity. The current primary tabs are Home, Invest, Activity, Crypto, and Lifestyle.
+
+If Activity filters look wrong:
+
+1. Check `Store/balance/transactionUtils.ts`.
+2. Confirm legacy transactions were migrated through balance store version `1`.
+3. Run `npx jest --runTestsByPath Store/balance/transactionUtils.test.ts __tests__/activity-tab-wiring.test.ts --runInBand --watchman=false`.
 
 ## Verification Commands
 
