@@ -22,7 +22,7 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 
 - Auth routes exist for signup, login, help, and phone verification through Clerk.
 - Home tracks balance and transactions through Zustand plus MMKV persistence.
-- Activity provides searchable/filterable transaction history, category labels, and monthly totals.
+- Activity provides searchable/filterable transaction history, editable category labels including custom names, and monthly totals.
 - Crypto uses local Expo Router API handlers that call CoinMarketCap when configured and fall back to local data.
 - Invest and lifestyle are placeholders and should not be presented as complete product features.
 

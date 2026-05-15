@@ -33,4 +33,5 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.
+- Activity category labels can be corrected with custom names that are normalized and stored on the transaction.
 - The root README now explains reliability guarantees, known limits, and project references.
