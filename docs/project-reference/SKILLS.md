@@ -4,6 +4,7 @@
 
 - Start with `docs/product-strategy/reliable-finance-app-roadmap.md`.
 - Use `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` for the current reliability implementation sequence.
+- Use `docs/project-reference/measurement-skill.md` for every functionality change so customer-impact measurement is designed, instrumented, tested, and summarized.
 - Prefer fewer complete workflows over additional placeholder tabs.
 - Treat reliability, data freshness, privacy boundaries, and observability as product features.
 - Do not add AI financial advice; future AI work should be explainable educational guidance with visible inputs and privacy controls.
@@ -41,6 +42,7 @@
 ## When Working On Metrics
 
 - Start with `apps/frontend/utils/metrics.ts` and `docs/project-reference/metrics.md`.
+- Also read `docs/project-reference/measurement-skill.md` before adding or changing functionality.
 - Use `timeAsync()` for API calls, auth calls, and biometric operations.
 - Use `timeSync()` for synchronous state operations.
 - Use `recordMetric()` for immediate success/failure events or fallback use.

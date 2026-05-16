@@ -10,6 +10,7 @@ Before making changes:
 2. Read `docs/project-reference/issues.md`.
 3. Check `app.json`, `.env`, and `apps/frontend/app/_layout.tsx` for environment assumptions.
 4. Treat `apps/frontend/Store/`, `apps/backend/`, shared contracts, and auth routes as high-risk areas.
+5. Read `docs/project-reference/measurement-skill.md` before any code change that adds or changes functionality.
 
 ## High-Risk Areas
 
@@ -40,13 +41,14 @@ Before making changes:
 - Persisted transaction categories are inferred and backfilled for legacy transactions through `apps/frontend/Store/balance/transactionUtils.ts`.
 - MMKV storage has an in-memory fallback for remote debugger/non-JSI environments.
 - Metrics are centralized in `apps/frontend/utils/metrics.ts`; event names are cataloged in `docs/project-reference/metrics.md`.
+- Every functionality change must define a measurable customer-impact signal and report before/after impact or newly added measurement coverage. Use `docs/project-reference/measurement-skill.md`.
 - Run `npx jest --runInBand --watchman=false` and `npx tsc --noEmit` after storage or crypto changes.
 
 
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-16 9:53am MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-16 4:01pm MST
 
 No previous sessions found.
 </claude-mem-context>
