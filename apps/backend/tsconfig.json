@@ -3,5 +3,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "../../packages/shared/src/**/*.ts"]
+  "include": ["src/**/*.ts", "../../packages/shared/src/**/*.ts"],
+  "exclude": ["**/*.test.ts", "../../packages/shared/src/**/*.test.ts"]
 }

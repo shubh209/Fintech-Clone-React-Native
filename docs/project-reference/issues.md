@@ -146,8 +146,10 @@
 
 ### 19. Activity and balance data are still local-first
 
+- Status: Partially fixed
 - Severity: High
 - Symptom: Home and Activity transaction state still persists through frontend MMKV, so the app is not yet cloud-first for user finance data.
-- Affected files: `apps/frontend/Store/balance/balanceStore.ts`, future `apps/backend/src` transaction modules.
-- Current state: MMKV behavior is stable and tested, but it remains the source of truth for transactions.
-- Next step: Add cloud-backed transaction endpoints in `apps/backend`, then refactor the frontend balance store behind a repository/client boundary so MMKV becomes cache/fallback rather than durable source of truth.
+- Affected files: `apps/frontend/Store/balance/balanceStore.ts`, `apps/frontend/utils/transactionRepository.ts`, `apps/backend/src/transactions/transactionRoutes.ts`, `apps/backend/src/transactions/transactionStore.ts`, `packages/shared/src/transactionContracts.ts`.
+- Current state: Home and Activity hydrate from `/api/transactions` after Clerk sign-in. Mutations remain optimistic in the Zustand store and sync the normalized transaction snapshot to the Worker. MMKV is retained as a cache/fallback through `transactions-cache` and the persisted balance state.
+- Production tradeoff: `TRANSACTIONS` is currently bound to the existing KV namespace IDs with separate `transactions:<userId>` keys because the available Cloudflare API token could list KV namespaces but could not create a dedicated transaction namespace.
+- Next step: Provision a dedicated `TRANSACTIONS` KV namespace, replace the shared namespace IDs in `apps/backend/wrangler.jsonc`, and add backend-side Clerk JWT verification instead of trusting the client-provided user key.

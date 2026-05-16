@@ -1,5 +1,5 @@
 import { MMKV } from 'react-native-mmkv';
-import { useBalanceStore } from './balanceStore';
+import { setTransactionRepository, useBalanceStore } from './balanceStore';
 
 const mockValues = new Map<string, string>();
 
@@ -22,10 +22,28 @@ jest.mock('react-native-mmkv', () => {
 });
 
 describe('balance store', () => {
+  const repository = {
+    loadTransactions: jest.fn(),
+    saveTransactions: jest.fn(),
+  };
+
   beforeEach(() => {
     mockValues.clear();
     (MMKV as any).mockClear();
-    useBalanceStore.setState({ transactions: [] });
+    repository.loadTransactions.mockReset();
+    repository.saveTransactions.mockReset();
+    repository.loadTransactions.mockResolvedValue({
+      source: 'cloud',
+      transactions: [],
+      updatedAt: null,
+    });
+    repository.saveTransactions.mockResolvedValue({
+      source: 'cloud',
+      transactions: [],
+      updatedAt: null,
+    });
+    setTransactionRepository(repository as any);
+    useBalanceStore.setState({ transactions: [], syncStatus: 'idle' });
   });
 
   it('updates one transaction category with normalized custom names', () => {
@@ -75,5 +93,83 @@ describe('balance store', () => {
     useBalanceStore.getState().updateTransactionCategory('tx-1', '   ');
 
     expect(useBalanceStore.getState().transactions[0].category).toBe('other');
+  });
+
+  it('hydrates transactions from the cloud repository', async () => {
+    repository.loadTransactions.mockResolvedValue({
+      source: 'cloud',
+      transactions: [
+        {
+          id: 'tx-cloud',
+          amount: 20,
+          title: 'Deposit',
+          date: '2024-01-02T12:00:00.000Z',
+          category: 'income',
+        },
+      ],
+      updatedAt: '2024-01-02T12:01:00.000Z',
+    });
+
+    await useBalanceStore.getState().hydrateTransactions();
+
+    expect(useBalanceStore.getState().transactions).toEqual([
+      {
+        id: 'tx-cloud',
+        amount: 20,
+        title: 'Deposit',
+        date: '2024-01-02T12:00:00.000Z',
+        category: 'income',
+      },
+    ]);
+    expect(useBalanceStore.getState().syncStatus).toBe('synced');
+  });
+
+  it('keeps optimistic transactions when cloud save fails', async () => {
+    repository.saveTransactions.mockRejectedValue(new Error('network down'));
+
+    await useBalanceStore.getState().runTransaction({
+      id: 'tx-1',
+      amount: -8,
+      title: 'Coffee',
+      date: '2024-01-02T12:00:00.000Z',
+    });
+
+    expect(useBalanceStore.getState().transactions).toEqual([
+      {
+        id: 'tx-1',
+        amount: -8,
+        title: 'Coffee',
+        date: '2024-01-02T12:00:00.000Z',
+        category: 'food',
+      },
+    ]);
+    expect(useBalanceStore.getState().syncStatus).toBe('fallback');
+  });
+
+  it('syncs category updates to the cloud repository', async () => {
+    useBalanceStore.setState({
+      transactions: [
+        {
+          id: 'tx-1',
+          amount: -28,
+          title: 'Dinner',
+          date: '2024-01-02T12:00:00.000Z',
+          category: 'food',
+        },
+      ],
+      syncStatus: 'idle',
+    });
+
+    await useBalanceStore.getState().updateTransactionCategory('tx-1', ' Weekend Dining ');
+
+    expect(repository.saveTransactions).toHaveBeenCalledWith([
+      {
+        id: 'tx-1',
+        amount: -28,
+        title: 'Dinner',
+        date: '2024-01-02T12:00:00.000Z',
+        category: 'weekend dining',
+      },
+    ]);
   });
 });

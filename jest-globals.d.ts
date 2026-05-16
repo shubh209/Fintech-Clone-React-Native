@@ -9,26 +9,39 @@ declare function expect<T>(value: T): {
     toHaveBeenCalled(): void;
     toThrow(): void;
   };
+  toHaveBeenCalledWith(...expected: unknown[]): void;
   toBe(expected: unknown): void;
   toBeGreaterThan(expected: number): void;
   toBeLessThan(expected: number): void;
   toContain(expected: unknown): void;
+  toHaveLength(expected: number): void;
   toBeNull(): void;
   toEqual(expected: unknown): void;
 };
 
 declare namespace expect {
   function any(constructor: unknown): unknown;
+  function objectContaining(value: unknown): unknown;
+}
+
+interface JestMock {
+  (...args: unknown[]): unknown;
+  mockClear(): void;
+  mockImplementation(fn: (...args: unknown[]) => unknown): void;
+  mockReset(): void;
+  mockResolvedValue(value: unknown): JestMock;
+  mockRejectedValue(value: unknown): JestMock;
 }
 
 declare const jest: {
-  fn(): unknown;
+  fn(): JestMock;
   mock(moduleName: string, factory: () => unknown): void;
   restoreAllMocks(): void;
   spyOn<T, K extends keyof T>(
     object: T,
     method: K
   ): {
-    mockResolvedValue(value: unknown): void;
+    mockResolvedValue(value: unknown): JestMock;
+    mockRejectedValue(value: unknown): JestMock;
   };
 };

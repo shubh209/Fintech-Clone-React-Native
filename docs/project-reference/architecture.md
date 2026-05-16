@@ -20,12 +20,22 @@
 
 - Clerk auth state is provided from `apps/frontend/app/_layout.tsx`.
 - React Query is initialized globally in `apps/frontend/app/_layout.tsx`.
-- Transaction state is held in `apps/frontend/Store/balance/balanceStore.ts`.
-- The balance store persists through MMKV via `apps/frontend/Store/storage/mmkv-storage.ts`.
+- Transaction state is held in `apps/frontend/Store/balance/balanceStore.ts`, which now hydrates from the Cloudflare Worker when a Clerk user is signed in.
+- Cloud-backed transaction reads/writes go through `apps/frontend/utils/transactionRepository.ts` and `apps/frontend/utils/transactionApiClient.ts`.
+- The balance store still persists through MMKV via `apps/frontend/Store/storage/mmkv-storage.ts`, but MMKV is now a cache/fallback for Home and Activity rather than the intended source of truth.
 - Transaction normalization, category inference, filtering, monthly summaries, and display helpers live in `apps/frontend/Store/balance/transactionUtils.ts`.
 - The balance store uses persist version `1` to backfill categories for legacy persisted transactions.
 - Inactivity lock timing uses `apps/frontend/context/userInactivityStorage.ts`.
 - Zustand and inactivity storage fall back to in-memory storage when MMKV cannot create an on-device JSI instance.
+
+## Transaction Data Flow
+
+- `apps/frontend/app/_layout.tsx` passes the signed-in Clerk `userId` into the transaction API client and triggers balance-store hydration after sign-in.
+- `apps/frontend/Store/balance/balanceStore.ts` keeps Home and Activity behavior optimistic: adding money, clearing transactions, and editing categories update UI state immediately, then sync the normalized transaction list to the backend.
+- `apps/frontend/utils/transactionRepository.ts` writes successful cloud snapshots into the MMKV-backed `transactions-cache` key and falls back to that cache when the backend request fails.
+- The Worker exposes `/api/transactions` through `apps/backend/src/transactions/transactionRoutes.ts`; route logic delegates storage to `apps/backend/src/transactions/transactionStore.ts`.
+- Shared transaction contracts and runtime guards live in `packages/shared/src/transactionContracts.ts`.
+- The Worker currently binds `TRANSACTIONS` to the existing KV namespace IDs used for crypto fallback data, with all transaction data scoped under `transactions:<userId>` keys. This keeps the first cloud-source slice deployable; a dedicated production transaction namespace remains the cleaner follow-up.
 
 ## Crypto Data Flow
 
@@ -50,12 +60,14 @@
 
 - `apps/frontend/utils/apiResult.ts` re-exports shared source/fallback/freshness metadata helpers from `packages/shared/src/apiResult.ts`.
 - `apps/frontend/utils/cryptoValidators.ts` validates the subset of CoinMarketCap payloads the app renders.
+- `packages/shared/src/transactionContracts.ts` validates and normalizes transaction snapshots crossing the mobile/backend boundary.
 - Cloud API routes should validate live provider data before returning it and fall back to KV data when the live shape is malformed.
 - Crypto UI should expose `Data source`, `Last updated`, and `Retry` affordances for API-backed data.
 
 ## Test Coverage Added
 
 - `apps/frontend/Store/balance/transactionUtils.test.ts`
+- `apps/frontend/Store/balance/balanceStore.test.ts`
 - `apps/frontend/Store/storage/mmkv-storage.test.ts`
 - `apps/frontend/context/userInactivityStorage.test.ts`
 - `apps/frontend/utils/currency.test.ts`
@@ -70,6 +82,9 @@
 - `apps/backend/__tests__/api/listings-api.test.ts`
 - `apps/backend/__tests__/api/info-api.test.ts`
 - `apps/backend/__tests__/api/tickers-api.test.ts`
+- `apps/backend/__tests__/api/transactions-api.test.ts`
+- `apps/frontend/utils/transactionRepository.test.ts`
+- `packages/shared/src/transactionContracts.test.ts`
 - `tests/project-structure.test.ts`
 
 ## Structural Notes

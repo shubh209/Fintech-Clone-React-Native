@@ -13,6 +13,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Colors from '../constants/Colors';
 import { UserInactivityProvider } from '../context/UserInactivity';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { useBalanceStore } from '../Store/balance/balanceStore';
+import { setTransactionUserId } from '../utils/transactionApiClient';
 
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
@@ -43,7 +45,7 @@ export { ErrorBoundary } from 'expo-router';
 function InitialLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, userId } = useAuth();
 
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -91,6 +93,16 @@ function InitialLayout() {
     router.replace('/(authenticated)/(tabs)/home');
   }
 }, [isSignedIn, isLoaded, segments]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    setTransactionUserId(isSignedIn ? userId : null);
+
+    if (isSignedIn) {
+      useBalanceStore.getState().hydrateTransactions();
+    }
+  }, [isLoaded, isSignedIn, userId]);
 
 
   if (!fontsLoaded || !isLoaded) {

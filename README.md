@@ -22,8 +22,9 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 
 - Auth routes exist for signup, login, help, and phone verification through Clerk.
 - Primary signed-in tabs are Home, Activity, and Crypto.
-- Home tracks balance and transactions through Zustand plus MMKV persistence.
+- Home tracks balance and transactions through the Cloudflare Worker, with Zustand plus MMKV as the local cache/fallback.
 - Activity provides searchable/filterable transaction history, editable category labels including custom names, and monthly totals.
+- Activity uses the same cloud-backed transaction snapshot as Home.
 - Crypto calls the Cloudflare Worker backend configured through `EXPO_PUBLIC_API_BASE_URL`.
 
 ## Monorepo Layout
@@ -37,8 +38,10 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 
 - Persisted transaction dates are normalized to ISO strings.
 - Persisted transaction categories are inferred and legacy transactions are backfilled during store migration.
+- Home and Activity hydrate transaction snapshots from `/api/transactions` after Clerk sign-in.
+- Transaction mutations update the UI optimistically, then sync the normalized snapshot to the Worker.
 - Transaction sorting uses copies and does not mutate store arrays during render.
-- MMKV storage falls back to memory when native JSI storage is unavailable.
+- MMKV storage falls back to memory when native JSI storage is unavailable and remains the transaction cache/fallback.
 - Crypto list and detail screens use EUR formatting for EUR quote data.
 - Crypto API routes prefer live CoinMarketCap data when the Worker has `CRYPTO_API_KEY`, then fall back to Cloudflare KV data.
 - Crypto API routes validate provider payloads before rendering or falling back.
@@ -50,7 +53,8 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - The app is not connected to real bank accounts.
 - Money movement is simulated and must not be presented as real transfer behavior.
 - Crypto fallback ticker history is BTC-specific when live quote data is unavailable.
-- Home and Activity transaction data still persist locally through MMKV; the next backend step is to move transaction source-of-truth to Cloudflare.
+- The transaction API currently trusts a client-provided Clerk user key; backend JWT verification is still needed before this pattern should be treated as production-authenticated finance storage.
+- `TRANSACTIONS` currently reuses the existing KV namespace IDs with `transactions:<userId>` keys until a dedicated namespace can be provisioned.
 - Native builds require `EXPO_PUBLIC_API_BASE_URL` to point at the deployed Worker.
 - AI guidance is planned as educational assistance only, not investment, legal, or tax advice.
 

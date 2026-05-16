@@ -46,6 +46,7 @@ Portfolio signal: demonstrates correctness, failure handling, and system boundar
 Goal: build one genuinely useful finance workflow.
 
 - Activity screen: searchable/filterable transaction history, category labels, monthly totals. Initial implementation is complete; future work should add richer category management and recurring item detection.
+- Transaction durability: Home and Activity now sync transaction snapshots to the Cloudflare Worker, with MMKV retained as a local cache/fallback. A dedicated transaction KV namespace and backend Clerk JWT verification remain production-hardening follow-ups.
 - Budget snapshot: income, spending, recurring items, and month-over-month change.
 - Goal tracker: emergency fund, savings target, or debt payoff simulation.
 - Alerts: low balance, unusual spending, and budget threshold warnings.

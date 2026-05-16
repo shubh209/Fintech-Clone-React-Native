@@ -16,8 +16,8 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 ## Repository Layout
 
 - `apps/frontend` contains the Expo Router app, React Native UI, Zustand/MMKV state, assets, and frontend tests.
-- `apps/backend` contains the Cloudflare Worker crypto API.
-- `packages/shared` contains shared API metadata helpers and crypto runtime validators.
+- `apps/backend` contains the Cloudflare Worker API for crypto and transaction snapshots.
+- `packages/shared` contains shared API metadata helpers plus crypto and transaction runtime validators.
 
 ## Key Libraries
 
@@ -39,6 +39,7 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - Listings and info endpoints use live CoinMarketCap data when the Worker has `CRYPTO_API_KEY` configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Detail ticker quotes use live selected-asset CoinMarketCap latest quote data when configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
+- Home and Activity transaction snapshots hydrate from the Worker `/api/transactions` route when signed in, with MMKV retained as a local cache/fallback.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.
 - Activity category labels can be corrected with custom names that are normalized and stored on the transaction.

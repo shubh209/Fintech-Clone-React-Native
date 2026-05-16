@@ -28,6 +28,8 @@ The project now uses an explicit monorepo layout:
 
 The crypto Worker is deployed at `https://fintech-reliability-api.shubhkapadia2031.workers.dev` with `CRYPTO_API_KEY` stored as a Worker secret and `CRYPTO_FALLBACKS` KV seeded for listings, info, and ticker fallback data.
 
+Home and Activity transactions now use the Worker `/api/transactions` route as the intended source of truth. The frontend still keeps MMKV as a cache/fallback so the existing Home and Activity workflows remain usable when the cloud request fails.
+
 ## Product Strategy
 
 This repo is now being steered as a reliability-first finance app, not a broad feature clone. Read `docs/product-strategy/reliable-finance-app-roadmap.md` before planning new product work.
