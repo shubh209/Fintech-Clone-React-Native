@@ -26,6 +26,13 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - Activity provides searchable/filterable transaction history, editable category labels including custom names, and monthly totals.
 - Crypto calls the Cloudflare Worker backend configured through `EXPO_PUBLIC_API_BASE_URL`.
 
+## Monorepo Layout
+
+- `apps/frontend`: Expo Router mobile app, frontend state, UI, assets, and frontend tests.
+- `apps/backend`: Cloudflare Worker API for crypto data.
+- `packages/shared`: shared response contracts and runtime validators used across app boundaries.
+- `docs`: project references, architecture decisions, product strategy, and implementation plans.
+
 ## Reliability Guarantees
 
 - Persisted transaction dates are normalized to ISO strings.
@@ -43,8 +50,31 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - The app is not connected to real bank accounts.
 - Money movement is simulated and must not be presented as real transfer behavior.
 - Crypto fallback ticker history is BTC-specific when live quote data is unavailable.
-- Native production builds still need a real API origin strategy for `/api/...` routes.
+- Home and Activity transaction data still persist locally through MMKV; the next backend step is to move transaction source-of-truth to Cloudflare.
+- Native builds require `EXPO_PUBLIC_API_BASE_URL` to point at the deployed Worker.
 - AI guidance is planned as educational assistance only, not investment, legal, or tax advice.
+
+## Cloud Backend
+
+The crypto Worker is deployed at:
+
+```text
+https://fintech-reliability-api.shubhkapadia2031.workers.dev
+```
+
+Local development should set:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://fintech-reliability-api.shubhkapadia2031.workers.dev
+```
+
+Worker commands:
+
+```bash
+npm run backend:typecheck
+npx wrangler deploy --dry-run --config apps/backend/wrangler.jsonc
+npx wrangler deploy --config apps/backend/wrangler.jsonc
+```
 
 ## Tech Stack
 
@@ -69,6 +99,12 @@ Start Expo:
 
 ```bash
 npm start
+```
+
+Start the Worker locally:
+
+```bash
+npm run backend:dev
 ```
 
 Run verification:

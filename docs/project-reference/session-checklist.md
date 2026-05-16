@@ -5,7 +5,7 @@
 3. Read `docs/product-strategy/reliable-finance-app-roadmap.md` before planning product work.
 4. Read `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` before starting reliability Phase 1 work.
 5. Read `docs/project-reference/issues.md` before editing auth, storage, or crypto code.
-6. Check `.env`, `app.json`, and `app/_layout.tsx` for environment assumptions.
+6. Check `.env`, `app.json`, and `apps/frontend/app/_layout.tsx` for environment assumptions.
 7. Confirm whether the task is docs-only, audit-only, strategy, or runtime-fix work.
 8. If touching persisted data, verify serialization and rehydration behavior first.
 9. If touching crypto, verify whether the intended source of truth is live APIs or fallback fixtures.

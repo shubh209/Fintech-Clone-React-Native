@@ -4,7 +4,7 @@ import { join } from 'path';
 describe('crypto list API wiring', () => {
   it('keeps the list price source tied to listings API data', () => {
     const source = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/crypto.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/crypto.tsx'),
       'utf8'
     );
 
@@ -15,7 +15,7 @@ describe('crypto list API wiring', () => {
 
   it('exposes a refresh action that refetches crypto APIs', () => {
     const source = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/crypto.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/crypto.tsx'),
       'utf8'
     );
 
@@ -26,7 +26,7 @@ describe('crypto list API wiring', () => {
 
   it('surfaces crypto data trust labels and retry copy', () => {
     const source = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/crypto.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/crypto.tsx'),
       'utf8'
     );
 

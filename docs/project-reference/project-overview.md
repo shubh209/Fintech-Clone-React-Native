@@ -13,6 +13,12 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - Home, activity, and crypto have meaningful implementations.
 - Invest and lifestyle were removed from the primary navigation rather than preserved as placeholders.
 
+## Repository Layout
+
+- `apps/frontend` contains the Expo Router app, React Native UI, Zustand/MMKV state, assets, and frontend tests.
+- `apps/backend` contains the Cloudflare Worker crypto API.
+- `packages/shared` contains shared API metadata helpers and crypto runtime validators.
+
 ## Key Libraries
 
 - `expo` and `expo-router`
@@ -27,7 +33,9 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - `docs/product-strategy/reliable-finance-app-roadmap.md` is the guiding roadmap.
 - `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` is the current implementation plan for reliability scaffolding.
 - `docs/architecture/decisions/` records product and data-trust architecture decisions.
-- Crypto data is served by the Cloudflare Worker in `apps/api`; mobile screens call `EXPO_PUBLIC_API_BASE_URL`.
+- Crypto data is served by the Cloudflare Worker in `apps/backend`; mobile screens call `EXPO_PUBLIC_API_BASE_URL`.
+- The deployed crypto Worker is `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
+- `CRYPTO_FALLBACKS` KV is configured for production and preview fallback data.
 - Listings and info endpoints use live CoinMarketCap data when the Worker has `CRYPTO_API_KEY` configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Detail ticker quotes use live selected-asset CoinMarketCap latest quote data when configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.

@@ -11,7 +11,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "api:dev": "npm run dev --workspace @fintech/api",
+    "backend:dev": "npm run dev --workspace @fintech/backend",
+    "backend:deploy": "npm run deploy --workspace @fintech/backend",
+    "backend:typecheck": "npm run typecheck --workspace @fintech/backend",
     "test": "jest --watchAll"
   },
   "jest": {

@@ -1,4 +1,4 @@
-import { getInfo } from '../../apps/api/src/crypto/cryptoService';
+import { getInfo } from '../../src/crypto/cryptoService';
 
 describe('info cloud API service', () => {
   const fallbackInfo = {

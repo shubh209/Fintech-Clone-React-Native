@@ -20,6 +20,14 @@ These docs are meant to let future sessions recover context quickly without re-a
 
 The high-confidence stabilization pass fixed the Zustand/MMKV storage adapter contract, persisted transaction date handling, in-render transaction mutation, EUR crypto list formatting, live CoinMarketCap response usage for listings/info/ticker routes, and the sample Expo Router `origin` value in `app.json`.
 
+The project now uses an explicit monorepo layout:
+
+- `apps/frontend` for the Expo Router mobile app
+- `apps/backend` for the Cloudflare Worker crypto API
+- `packages/shared` for shared contracts and runtime validators
+
+The crypto Worker is deployed at `https://fintech-reliability-api.shubhkapadia2031.workers.dev` with `CRYPTO_API_KEY` stored as a Worker secret and `CRYPTO_FALLBACKS` KV seeded for listings, info, and ticker fallback data.
+
 ## Product Strategy
 
 This repo is now being steered as a reliability-first finance app, not a broad feature clone. Read `docs/product-strategy/reliable-finance-app-roadmap.md` before planning new product work.

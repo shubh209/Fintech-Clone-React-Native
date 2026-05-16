@@ -4,12 +4,12 @@
     "slug": "Fintech-Clone-React-Native",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./apps/frontend/assets/images/icon.png",
     "scheme": "fintechclone",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./apps/frontend/assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./apps/frontend/assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -28,7 +28,7 @@
     "web": {
       "bundler": "metro",
       "output": "server",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./apps/frontend/assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -37,6 +37,11 @@
       "expo-audio",
       "expo-video"
     ],
+    "extra": {
+      "router": {
+        "root": "apps/frontend/app"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     }

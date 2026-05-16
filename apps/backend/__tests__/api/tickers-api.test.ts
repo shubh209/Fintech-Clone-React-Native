@@ -1,4 +1,4 @@
-import { getTickers } from '../../apps/api/src/crypto/cryptoService';
+import { getTickers } from '../../src/crypto/cryptoService';
 
 describe('tickers cloud API service', () => {
   const fallbackTickers = [

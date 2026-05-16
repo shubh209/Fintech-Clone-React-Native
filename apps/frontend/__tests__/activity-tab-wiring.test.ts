@@ -4,11 +4,11 @@ import { join } from 'path';
 describe('activity tab wiring', () => {
   it('uses Activity as a real primary tab instead of the Transfer placeholder', () => {
     const tabsLayout = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/_layout.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/_layout.tsx'),
       'utf8'
     );
 
-    expect(existsSync(join(process.cwd(), 'app/(authenticated)/(tabs)/activity.tsx'))).toBe(true);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/activity.tsx'))).toBe(true);
     expect(tabsLayout.includes('name="activity"')).toBe(true);
     expect(tabsLayout.includes("title: 'Activity'")).toBe(true);
     expect(tabsLayout.includes('name="transfer"')).toBe(false);
@@ -16,12 +16,12 @@ describe('activity tab wiring', () => {
 
   it('removes Invest and Lifestyle placeholders from primary tabs', () => {
     const tabsLayout = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/_layout.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/_layout.tsx'),
       'utf8'
     );
 
-    expect(existsSync(join(process.cwd(), 'app/(authenticated)/(tabs)/invest.tsx'))).toBe(false);
-    expect(existsSync(join(process.cwd(), 'app/(authenticated)/(tabs)/lifestyle.tsx'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/invest.tsx'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/lifestyle.tsx'))).toBe(false);
     expect(tabsLayout.includes('name="invest"')).toBe(false);
     expect(tabsLayout.includes("title: 'Invest'")).toBe(false);
     expect(tabsLayout.includes('name="lifestyle"')).toBe(false);
@@ -30,7 +30,7 @@ describe('activity tab wiring', () => {
 
   it('activity screen exposes search, category filters, and monthly totals', () => {
     const activitySource = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/activity.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/activity.tsx'),
       'utf8'
     );
 
@@ -41,7 +41,7 @@ describe('activity tab wiring', () => {
 
   it('activity screen exposes category editing controls', () => {
     const activitySource = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/activity.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/activity.tsx'),
       'utf8'
     );
 

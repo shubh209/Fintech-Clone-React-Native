@@ -3,18 +3,18 @@ import { join } from 'path';
 
 describe('cloud backend wiring', () => {
   it('removes mobile-owned crypto API handlers', () => {
-    expect(existsSync(join(process.cwd(), 'app/api/listings+api.ts'))).toBe(false);
-    expect(existsSync(join(process.cwd(), 'app/api/info+api.ts'))).toBe(false);
-    expect(existsSync(join(process.cwd(), 'app/api/tickers+api.ts'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/api/listings+api.ts'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/api/info+api.ts'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'apps/frontend/app/api/tickers+api.ts'))).toBe(false);
   });
 
   it('splits backend crypto API responsibilities by file', () => {
     const files = [
-      'apps/api/src/index.ts',
-      'apps/api/src/crypto/cryptoRoutes.ts',
-      'apps/api/src/crypto/cryptoService.ts',
-      'apps/api/src/crypto/coinMarketCapClient.ts',
-      'apps/api/src/crypto/cloudFallbackStore.ts',
+      'apps/backend/src/index.ts',
+      'apps/backend/src/crypto/cryptoRoutes.ts',
+      'apps/backend/src/crypto/cryptoService.ts',
+      'apps/backend/src/crypto/coinMarketCapClient.ts',
+      'apps/backend/src/crypto/cloudFallbackStore.ts',
       'packages/shared/src/cryptoValidators.ts',
       'packages/shared/src/apiResult.ts',
     ];
@@ -26,11 +26,11 @@ describe('cloud backend wiring', () => {
 
   it('keeps mobile crypto screens on the cloud API client', () => {
     const listSource = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/(tabs)/crypto.tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/crypto.tsx'),
       'utf8'
     );
     const detailSource = readFileSync(
-      join(process.cwd(), 'app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
       'utf8'
     );
 

@@ -1,6 +1,6 @@
 # Metrics Reference
 
-This project uses a small local metrics layer in `utils/metrics.ts`.
+This project uses a small local metrics layer in `apps/frontend/utils/metrics.ts`.
 
 The current sink is intentionally simple:
 
@@ -94,7 +94,7 @@ Each event has:
 ## Testing Commands
 
 ```bash
-npx jest --runTestsByPath utils/metrics.test.ts __tests__/api/listings-api.test.ts __tests__/api/info-api.test.ts __tests__/api/tickers-api.test.ts --runInBand --watchman=false
+npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
 npx jest --runInBand --watchman=false
 npx tsc --noEmit
 ```
