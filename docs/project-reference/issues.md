@@ -111,14 +111,15 @@
 - Fix: `Store/balance/transactionUtils.ts` infers categories and `Store/balance/balanceStore.ts` migrates persisted balance state to version `1`.
 - Verification: `Store/balance/transactionUtils.test.ts`.
 
-## Remaining Issues Or Risk Areas
+### 15. Several tabs were placeholders
 
-### 15. Several tabs are placeholders
-
+- Status: Fixed
 - Severity: Low
 - Symptom: Invest and lifestyle screens are minimal placeholder views.
-- Affected files: `app/(authenticated)/(tabs)/invest.tsx`, `app/(authenticated)/(tabs)/lifestyle.tsx`
-- Next step: Treat these screens as incomplete during future planning and demos.
+- Fix: Removed `app/(authenticated)/(tabs)/invest.tsx`, `app/(authenticated)/(tabs)/lifestyle.tsx`, and their tab registrations from `app/(authenticated)/(tabs)/_layout.tsx`.
+- Verification: `__tests__/activity-tab-wiring.test.ts`.
+
+## Remaining Issues Or Risk Areas
 
 ### 16. Relative `/api/...` fetches may need production origin planning
 

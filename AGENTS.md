@@ -28,8 +28,8 @@ Before making changes:
 - Read `docs/product-strategy/reliable-finance-app-roadmap.md` before planning broad product work.
 - Use `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` as the current implementation sequence for reliability scaffolding.
 - The repo uses mixed directory casing such as `Components`, `Store`, and `app`.
-- Activity is a real tab for searchable/filterable transaction history and monthly totals.
-- Invest and lifestyle are placeholders and should not be described as complete features.
+- Primary signed-in tabs are Home, Activity, and Crypto.
+- Activity is a real tab for searchable/filterable transaction history, editable categories, and monthly totals.
 - Listings and info crypto API routes use live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then fall back to local data.
 - Ticker data uses live selected-asset CoinMarketCap latest quotes when `CRYPTO_API_KEY` is configured, then falls back to local BTC historical data.
 - Crypto detail chart hooks must stay above loading/error early returns.
@@ -43,7 +43,7 @@ Before making changes:
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-15 1:43pm MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-15 6:17pm MST
 
 No previous sessions found.
 </claude-mem-context>

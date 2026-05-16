@@ -14,6 +14,20 @@ describe('activity tab wiring', () => {
     expect(tabsLayout.includes('name="transfer"')).toBe(false);
   });
 
+  it('removes Invest and Lifestyle placeholders from primary tabs', () => {
+    const tabsLayout = readFileSync(
+      join(process.cwd(), 'app/(authenticated)/(tabs)/_layout.tsx'),
+      'utf8'
+    );
+
+    expect(existsSync(join(process.cwd(), 'app/(authenticated)/(tabs)/invest.tsx'))).toBe(false);
+    expect(existsSync(join(process.cwd(), 'app/(authenticated)/(tabs)/lifestyle.tsx'))).toBe(false);
+    expect(tabsLayout.includes('name="invest"')).toBe(false);
+    expect(tabsLayout.includes("title: 'Invest'")).toBe(false);
+    expect(tabsLayout.includes('name="lifestyle"')).toBe(false);
+    expect(tabsLayout.includes("title: 'Lifestyle'")).toBe(false);
+  });
+
   it('activity screen exposes search, category filters, and monthly totals', () => {
     const activitySource = readFileSync(
       join(process.cwd(), 'app/(authenticated)/(tabs)/activity.tsx'),

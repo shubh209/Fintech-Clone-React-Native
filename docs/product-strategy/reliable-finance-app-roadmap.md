@@ -24,7 +24,7 @@ The strongest direction is a "financial command center" for everyday confidence:
 - Provide AI-assisted guidance only inside safe boundaries: summaries, scenario explanations, budget nudges, and risk disclaimers.
 - Treat privacy, observability, and correctness as product features.
 
-This should not become a bank clone with many half-working tabs. Invest, Transfer, and Lifestyle should either become real, testable flows or be removed/renamed from the primary navigation until they are credible.
+This should not become a bank clone with many half-working tabs. Transfer was replaced by Activity, and Invest/Lifestyle were removed rather than preserved as placeholders.
 
 ## Reliability-First Roadmap
 

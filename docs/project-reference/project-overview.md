@@ -9,9 +9,9 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 ## Current Feature State
 
 - Public auth routes exist for signup, login, help, and phone verification.
-- Authenticated tabs exist for home, invest, activity, crypto, and lifestyle.
+- Authenticated tabs exist for home, activity, and crypto.
 - Home, activity, and crypto have meaningful implementations.
-- Invest and lifestyle are currently placeholders.
+- Invest and lifestyle were removed from the primary navigation rather than preserved as placeholders.
 
 ## Key Libraries
 

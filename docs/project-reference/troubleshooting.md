@@ -72,7 +72,9 @@ If a screen appears missing:
 
 - Confirm whether it is one of the placeholder tabs before treating it as a regression.
 - Check whether the route exists but has only presentation scaffolding.
-- Transfer was intentionally replaced by Activity. The current primary tabs are Home, Invest, Activity, Crypto, and Lifestyle.
+- Transfer was intentionally replaced by Activity.
+- Invest and Lifestyle were intentionally removed instead of kept as placeholder tabs.
+- The current primary tabs are Home, Activity, and Crypto.
 
 If Activity filters look wrong:
 

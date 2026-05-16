@@ -5,7 +5,7 @@
 - `app/index.tsx` is the landing route.
 - `app/login.tsx`, `app/signup.tsx`, `app/help.tsx`, and `app/verify/[phone].tsx` are public auth flows.
 - `app/(authenticated)/(tabs)` contains the main signed-in tab shell.
-- `app/(authenticated)/(tabs)/activity.tsx` is the full transaction activity screen with search, category filters, and monthly totals.
+- `app/(authenticated)/(tabs)/activity.tsx` is the full transaction activity screen with search, category filters, editable categories, and monthly totals.
 - `app/(authenticated)/(modals)` contains lock and account modal flows.
 - `app/(authenticated)/crypto/[id].tsx` is the crypto detail screen.
 
@@ -76,4 +76,4 @@
 
 - The repo mixes `Components/`, `Store/`, and `app/` casing styles.
 - The root README does not fully reflect the actual route map or runtime architecture.
-- Some product areas are presentation-only and not backed by business logic yet.
+- No placeholder primary tabs should be kept in the tab shell; future tabs need a reliable workflow before being added.
