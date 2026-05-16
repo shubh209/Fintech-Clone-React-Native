@@ -3,6 +3,10 @@
 	"main": "src/index.ts",
 	"compatibility_date": "2026-05-16",
 	"workers_dev": true,
+	"vars": {
+		"CLERK_JWT_ISSUER": "https://close-sheepdog-18.clerk.accounts.dev",
+		"CLERK_JWKS_URL": "https://close-sheepdog-18.clerk.accounts.dev/.well-known/jwks.json"
+	},
 	"kv_namespaces": [
 		{
 			"binding": "CRYPTO_FALLBACKS",

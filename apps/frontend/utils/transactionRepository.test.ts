@@ -12,7 +12,7 @@ describe('transaction repository', () => {
     const cachedValues = new Map<string, string>();
     const repository = createTransactionRepository({
       apiBaseUrl: 'https://api.example.test',
-      userIdProvider: () => 'user-1',
+      authTokenProvider: async () => 'session-token',
       storage: {
         getItem: (key) => cachedValues.get(key) ?? null,
         setItem: (key, value) => cachedValues.set(key, value),
@@ -62,7 +62,7 @@ describe('transaction repository', () => {
     ]);
     const repository = createTransactionRepository({
       apiBaseUrl: 'https://api.example.test',
-      userIdProvider: () => 'user-1',
+      authTokenProvider: async () => 'session-token',
       storage: {
         getItem: (key) => cachedValues.get(key) ?? null,
         setItem: (key, value) => cachedValues.set(key, value),
@@ -92,7 +92,7 @@ describe('transaction repository', () => {
     const cachedValues = new Map<string, string>();
     const repository = createTransactionRepository({
       apiBaseUrl: 'https://api.example.test',
-      userIdProvider: () => 'user-1',
+      authTokenProvider: async () => 'session-token',
       storage: {
         getItem: (key) => cachedValues.get(key) ?? null,
         setItem: (key, value) => cachedValues.set(key, value),
@@ -131,10 +131,42 @@ describe('transaction repository', () => {
         method: 'PUT',
         headers: expect.objectContaining({
           'content-type': 'application/json',
-          'x-fintech-user-id': 'user-1',
+          authorization: 'Bearer session-token',
         }),
       })
     );
     expect(cachedValues.get('transactions-cache')).toContain('tx-1');
+  });
+
+  it('does not send the legacy client-provided user key header', async () => {
+    const repository = createTransactionRepository({
+      apiBaseUrl: 'https://api.example.test',
+      authTokenProvider: async () => 'session-token',
+      storage: {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined,
+      },
+    });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        transactions: [],
+        updatedAt: '2024-01-02T12:01:00.000Z',
+      }),
+    } as Response) as any;
+
+    await repository.loadTransactions();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.example.test/api/transactions',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          authorization: 'Bearer session-token',
+        }),
+      })
+    );
+    const [, options] = (global.fetch as any).mock.calls[0];
+    expect(options.headers['x-fintech-user-id']).toBe(undefined);
   });
 });

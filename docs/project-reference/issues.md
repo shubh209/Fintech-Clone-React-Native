@@ -146,10 +146,12 @@
 
 ### 19. Activity and balance data are still local-first
 
-- Status: Partially fixed
+- Status: Mostly fixed
 - Severity: High
 - Symptom: Home and Activity transaction state still persists through frontend MMKV, so the app is not yet cloud-first for user finance data.
-- Affected files: `apps/frontend/Store/balance/balanceStore.ts`, `apps/frontend/utils/transactionRepository.ts`, `apps/backend/src/transactions/transactionRoutes.ts`, `apps/backend/src/transactions/transactionStore.ts`, `packages/shared/src/transactionContracts.ts`.
-- Current state: Home and Activity hydrate from `/api/transactions` after Clerk sign-in. Mutations remain optimistic in the Zustand store and sync the normalized transaction snapshot to the Worker. MMKV is retained as a cache/fallback through `transactions-cache` and the persisted balance state.
-- Production tradeoff: `TRANSACTIONS` is currently bound to the existing KV namespace IDs with separate `transactions:<userId>` keys because the available Cloudflare API token could list KV namespaces but could not create a dedicated transaction namespace.
-- Next step: Provision a dedicated `TRANSACTIONS` KV namespace, replace the shared namespace IDs in `apps/backend/wrangler.jsonc`, and add backend-side Clerk JWT verification instead of trusting the client-provided user key.
+- Affected files: `apps/frontend/Store/balance/balanceStore.ts`, `apps/frontend/Store/balance/balanceSyncStatus.ts`, `apps/frontend/utils/transactionRepository.ts`, `apps/backend/src/transactions/transactionAuth.ts`, `apps/backend/src/transactions/transactionRoutes.ts`, `apps/backend/src/transactions/transactionStore.ts`, `packages/shared/src/transactionContracts.ts`.
+- Current state: Home and Activity hydrate from `/api/transactions` after Clerk sign-in. Mutations remain optimistic in the Zustand store and sync the normalized transaction snapshot to the Worker. MMKV is retained as a cache/fallback through `transactions-cache` and the persisted balance state. Home and Activity now show whether transaction data is awaiting sync, syncing, cloud synced, using offline cache, or in a sync issue state.
+- Security fix: Transaction routes now require a Clerk bearer token and derive the storage owner from the verified JWT `sub`; the old client-provided `x-fintech-user-id` path is rejected in tests.
+- Production tradeoff: `TRANSACTIONS` is currently bound to the existing KV namespace IDs with separate `transactions:<userId>` keys. Cloudflare namespace creation failed through both the API connector and Wrangler with authentication error `10000`.
+- Next step: Provision a dedicated `TRANSACTIONS` KV namespace once Cloudflare permissions allow namespace creation, then replace the shared namespace IDs in `apps/backend/wrangler.jsonc`.
+- Measurement: transaction auth coverage increased from 1 trusted client header path to 3 tested paths: valid bearer accepted, missing bearer rejected, legacy client user header rejected. Visible transaction sync-state coverage increased from 0 screen states to 5 named states.

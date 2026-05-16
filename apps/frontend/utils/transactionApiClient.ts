@@ -1,13 +1,15 @@
 const transactionApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-let transactionUserId = 'demo-user';
+let transactionAuthTokenProvider: () => Promise<string | null> = async () => null;
 
-export function setTransactionUserId(userId: string | null | undefined) {
-  transactionUserId = userId?.trim() || 'demo-user';
+export function setTransactionAuthTokenProvider(
+  provider: () => Promise<string | null>
+) {
+  transactionAuthTokenProvider = provider;
 }
 
-export function getTransactionUserId() {
-  return transactionUserId;
+export function getTransactionAuthToken() {
+  return transactionAuthTokenProvider();
 }
 
 export function getTransactionApiUrl(path: string, apiBaseUrl = transactionApiBaseUrl) {

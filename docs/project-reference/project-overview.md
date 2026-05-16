@@ -39,7 +39,8 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - Listings and info endpoints use live CoinMarketCap data when the Worker has `CRYPTO_API_KEY` configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Detail ticker quotes use live selected-asset CoinMarketCap latest quote data when configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
-- Home and Activity transaction snapshots hydrate from the Worker `/api/transactions` route when signed in, with MMKV retained as a local cache/fallback.
+- Home and Activity transaction snapshots hydrate from the Worker `/api/transactions` route when signed in, using Clerk bearer tokens for backend ownership and MMKV as a local cache/fallback.
+- Home and Activity expose transaction sync/fallback state so users can tell whether they are seeing cloud-synced or cached data.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.
 - Activity category labels can be corrected with custom names that are normalized and stored on the transaction.

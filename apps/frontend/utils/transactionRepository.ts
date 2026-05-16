@@ -6,7 +6,10 @@ import {
   TransactionSnapshot,
 } from '../../../packages/shared/src';
 import { zustandStorage } from '@/Store/storage/mmkv-storage';
-import { getTransactionApiUrl, getTransactionUserId } from './transactionApiClient';
+import {
+  getTransactionApiUrl,
+  getTransactionAuthToken,
+} from './transactionApiClient';
 
 export const transactionCacheKey = 'transactions-cache';
 
@@ -26,15 +29,21 @@ interface TransactionRepositoryStorage {
 
 interface TransactionRepositoryOptions {
   apiBaseUrl?: string;
-  userIdProvider?: () => string;
+  authTokenProvider?: () => Promise<string | null>;
   storage?: TransactionRepositoryStorage;
 }
 
-function headers(userId: string) {
-  return {
+async function headers(authTokenProvider: () => Promise<string | null>) {
+  const token = await authTokenProvider();
+  const requestHeaders: Record<string, string> = {
     'content-type': 'application/json',
-    'x-fintech-user-id': userId,
   };
+
+  if (token) {
+    requestHeaders.authorization = `Bearer ${token}`;
+  }
+
+  return requestHeaders;
 }
 
 async function readCachedSnapshot(
@@ -67,7 +76,7 @@ async function writeCachedSnapshot(
 
 export function createTransactionRepository({
   apiBaseUrl,
-  userIdProvider = getTransactionUserId,
+  authTokenProvider = getTransactionAuthToken,
   storage = zustandStorage,
 }: TransactionRepositoryOptions = {}) {
   const getUrl = () => getTransactionApiUrl('/api/transactions', apiBaseUrl);
@@ -76,7 +85,7 @@ export function createTransactionRepository({
     async loadTransactions(): Promise<TransactionRepositoryResult> {
       try {
         const response = await fetch(getUrl(), {
-          headers: headers(userIdProvider()),
+          headers: await headers(authTokenProvider),
         });
 
         if (!response.ok) {
@@ -110,7 +119,7 @@ export function createTransactionRepository({
       try {
         const response = await fetch(getUrl(), {
           method: 'PUT',
-          headers: headers(userIdProvider()),
+          headers: await headers(authTokenProvider),
           body: JSON.stringify({ transactions: normalizedTransactions }),
         });
 

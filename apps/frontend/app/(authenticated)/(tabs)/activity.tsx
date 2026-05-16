@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useBalanceStore } from '@/Store/balance/balanceStore';
+import { getBalanceSyncStatusCopy } from '@/Store/balance/balanceSyncStatus';
 import {
   DEFAULT_TRANSACTION_CATEGORIES,
   DefaultTransactionCategory,
@@ -46,7 +47,7 @@ const formatDollarAmount = (amount: number) => {
 
 const Activity = () => {
   const headerHeight = useHeaderHeight();
-  const { transactions, updateTransactionCategory } = useBalanceStore();
+  const { transactions, updateTransactionCategory, syncStatus } = useBalanceStore();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<TransactionCategory | 'all'>('all');
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null);
@@ -85,6 +86,7 @@ const Activity = () => {
         : undefined,
     [editingTransactionId, transactions]
   );
+  const syncStatusCopy = getBalanceSyncStatusCopy(syncStatus);
 
   const openCategoryEditor = (transactionId: string, category: TransactionCategory) => {
     setEditingTransactionId(transactionId);
@@ -110,7 +112,24 @@ const Activity = () => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Activity</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>Activity</Text>
+          <View style={styles.statusPill}>
+            <Ionicons
+              name={syncStatusCopy.tone === 'warning' ? 'cloud-offline-outline' : 'cloud-done-outline'}
+              size={15}
+              color={syncStatusCopy.tone === 'warning' ? '#9A5B00' : Colors.primary}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                syncStatusCopy.tone === 'warning' && styles.statusTextWarning,
+              ]}
+            >
+              {syncStatusCopy.label}
+            </Text>
+          </View>
+        </View>
         <Text style={styles.subtitle}>Search, filter, and understand your cash flow.</Text>
       </View>
 
@@ -281,6 +300,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
   },
+  headerRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
   title: {
     color: Colors.dark,
     fontSize: 28,
@@ -291,6 +316,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginTop: 4,
+  },
+  statusPill: {
+    alignItems: 'center',
+    backgroundColor: '#EEF2FF',
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 6,
+    minHeight: 32,
+    paddingHorizontal: 10,
+  },
+  statusText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  statusTextWarning: {
+    color: '#9A5B00',
   },
   summaryGrid: {
     flexDirection: 'row',

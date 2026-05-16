@@ -40,6 +40,8 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - Persisted transaction categories are inferred and legacy transactions are backfilled during store migration.
 - Home and Activity hydrate transaction snapshots from `/api/transactions` after Clerk sign-in.
 - Transaction mutations update the UI optimistically, then sync the normalized snapshot to the Worker.
+- Transaction API requests now send Clerk bearer tokens, and the Worker derives the transaction owner from the verified JWT `sub`.
+- Home and Activity expose the transaction sync state: awaiting sync, syncing, cloud synced, offline cache, or sync issue.
 - Transaction sorting uses copies and does not mutate store arrays during render.
 - MMKV storage falls back to memory when native JSI storage is unavailable and remains the transaction cache/fallback.
 - Crypto list and detail screens use EUR formatting for EUR quote data.
@@ -53,8 +55,7 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - The app is not connected to real bank accounts.
 - Money movement is simulated and must not be presented as real transfer behavior.
 - Crypto fallback ticker history is BTC-specific when live quote data is unavailable.
-- The transaction API currently trusts a client-provided Clerk user key; backend JWT verification is still needed before this pattern should be treated as production-authenticated finance storage.
-- `TRANSACTIONS` currently reuses the existing KV namespace IDs with `transactions:<userId>` keys until a dedicated namespace can be provisioned.
+- `TRANSACTIONS` currently reuses the existing KV namespace IDs with `transactions:<userId>` keys until a dedicated namespace can be provisioned. Cloudflare namespace creation failed with API authentication error `10000` in the current environment.
 - Native builds require `EXPO_PUBLIC_API_BASE_URL` to point at the deployed Worker.
 - AI guidance is planned as educational assistance only, not investment, legal, or tax advice.
 
@@ -70,6 +71,13 @@ Local development should set:
 
 ```bash
 EXPO_PUBLIC_API_BASE_URL=https://fintech-reliability-api.shubhkapadia2031.workers.dev
+```
+
+Worker transaction auth uses these configured public Clerk values:
+
+```text
+CLERK_JWT_ISSUER=https://close-sheepdog-18.clerk.accounts.dev
+CLERK_JWKS_URL=https://close-sheepdog-18.clerk.accounts.dev/.well-known/jwks.json
 ```
 
 Worker commands:

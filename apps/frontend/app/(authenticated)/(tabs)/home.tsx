@@ -7,6 +7,7 @@ import { useBalanceStore } from '@/Store/balance/balanceStore';
 import { Ionicons } from '@expo/vector-icons';
 import WidgetList from '@/Components/sortable-list/WidgetList';
 import { useHeaderHeight } from '@react-navigation/elements';
+import { getBalanceSyncStatusCopy } from '@/Store/balance/balanceSyncStatus';
 import { formatTransactionDate, getTransactionsNewestFirst } from '@/Store/balance/transactionUtils';
 import { Href, useRouter } from 'expo-router';
 
@@ -17,12 +18,13 @@ const formatDollarAmount = (amount: number) => {
 
 const Home = () => {
   
-  const {balance, runTransaction, clearTansactions, transactions} = useBalanceStore();
+  const {balance, runTransaction, clearTansactions, transactions, syncStatus} = useBalanceStore();
   const router = useRouter();
 
   const headerHeight = useHeaderHeight();
   const displayedTransactions = getTransactionsNewestFirst(transactions).slice(0, 3);
   const currentBalance = balance();
+  const syncStatusCopy = getBalanceSyncStatusCopy(syncStatus);
   const incomeTotal = transactions
     .filter((transaction) => transaction.amount > 0)
     .reduce((total, transaction) => total + transaction.amount, 0);
@@ -62,8 +64,19 @@ const Home = () => {
             </View>
           </View>
           <View style={styles.statusPill}>
-            <Ionicons name="shield-checkmark" size={16} color={Colors.primary} />
-            <Text style={styles.statusText}>Protected</Text>
+            <Ionicons
+              name={syncStatusCopy.tone === 'warning' ? 'cloud-offline-outline' : 'cloud-done-outline'}
+              size={16}
+              color={syncStatusCopy.tone === 'warning' ? '#9A5B00' : Colors.primary}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                syncStatusCopy.tone === 'warning' && styles.statusTextWarning,
+              ]}
+            >
+              {syncStatusCopy.label}
+            </Text>
           </View>
         </View>
 
@@ -217,6 +230,9 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontSize: 12,
     fontWeight: '700',
+  },
+  statusTextWarning: {
+    color: '#9A5B00',
   },
   summaryRow: {
     marginTop: 22,

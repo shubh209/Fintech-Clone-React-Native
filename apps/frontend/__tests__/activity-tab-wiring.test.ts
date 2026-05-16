@@ -50,4 +50,14 @@ describe('activity tab wiring', () => {
     expect(activitySource.includes('updateTransactionCategory')).toBe(true);
     expect(activitySource.includes('getTransactionCategories')).toBe(true);
   });
+
+  it('activity screen exposes transaction cloud sync and fallback state', () => {
+    const activitySource = readFileSync(
+      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/activity.tsx'),
+      'utf8'
+    );
+
+    expect(activitySource.includes('getBalanceSyncStatusCopy')).toBe(true);
+    expect(activitySource.includes('syncStatus')).toBe(true);
+  });
 });

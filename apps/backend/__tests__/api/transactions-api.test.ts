@@ -1,4 +1,5 @@
 import app from '../../src';
+import { createSign, generateKeyPairSync } from 'crypto';
 
 const createStore = (initial: Record<string, unknown> = {}) => {
   const values = new Map(Object.entries(initial));
@@ -20,6 +21,51 @@ const createStore = (initial: Record<string, unknown> = {}) => {
   };
 };
 
+const issuer = 'https://issuer.example.test';
+const keyPair = generateKeyPairSync('rsa', { modulusLength: 2048 });
+const publicJwk = keyPair.publicKey.export({ format: 'jwk' }) as JsonWebKey;
+const jwks = JSON.stringify({
+  keys: [
+    {
+      ...publicJwk,
+      kid: 'test-key',
+      alg: 'RS256',
+      use: 'sig',
+    },
+  ],
+});
+
+function base64Url(value: unknown) {
+  const input = Buffer.isBuffer(value)
+    ? value
+    : Buffer.from(typeof value === 'string' ? value : JSON.stringify(value));
+
+  return input
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+function createClerkJwt(sub = 'user-1') {
+  const header = base64Url({ alg: 'RS256', kid: 'test-key', typ: 'JWT' });
+  const payload = base64Url({
+    iss: issuer,
+    sub,
+    exp: Math.floor(Date.now() / 1000) + 300,
+  });
+  const signingInput = `${header}.${payload}`;
+  const signature = createSign('RSA-SHA256').update(signingInput).sign(keyPair.privateKey);
+
+  return `${signingInput}.${base64Url(signature)}`;
+}
+
+const createEnv = (store: ReturnType<typeof createStore>['store']) => ({
+  TRANSACTIONS: store,
+  CLERK_JWT_ISSUER: issuer,
+  CLERK_JWKS_JSON: jwks,
+});
+
 describe('transactions cloud API', () => {
   it('returns a user transaction snapshot from Cloudflare KV', async () => {
     const { store } = createStore({
@@ -37,11 +83,13 @@ describe('transactions cloud API', () => {
       },
     });
 
-    const response = await app.request('/api/transactions', {
-      headers: { 'x-fintech-user-id': 'user-1' },
-    }, {
-      TRANSACTIONS: store,
-    });
+    const response = await app.request(
+      '/api/transactions',
+      {
+        headers: { authorization: `Bearer ${createClerkJwt('user-1')}` },
+      },
+      createEnv(store)
+    );
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
@@ -61,25 +109,27 @@ describe('transactions cloud API', () => {
   it('persists normalized transaction snapshots for a user', async () => {
     const { store, puts } = createStore();
 
-    const response = await app.request('/api/transactions', {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-        'x-fintech-user-id': 'user-1',
+    const response = await app.request(
+      '/api/transactions',
+      {
+        method: 'PUT',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${createClerkJwt('user-1')}`,
+        },
+        body: JSON.stringify({
+          transactions: [
+            {
+              id: 'tx-1',
+              amount: -8,
+              title: 'Coffee',
+              date: '2024-01-02T12:00:00.000Z',
+            },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        transactions: [
-          {
-            id: 'tx-1',
-            amount: -8,
-            title: 'Coffee',
-            date: '2024-01-02T12:00:00.000Z',
-          },
-        ],
-      }),
-    }, {
-      TRANSACTIONS: store,
-    });
+      createEnv(store)
+    );
 
     expect(response.status).toBe(200);
     const body = await response.json();
@@ -104,12 +154,24 @@ describe('transactions cloud API', () => {
     ]);
   });
 
-  it('rejects transaction requests without a user key', async () => {
+  it('rejects transaction requests without a bearer token', async () => {
     const { store } = createStore();
 
-    const response = await app.request('/api/transactions', {}, {
-      TRANSACTIONS: store,
-    });
+    const response = await app.request('/api/transactions', {}, createEnv(store));
+
+    expect(response.status).toBe(401);
+  });
+
+  it('rejects the old client-provided user key without a valid bearer token', async () => {
+    const { store } = createStore();
+
+    const response = await app.request(
+      '/api/transactions',
+      {
+        headers: { 'x-fintech-user-id': 'user-1' },
+      },
+      createEnv(store)
+    );
 
     expect(response.status).toBe(401);
   });

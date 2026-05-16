@@ -19,6 +19,13 @@ describe('home UI regressions', () => {
     expect(source.includes("text={'Details'} onPress={onAddMoney}")).toBe(false);
   });
 
+  it('shows the transaction cloud sync state on the Home screen', () => {
+    const source = readProjectFile('apps/frontend/app/(authenticated)/(tabs)/home.tsx');
+
+    expect(source.includes('getBalanceSyncStatusCopy')).toBe(true);
+    expect(source.includes('syncStatus')).toBe(true);
+  });
+
   it('toggles the More menu so repeated taps keep working', () => {
     const source = readProjectFile('apps/frontend/Components/ui/DropDown.tsx');
 

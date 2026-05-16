@@ -36,6 +36,12 @@ Each event has:
   - Triggered when a transaction is added to the Zustand balance store.
   - Metadata: `amountDirection`.
 
+### Transactions
+
+- Transaction sync state visibility is measured through tests until a production analytics sink is added.
+  - `apps/frontend/Store/balance/balanceSyncStatus.test.ts` covers 5 visible states.
+  - `apps/backend/__tests__/api/transactions-api.test.ts` covers 3 auth paths: valid bearer accepted, missing bearer rejected, legacy client user header rejected.
+
 ### Crypto Client Fetches
 
 - `crypto.client.listings.fetch`

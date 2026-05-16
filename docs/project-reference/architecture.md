@@ -30,12 +30,15 @@
 
 ## Transaction Data Flow
 
-- `apps/frontend/app/_layout.tsx` passes the signed-in Clerk `userId` into the transaction API client and triggers balance-store hydration after sign-in.
+- `apps/frontend/app/_layout.tsx` passes a Clerk token provider into the transaction API client and triggers balance-store hydration after sign-in.
+- `apps/frontend/utils/transactionRepository.ts` sends `Authorization: Bearer <Clerk token>` for transaction requests; it no longer sends a client-owned transaction user header.
 - `apps/frontend/Store/balance/balanceStore.ts` keeps Home and Activity behavior optimistic: adding money, clearing transactions, and editing categories update UI state immediately, then sync the normalized transaction list to the backend.
+- `apps/frontend/Store/balance/balanceSyncStatus.ts` maps store sync states to visible Home and Activity labels: awaiting sync, syncing, cloud synced, offline cache, and sync issue.
 - `apps/frontend/utils/transactionRepository.ts` writes successful cloud snapshots into the MMKV-backed `transactions-cache` key and falls back to that cache when the backend request fails.
 - The Worker exposes `/api/transactions` through `apps/backend/src/transactions/transactionRoutes.ts`; route logic delegates storage to `apps/backend/src/transactions/transactionStore.ts`.
+- `apps/backend/src/transactions/transactionAuth.ts` verifies Clerk RS256 JWTs against the configured issuer and JWKS, then derives the KV owner key from the JWT `sub`.
 - Shared transaction contracts and runtime guards live in `packages/shared/src/transactionContracts.ts`.
-- The Worker currently binds `TRANSACTIONS` to the existing KV namespace IDs used for crypto fallback data, with all transaction data scoped under `transactions:<userId>` keys. This keeps the first cloud-source slice deployable; a dedicated production transaction namespace remains the cleaner follow-up.
+- The Worker currently binds `TRANSACTIONS` to the existing KV namespace IDs used for crypto fallback data, with all transaction data scoped under `transactions:<userId>` keys. Cloudflare namespace creation failed with API authentication error `10000`; a dedicated production transaction namespace remains the cleaner follow-up once account permissions allow it.
 
 ## Crypto Data Flow
 
@@ -68,6 +71,7 @@
 
 - `apps/frontend/Store/balance/transactionUtils.test.ts`
 - `apps/frontend/Store/balance/balanceStore.test.ts`
+- `apps/frontend/Store/balance/balanceSyncStatus.test.ts`
 - `apps/frontend/Store/storage/mmkv-storage.test.ts`
 - `apps/frontend/context/userInactivityStorage.test.ts`
 - `apps/frontend/utils/currency.test.ts`

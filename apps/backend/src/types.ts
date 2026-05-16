@@ -4,6 +4,9 @@ export interface JsonStore {
 }
 
 export interface ApiEnv {
+  CLERK_JWKS_JSON?: string;
+  CLERK_JWKS_URL?: string;
+  CLERK_JWT_ISSUER?: string;
   CRYPTO_API_KEY?: string;
   CRYPTO_FALLBACKS?: JsonStore;
   TRANSACTIONS?: JsonStore;
