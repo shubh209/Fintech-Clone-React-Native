@@ -8,7 +8,7 @@ describe('crypto detail API wiring', () => {
       'utf8'
     );
 
-    expect(source.includes('`/api/tickers?id=${id}`')).toBe(true);
+    expect(source.includes('getCryptoApiUrl(`/api/tickers?id=${id}`)')).toBe(true);
     expect(source.includes("fetch('/api/tickers')")).toBe(false);
   });
 

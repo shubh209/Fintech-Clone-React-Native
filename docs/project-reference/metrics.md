@@ -39,28 +39,28 @@ Each event has:
 ### Crypto Client Fetches
 
 - `crypto.client.listings.fetch`
-  - Measures the Crypto tab request to `/api/listings`.
+  - Measures the Crypto tab request to the cloud `/api/listings` endpoint.
 - `crypto.client.info.fetch`
-  - Measures the Crypto tab metadata request to `/api/info`.
+  - Measures the Crypto tab metadata request to the cloud `/api/info` endpoint.
 - `crypto.client.detail_info.fetch`
-  - Measures the crypto detail screen metadata request to `/api/info`.
+  - Measures the crypto detail screen metadata request to the cloud `/api/info` endpoint.
 - `crypto.client.tickers.fetch`
-  - Measures the crypto detail screen chart request to `/api/tickers`.
+  - Measures the crypto detail screen chart request to the cloud `/api/tickers` endpoint.
 
 ### Crypto API Routes
 
 - `crypto.api.listings.upstream`
   - Measures the server route call to CoinMarketCap listings.
 - `crypto.api.listings.fallback`
-  - Records local listings fallback use.
+  - Records Cloudflare KV listings fallback use.
 - `crypto.api.info.upstream`
   - Measures the server route call to CoinMarketCap metadata.
 - `crypto.api.info.fallback`
-  - Records local metadata fallback use.
+  - Records Cloudflare KV metadata fallback use.
 - `crypto.api.tickers.upstream`
   - Measures the server route call to CoinMarketCap latest quote data for the selected asset.
-- `crypto.api.tickers.local`
-  - Records local ticker fallback use when live latest quote data is unavailable.
+- `crypto.api.tickers.fallback`
+  - Records Cloudflare KV ticker fallback use when live latest quote data is unavailable.
 
 ### Auth
 

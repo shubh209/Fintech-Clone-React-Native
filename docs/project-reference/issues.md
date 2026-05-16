@@ -27,9 +27,9 @@
 
 - Status: Fixed for listings and info
 - Severity: Medium
-- Fix: `app/api/listings+api.ts` and `app/api/info+api.ts` now return live CoinMarketCap data when `CRYPTO_API_KEY` is configured and the upstream response succeeds. They fall back to local data when no key is present or the request fails.
-- Affected files: `app/api/listings+api.ts`, `app/api/info+api.ts`, `app/api/tickers+api.ts`
-- Verification: `app/api/listings+api.test.ts` and `app/api/info+api.test.ts`.
+- Fix: Cloud crypto services now return live CoinMarketCap data when Worker `CRYPTO_API_KEY` is configured and the upstream response succeeds. They fall back to `CRYPTO_FALLBACKS` KV data when no key is present or the request fails.
+- Affected files: `apps/api/src/crypto/cryptoService.ts`, `apps/api/src/crypto/coinMarketCapClient.ts`
+- Verification: `__tests__/api/listings-api.test.ts` and `__tests__/api/info-api.test.ts`.
 
 ### 5. Custom Zustand MMKV storage duplicated JSON responsibilities
 
@@ -69,15 +69,15 @@
 - Status: Fixed
 - Severity: Medium
 - Symptom: `/api/tickers` could spend hundreds of milliseconds waiting on CoinPaprika and then fall back to local data anyway.
-- Fix: The route now returns local BTC historical data immediately.
+- Fix: The cloud service reads `CRYPTO_FALLBACKS` KV immediately when no live API key is configured.
 - Verification: `__tests__/api/tickers-api.test.ts`.
 
 ### 10. Crypto detail prices were BTC-specific/static
 
 - Status: Fixed
 - Severity: Medium
-- Symptom: `app/api/tickers+api.ts` returned BTC fallback data regardless of the selected crypto asset, so detail prices could be stale or wrong for non-BTC assets.
-- Fix: `/api/tickers?id=<coinMarketCapId>` now uses CoinMarketCap `quotes/latest` when `CRYPTO_API_KEY` is configured, returns the selected asset's latest EUR quote, and falls back to local data only when live data is unavailable.
+- Symptom: The old mobile-owned ticker API returned BTC fallback data regardless of the selected crypto asset, so detail prices could be stale or wrong for non-BTC assets.
+- Fix: `/api/tickers?id=<coinMarketCapId>` now uses CoinMarketCap `quotes/latest` from the Worker when `CRYPTO_API_KEY` is configured, returns the selected asset's latest EUR quote, and falls back to cloud KV data only when live data is unavailable.
 - Verification: `__tests__/api/tickers-api.test.ts`, `__tests__/crypto-detail-api-wiring.test.ts`, and `utils/tickers.test.ts`.
 
 ### 11. `app.json` contained a sample Expo Router `origin` value
@@ -92,7 +92,7 @@
 - Status: Fixed
 - Severity: Medium
 - Symptom: Listings, info, and ticker routes could return malformed live provider payloads directly to screens.
-- Fix: `utils/cryptoValidators.ts` now validates the rendered CoinMarketCap fields and API routes fall back locally when live payloads are malformed.
+- Fix: `packages/shared/src/cryptoValidators.ts` now validates the rendered CoinMarketCap fields and cloud API routes fall back to KV data when live payloads are malformed.
 - Verification: `utils/cryptoValidators.test.ts`, `__tests__/api/listings-api.test.ts`, `__tests__/api/info-api.test.ts`, and `__tests__/api/tickers-api.test.ts`.
 
 ### 13. Transfer tab was a placeholder instead of a reliable finance workflow
@@ -123,19 +123,19 @@
 
 ### 16. Relative `/api/...` fetches may need production origin planning
 
+- Status: Fixed for crypto
 - Severity: High
-- Symptom: Native screens call `fetch('/api/...')` for crypto data.
-- Affected files: `app/(authenticated)/(tabs)/crypto.tsx`, `app/(authenticated)/crypto/[id].tsx`
-- Current state: The sample origin was removed, but a production server origin still needs to be configured when the app has a real deployment host.
-- Next step: Decide the production API host strategy before shipping native builds.
+- Symptom: Native screens called `fetch('/api/...')` for crypto data.
+- Fix: Crypto screens now build cloud URLs with `utils/cryptoApiClient.ts` and `EXPO_PUBLIC_API_BASE_URL`.
+- Verification: `__tests__/cloud-backend-wiring.test.ts`, `__tests__/crypto-list-api-wiring.test.ts`, and `__tests__/crypto-detail-api-wiring.test.ts`.
 
 ### 17. Historical fallback ticker data is BTC-specific
 
 - Severity: Low
-- Symptom: When CoinMarketCap quote requests are unavailable, `app/api/tickers+api.ts` still falls back to local BTC historical data.
-- Affected files: `app/api/tickers+api.ts`, `app/(authenticated)/crypto/[id].tsx`
-- Current state: Live selected-asset quotes are used when `CRYPTO_API_KEY` is configured and the upstream request succeeds. The fallback is intentionally local/offline-only.
-- Next step: Add per-asset fallback fixtures if offline multi-asset chart accuracy becomes a product goal.
+- Symptom: When CoinMarketCap quote requests are unavailable, the ticker fallback can still be BTC-specific if `CRYPTO_FALLBACKS` KV is seeded with BTC-only history.
+- Affected files: `apps/api/src/crypto/cloudFallbackStore.ts`, Cloudflare KV data.
+- Current state: Live selected-asset quotes are used when Worker `CRYPTO_API_KEY` is configured and the upstream request succeeds. The fallback is cloud-owned KV data.
+- Next step: Seed per-asset fallback values in KV if offline multi-asset chart accuracy becomes a product goal.
 
 ### 18. Root README is too generic to onboard future sessions
 

@@ -4,12 +4,11 @@
 
 If crypto screens fail to load:
 
-1. Check whether the app is relying on local Expo Router API routes or should call an external endpoint directly.
-2. Inspect `app/api/listings+api.ts`, `app/api/info+api.ts`, and `app/api/tickers+api.ts`.
-3. Confirm whether `CRYPTO_API_KEY` is configured. Listings, info, and selected-asset ticker quotes use live CoinMarketCap data only when the key is present and the upstream request succeeds.
-4. Check `utils/cryptoValidators.ts` if live API calls succeed but fallback data appears; malformed live payloads intentionally fall back locally.
-5. Remember that `app/api/tickers+api.ts` falls back to local BTC historical data only when live quote data is unavailable.
-6. For production native builds, choose a real Expo Router server origin before relying on `/api/...` routes.
+1. Verify `EXPO_PUBLIC_API_BASE_URL` points at the Cloudflare Worker.
+2. Inspect `apps/api/src/crypto/cryptoRoutes.ts`, `apps/api/src/crypto/cryptoService.ts`, and `apps/api/src/crypto/coinMarketCapClient.ts`.
+3. Confirm whether Worker `CRYPTO_API_KEY` is configured. Listings, info, and selected-asset ticker quotes use live CoinMarketCap data only when the key is present and the upstream request succeeds.
+4. Check `packages/shared/src/cryptoValidators.ts` if live API calls succeed but fallback data appears; malformed live payloads intentionally fall back to KV data.
+5. Confirm `CRYPTO_FALLBACKS` KV contains `crypto:listings`, `crypto:info`, and `crypto:tickers` JSON values for cloud fallback behavior.
 
 If the crypto detail screen reports a hook-order error:
 
@@ -84,7 +83,7 @@ If Activity filters look wrong:
 
 ## Verification Commands
 
-Run these after changing storage, crypto API routes, or formatting helpers:
+Run these after changing storage, cloud crypto API routes, or formatting helpers:
 
 ```bash
 npx jest --runInBand --watchman=false
@@ -120,7 +119,8 @@ Watchman can fail under local sandbox permissions, so prefer `--watchman=false` 
 4. Restart or reload the app and confirm transactions still render without date errors.
 5. Confirm the newest transactions appear first.
 6. Open the Crypto tab and confirm prices show EUR formatting such as `€93,478.44`.
-7. Run without `CRYPTO_API_KEY` and confirm crypto listings still render from local fallback data.
-8. Run with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
-9. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>`.
+7. Run with `EXPO_PUBLIC_API_BASE_URL` pointed at the Worker and confirm crypto listings render.
+8. Run the Worker without `CRYPTO_API_KEY` and confirm crypto listings render from `CRYPTO_FALLBACKS` KV data.
+9. Run the Worker with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
+10. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
 10. Watch logs for `[metric]` entries while using Home, Crypto, auth, and lock flows.

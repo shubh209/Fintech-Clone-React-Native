@@ -8,7 +8,8 @@ describe('crypto list API wiring', () => {
       'utf8'
     );
 
-    expect(source.includes("fetch('/api/listings")).toBe(true);
+    expect(source.includes("fetch('/api/listings")).toBe(false);
+    expect(source.includes("getCryptoApiUrl('/api/listings')")).toBe(true);
     expect(source.includes('formatEuroPrice(currency.quote.EUR.price)')).toBe(true);
   });
 

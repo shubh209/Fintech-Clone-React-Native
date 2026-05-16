@@ -2,11 +2,16 @@
   "name": "fintech-clone-react-native",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "api:dev": "npm run dev --workspace @fintech/api",
     "test": "jest --watchAll"
   },
   "jest": {

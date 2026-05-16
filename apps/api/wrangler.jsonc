@@ -1,0 +1,13 @@
+{
+  "name": "fintech-reliability-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-16",
+  "workers_dev": true,
+  "kv_namespaces": [
+    {
+      "binding": "CRYPTO_FALLBACKS",
+      "id": "replace-with-production-kv-id",
+      "preview_id": "replace-with-preview-kv-id"
+    }
+  ]
+}

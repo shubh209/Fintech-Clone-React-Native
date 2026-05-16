@@ -1,17 +1,17 @@
-import { GET } from '../../app/api/listings+api';
-import { clearMetrics, getMetricsSnapshot } from '@/utils/metrics';
+import { getListings } from '../../apps/api/src/crypto/cryptoService';
 
-describe('listings API route', () => {
-  const originalApiKey = process.env.CRYPTO_API_KEY;
-
-  beforeEach(() => {
-    clearMetrics();
-    process.env.CRYPTO_API_KEY = 'test-key';
-  });
+describe('listings cloud API service', () => {
+  const fallbackListings = [
+    {
+      id: 1,
+      name: 'Fallback Bitcoin',
+      symbol: 'BTC',
+      quote: { EUR: { price: 10 } },
+    },
+  ];
 
   afterEach(() => {
     jest.restoreAllMocks();
-    process.env.CRYPTO_API_KEY = originalApiKey;
   });
 
   it('returns live CoinMarketCap data when the upstream request succeeds', async () => {
@@ -20,7 +20,7 @@ describe('listings API route', () => {
         id: 999,
         name: 'Live Coin',
         symbol: 'LIVE',
-        quote: { EUR: { price: 12.34, percent_change_1h: 1.2 } },
+        quote: { EUR: { price: 12.34 } },
       },
     ];
 
@@ -29,27 +29,39 @@ describe('listings API route', () => {
       json: async () => ({ data: liveListings }),
     } as Response);
 
-    const response = await GET(new Request('https://example.test/api/listings?limit=1'));
+    const response = await getListings({
+      env: {
+        CRYPTO_API_KEY: 'test-key',
+        CRYPTO_FALLBACKS: {
+          get: async <T = unknown>() => fallbackListings as T,
+        },
+      },
+      limit: '1',
+    });
 
-    expect(await response.json()).toEqual(liveListings);
-    expect(getMetricsSnapshot().map((metric) => metric.name)).toEqual([
-      'crypto.api.listings.upstream',
-    ]);
+    expect(response).toEqual(liveListings);
   });
 
-  it('falls back when live listings are malformed', async () => {
+  it('falls back to cloud KV when live listings are malformed', async () => {
     jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({ data: [{ id: 1, name: 'Broken', symbol: 'BRK', quote: { EUR: {} } }] }),
     } as Response);
+    const calls: unknown[][] = [];
+    const get = async <T = unknown>(key: string, type: 'json') => {
+      calls.push([key, type]);
+      return fallbackListings as T;
+    };
 
-    const response = await GET(new Request('https://example.test/api/listings?limit=1'));
-    const body = await response.json();
+    const response = await getListings({
+      env: {
+        CRYPTO_API_KEY: 'test-key',
+        CRYPTO_FALLBACKS: { get },
+      },
+      limit: '1',
+    });
 
-    expect(body[0].symbol).toBe('BTC');
-    expect(getMetricsSnapshot().map((metric) => metric.name)).toEqual([
-      'crypto.api.listings.upstream',
-      'crypto.api.listings.fallback',
-    ]);
+    expect(response).toEqual(fallbackListings);
+    expect(calls).toEqual([['crypto:listings', 'json']]);
   });
 });

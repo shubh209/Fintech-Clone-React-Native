@@ -8,6 +8,7 @@ import Colors from '@/constants/Colors';
 import { defaultStyles } from '@/constants/Styles';
 import { Ionicons } from '@expo/vector-icons';
 import { formatEuroPrice } from '@/utils/currency';
+import { getCryptoApiUrl } from '@/utils/cryptoApiClient';
 import { timeAsync } from '@/utils/metrics';
 
 const CryptoScreen = () => {
@@ -18,7 +19,7 @@ const CryptoScreen = () => {
     queryFn: async () => {
       const res = await timeAsync(
         'crypto.client.listings.fetch',
-        () => fetch('/api/listings'),
+        () => fetch(getCryptoApiUrl('/api/listings')),
         { endpoint: '/api/listings' }
       );
       if (!res.ok) throw new Error('Failed to fetch listings');
@@ -37,7 +38,7 @@ const CryptoScreen = () => {
       if (!ids) throw new Error('Missing ids');
       const res = await timeAsync(
         'crypto.client.info.fetch',
-        () => fetch(`/api/info?ids=${ids}`),
+        () => fetch(getCryptoApiUrl(`/api/info?ids=${ids}`)),
         { endpoint: '/api/info', ids }
       );
       if (!res.ok) throw new Error('Failed to fetch info');

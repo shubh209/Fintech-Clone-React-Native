@@ -24,7 +24,7 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - Primary signed-in tabs are Home, Activity, and Crypto.
 - Home tracks balance and transactions through Zustand plus MMKV persistence.
 - Activity provides searchable/filterable transaction history, editable category labels including custom names, and monthly totals.
-- Crypto uses local Expo Router API handlers that call CoinMarketCap when configured and fall back to local data.
+- Crypto calls the Cloudflare Worker backend configured through `EXPO_PUBLIC_API_BASE_URL`.
 
 ## Reliability Guarantees
 
@@ -33,7 +33,7 @@ Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md
 - Transaction sorting uses copies and does not mutate store arrays during render.
 - MMKV storage falls back to memory when native JSI storage is unavailable.
 - Crypto list and detail screens use EUR formatting for EUR quote data.
-- Crypto API routes prefer live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then fall back locally.
+- Crypto API routes prefer live CoinMarketCap data when the Worker has `CRYPTO_API_KEY`, then fall back to Cloudflare KV data.
 - Crypto API routes validate provider payloads before rendering or falling back.
 - API-backed crypto screens expose source, freshness, loading, retry, and error states.
 - High-risk storage and crypto behavior has Jest coverage.

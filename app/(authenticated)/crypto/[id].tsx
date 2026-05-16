@@ -21,6 +21,7 @@ import { Circle, useFont } from '@shopify/react-native-skia';
 import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import Animated, { SharedValue, useAnimatedProps } from 'react-native-reanimated';
+import { getCryptoApiUrl } from '@/utils/cryptoApiClient';
 import { timeAsync } from '@/utils/metrics';
 import { normalizeTickerPoints, ChartTickerPoint, TickerApiPoint } from '@/utils/tickers';
 import { formatEuroPrice } from '@/utils/currency';
@@ -87,7 +88,7 @@ const CryptoDetailScreen = () => {
       if (!id) throw new Error('Missing id');
       const res = await timeAsync(
         'crypto.client.detail_info.fetch',
-        () => fetch(`/api/info?ids=${id}`),
+        () => fetch(getCryptoApiUrl(`/api/info?ids=${id}`)),
         { endpoint: '/api/info', id }
       );
       if (!res.ok) throw new Error('Failed to fetch info');
@@ -102,7 +103,7 @@ const CryptoDetailScreen = () => {
     queryFn: async () => {
       const res = await timeAsync(
         'crypto.client.tickers.fetch',
-        () => fetch(`/api/tickers?id=${id}`),
+        () => fetch(getCryptoApiUrl(`/api/tickers?id=${id}`)),
         { endpoint: '/api/tickers', id: id ?? null }
       );
       if (!res.ok) throw new Error('Failed to fetch tickers');

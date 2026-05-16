@@ -29,14 +29,11 @@
 
 ## Crypto Data Flow
 
-- `app/(authenticated)/(tabs)/crypto.tsx` fetches listings and logo/info metadata.
-- `app/(authenticated)/crypto/[id].tsx` fetches detail metadata and selected-asset ticker quote data, then normalizes ticker timestamps through `utils/tickers.ts`.
-- The fetch targets are local API routes:
-  - `app/api/listings+api.ts`
-  - `app/api/info+api.ts`
-  - `app/api/tickers+api.ts`
-- Listings, info, and ticker quote routes use live CoinMarketCap responses when the upstream request succeeds and fall back to static local data.
-- The ticker route accepts `id=<coinMarketCapId>` and uses CoinMarketCap latest EUR quote data for the selected asset when configured. Local BTC historical data remains the offline fallback.
+- `app/(authenticated)/(tabs)/crypto.tsx` fetches listings and logo/info metadata through `utils/cryptoApiClient.ts`.
+- `app/(authenticated)/crypto/[id].tsx` fetches detail metadata and selected-asset ticker quote data through `utils/cryptoApiClient.ts`, then normalizes ticker timestamps through `utils/tickers.ts`.
+- Mobile crypto requests use `EXPO_PUBLIC_API_BASE_URL`; the mobile app must not own CoinMarketCap secrets or `app/api` crypto handlers.
+- The Cloudflare Worker in `apps/api` owns CoinMarketCap provider calls, runtime validation, and `CRYPTO_FALLBACKS` KV fallback reads.
+- The ticker route accepts `id=<coinMarketCapId>` and uses CoinMarketCap latest EUR quote data for the selected asset when configured. Cloud KV data remains the fallback.
 - API-backed screens should expose loading, error, retry, source, freshness, and fallback states to users instead of silently rendering stale or fixture data.
 
 ## Metrics
@@ -51,7 +48,7 @@
 
 - `utils/apiResult.ts` defines shared source/fallback/freshness metadata helpers.
 - `utils/cryptoValidators.ts` validates the subset of CoinMarketCap payloads the app renders.
-- API routes should validate live provider data before returning it and fall back locally when the live shape is malformed.
+- Cloud API routes should validate live provider data before returning it and fall back to KV data when the live shape is malformed.
 - Crypto UI should expose `Data source`, `Last updated`, and `Retry` affordances for API-backed data.
 
 ## Test Coverage Added

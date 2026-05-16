@@ -27,9 +27,9 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - `docs/product-strategy/reliable-finance-app-roadmap.md` is the guiding roadmap.
 - `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` is the current implementation plan for reliability scaffolding.
 - `docs/architecture/decisions/` records product and data-trust architecture decisions.
-- Crypto data currently depends on local `app/api/*+api.ts` handlers.
-- Listings and info endpoints now use live CoinMarketCap data when `CRYPTO_API_KEY` is configured and fall back to local data otherwise.
-- Detail ticker quotes now use live selected-asset CoinMarketCap latest quote data when `CRYPTO_API_KEY` is configured and fall back to local BTC historical data otherwise.
+- Crypto data is served by the Cloudflare Worker in `apps/api`; mobile screens call `EXPO_PUBLIC_API_BASE_URL`.
+- Listings and info endpoints use live CoinMarketCap data when the Worker has `CRYPTO_API_KEY` configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
+- Detail ticker quotes use live selected-asset CoinMarketCap latest quote data when configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.

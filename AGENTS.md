@@ -2,22 +2,23 @@
 
 ## Start Here
 
-This repository is an Expo Router fintech clone with Clerk auth, Zustand plus MMKV persistence, and local Expo Router API handlers for crypto data.
+This repository is an Expo Router fintech clone with Clerk auth, Zustand plus MMKV persistence, and a Cloudflare Worker backend for crypto data.
 
 Before making changes:
 
 1. Read `docs/project-reference/README.md`.
 2. Read `docs/project-reference/issues.md`.
 3. Check `app.json`, `.env`, and `app/_layout.tsx` for environment assumptions.
-4. Treat `Store/`, `app/api/`, and auth routes as high-risk areas.
+4. Treat `Store/`, `apps/api/`, shared contracts, and auth routes as high-risk areas.
 
 ## High-Risk Areas
 
 - `Store/balance/balanceStore.ts`
 - `Store/storage/mmkv-storage.ts`
-- `app/api/listings+api.ts`
-- `app/api/info+api.ts`
-- `app/api/tickers+api.ts`
+- `apps/api/src/crypto/cryptoService.ts`
+- `apps/api/src/crypto/coinMarketCapClient.ts`
+- `apps/api/src/crypto/cloudFallbackStore.ts`
+- `packages/shared/src/cryptoValidators.ts`
 - `app/(authenticated)/(tabs)/crypto.tsx`
 - `app/(authenticated)/crypto/[id].tsx`
 - `app/_layout.tsx`
@@ -30,8 +31,8 @@ Before making changes:
 - The repo uses mixed directory casing such as `Components`, `Store`, and `app`.
 - Primary signed-in tabs are Home, Activity, and Crypto.
 - Activity is a real tab for searchable/filterable transaction history, editable categories, and monthly totals.
-- Listings and info crypto API routes use live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then fall back to local data.
-- Ticker data uses live selected-asset CoinMarketCap latest quotes when `CRYPTO_API_KEY` is configured, then falls back to local BTC historical data.
+- Mobile crypto screens call `EXPO_PUBLIC_API_BASE_URL`; do not reintroduce mobile-owned `app/api` crypto handlers.
+- The Cloudflare Worker uses live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then falls back to `CRYPTO_FALLBACKS` KV data.
 - Crypto detail chart hooks must stay above loading/error early returns.
 - Persisted transaction dates are normalized to ISO strings through `Store/balance/transactionUtils.ts`.
 - Persisted transaction categories are inferred and backfilled for legacy transactions through `Store/balance/transactionUtils.ts`.
@@ -43,7 +44,7 @@ Before making changes:
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-15 6:17pm MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-15 11:07pm MST
 
 No previous sessions found.
 </claude-mem-context>

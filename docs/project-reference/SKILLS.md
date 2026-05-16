@@ -27,12 +27,12 @@
 ## When Working On Crypto
 
 - Start with `app/(authenticated)/(tabs)/crypto.tsx` and `app/(authenticated)/crypto/[id].tsx`.
-- Then inspect `app/api/listings+api.ts`, `app/api/info+api.ts`, and `app/api/tickers+api.ts`.
+- Then inspect `apps/api/src/crypto/cryptoRoutes.ts`, `apps/api/src/crypto/cryptoService.ts`, and `apps/api/src/crypto/coinMarketCapClient.ts`.
 - Check `utils/cryptoValidators.ts` before changing rendered CoinMarketCap response fields.
 - Check `utils/apiResult.ts` before changing source/freshness/fallback metadata behavior.
 - Confirm whether fetch behavior is expected to work on native, web, or both before changing transport code.
-- Listings and info use live CoinMarketCap data when `CRYPTO_API_KEY` is present, then fall back to local data.
-- Detail ticker quotes use live CoinMarketCap selected-asset quote data when `CRYPTO_API_KEY` is present, then fall back to local BTC historical data.
+- Listings and info use live CoinMarketCap data when Worker `CRYPTO_API_KEY` is present, then fall back to `CRYPTO_FALLBACKS` KV data.
+- Detail ticker quotes use live CoinMarketCap selected-asset quote data when Worker `CRYPTO_API_KEY` is present, then fall back to `CRYPTO_FALLBACKS` KV data.
 - API-backed crypto screens should show source, freshness, loading, error, retry, and fallback states.
 - Malformed live crypto payloads should fall back locally rather than rendering invalid values.
 - Keep hooks above early returns in `app/(authenticated)/crypto/[id].tsx`.
@@ -50,5 +50,5 @@
 ## High-Risk Assumptions
 
 - Relative `/api/...` fetches may depend on Expo Router server or origin behavior.
-- A real production `origin` still needs to be selected before shipping native builds that depend on local API routes.
+- `EXPO_PUBLIC_API_BASE_URL` must point at the deployed Worker before shipping native builds.
 - Static fallback data can mask live integration failures.
