@@ -34,11 +34,12 @@
 - `apps/frontend/utils/transactionRepository.ts` sends `Authorization: Bearer <Clerk token>` for transaction requests; it no longer sends a client-owned transaction user header.
 - `apps/frontend/Store/balance/balanceStore.ts` keeps Home and Activity behavior optimistic: adding money, clearing transactions, and editing categories update UI state immediately, then sync the normalized transaction list to the backend.
 - `apps/frontend/Store/balance/balanceSyncStatus.ts` maps store sync states to visible Home and Activity labels: awaiting sync, syncing, cloud synced, offline cache, and sync issue.
+- `apps/frontend/utils/transactionRepository.ts` records `transactions.client.load`, `transactions.client.save`, and `transactions.client.fallback` metrics so sync latency and fallback frequency are measurable.
 - `apps/frontend/utils/transactionRepository.ts` writes successful cloud snapshots into the MMKV-backed `transactions-cache` key and falls back to that cache when the backend request fails.
 - The Worker exposes `/api/transactions` through `apps/backend/src/transactions/transactionRoutes.ts`; route logic delegates storage to `apps/backend/src/transactions/transactionStore.ts`.
 - `apps/backend/src/transactions/transactionAuth.ts` verifies Clerk RS256 JWTs against the configured issuer and JWKS, then derives the KV owner key from the JWT `sub`.
 - Shared transaction contracts and runtime guards live in `packages/shared/src/transactionContracts.ts`.
-- The Worker currently binds `TRANSACTIONS` to the existing KV namespace IDs used for crypto fallback data, with all transaction data scoped under `transactions:<userId>` keys. Cloudflare namespace creation failed with API authentication error `10000`; a dedicated production transaction namespace remains the cleaner follow-up once account permissions allow it.
+- The Worker binds `TRANSACTIONS` to dedicated Cloudflare KV namespaces: production `5a601879101e4182833601d8f41a3f4f`, preview `fd639ee79a424fa695612c630b55c2f1`.
 
 ## Crypto Data Flow
 
@@ -58,6 +59,7 @@
 - Use `timeAsync()` for latency-sensitive async work and `recordMetric()` for immediate state transitions.
 - The event catalog lives in `docs/project-reference/metrics.md`.
 - Major instrumented surfaces include auth, lock/unlock, inactivity lock, home transactions, crypto client fetches, and crypto API upstream/fallback paths.
+- Transaction sync metrics include cloud load latency, cloud save latency, and local cache fallback events.
 
 ## API Trust Helpers
 

@@ -1,10 +1,12 @@
 import { createTransactionRepository } from './transactionRepository';
+import { clearMetrics, getMetricsSnapshot } from './metrics';
 
 describe('transaction repository', () => {
   const originalFetch = global.fetch;
 
   afterEach(() => {
     global.fetch = originalFetch;
+    clearMetrics();
     jest.restoreAllMocks();
   });
 
@@ -40,6 +42,13 @@ describe('transaction repository', () => {
     expect(result.source).toBe('cloud');
     expect(result.transactions).toHaveLength(1);
     expect(cachedValues.get('transactions-cache')).toContain('tx-1');
+    expect(getMetricsSnapshot()).toEqual([
+      expect.objectContaining({
+        name: 'transactions.client.load',
+        status: 'success',
+        metadata: { source: 'cloud' },
+      }),
+    ]);
   });
 
   it('falls back to cached transactions when the cloud request fails', async () => {
@@ -86,6 +95,17 @@ describe('transaction repository', () => {
       ],
       updatedAt: '2024-01-02T12:01:00.000Z',
     });
+    expect(getMetricsSnapshot()).toEqual([
+      expect.objectContaining({
+        name: 'transactions.client.load',
+        status: 'error',
+      }),
+      expect.objectContaining({
+        name: 'transactions.client.fallback',
+        status: 'success',
+        metadata: { operation: 'load', source: 'cache' },
+      }),
+    ]);
   });
 
   it('saves normalized transactions to cloud and local cache', async () => {
@@ -136,6 +156,13 @@ describe('transaction repository', () => {
       })
     );
     expect(cachedValues.get('transactions-cache')).toContain('tx-1');
+    expect(getMetricsSnapshot()).toEqual([
+      expect.objectContaining({
+        name: 'transactions.client.save',
+        status: 'success',
+        metadata: { source: 'cloud', transactionCount: 1 },
+      }),
+    ]);
   });
 
   it('does not send the legacy client-provided user key header', async () => {

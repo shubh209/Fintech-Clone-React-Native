@@ -6,6 +6,7 @@ import {
   TransactionSnapshot,
 } from '../../../packages/shared/src';
 import { zustandStorage } from '@/Store/storage/mmkv-storage';
+import { recordMetric, timeAsync } from './metrics';
 import {
   getTransactionApiUrl,
   getTransactionAuthToken,
@@ -84,15 +85,21 @@ export function createTransactionRepository({
   return {
     async loadTransactions(): Promise<TransactionRepositoryResult> {
       try {
-        const response = await fetch(getUrl(), {
-          headers: await headers(authTokenProvider),
-        });
+        const snapshot = await timeAsync(
+          'transactions.client.load',
+          async () => {
+            const response = await fetch(getUrl(), {
+              headers: await headers(authTokenProvider),
+            });
 
-        if (!response.ok) {
-          throw new Error(`Transaction load failed with ${response.status}`);
-        }
+            if (!response.ok) {
+              throw new Error(`Transaction load failed with ${response.status}`);
+            }
 
-        const snapshot = normalizeTransactionSnapshot(await response.json());
+            return normalizeTransactionSnapshot(await response.json());
+          },
+          { source: 'cloud' }
+        );
         await writeCachedSnapshot(storage, snapshot);
 
         return {
@@ -101,6 +108,12 @@ export function createTransactionRepository({
           updatedAt: snapshot.updatedAt,
         };
       } catch {
+        recordMetric({
+          name: 'transactions.client.fallback',
+          durationMs: 0,
+          status: 'success',
+          metadata: { operation: 'load', source: 'cache' },
+        });
         return readCachedSnapshot(storage);
       }
     },
@@ -117,17 +130,23 @@ export function createTransactionRepository({
       await writeCachedSnapshot(storage, optimisticSnapshot);
 
       try {
-        const response = await fetch(getUrl(), {
-          method: 'PUT',
-          headers: await headers(authTokenProvider),
-          body: JSON.stringify({ transactions: normalizedTransactions }),
-        });
+        const snapshot = await timeAsync(
+          'transactions.client.save',
+          async () => {
+            const response = await fetch(getUrl(), {
+              method: 'PUT',
+              headers: await headers(authTokenProvider),
+              body: JSON.stringify({ transactions: normalizedTransactions }),
+            });
 
-        if (!response.ok) {
-          throw new Error(`Transaction save failed with ${response.status}`);
-        }
+            if (!response.ok) {
+              throw new Error(`Transaction save failed with ${response.status}`);
+            }
 
-        const snapshot = normalizeTransactionSnapshot(await response.json());
+            return normalizeTransactionSnapshot(await response.json());
+          },
+          { source: 'cloud', transactionCount: normalizedTransactions.length }
+        );
         await writeCachedSnapshot(storage, snapshot);
 
         return {
@@ -136,6 +155,16 @@ export function createTransactionRepository({
           updatedAt: snapshot.updatedAt,
         };
       } catch {
+        recordMetric({
+          name: 'transactions.client.fallback',
+          durationMs: 0,
+          status: 'success',
+          metadata: {
+            operation: 'save',
+            source: 'cache',
+            transactionCount: normalizedTransactions.length,
+          },
+        });
         return {
           source: 'cache',
           transactions: optimisticSnapshot.transactions,

@@ -25,12 +25,20 @@ Configured bindings:
 
 - `CRYPTO_FALLBACKS` production KV namespace: `63a5d0553e734abebbfa23745ceac413`
 - `CRYPTO_FALLBACKS` preview KV namespace: `1f22e8b24b014c4dacb027bfba0373b2`
-- `TRANSACTIONS` currently points at the same production and preview namespace IDs, using `transactions:<userId>` keys until a dedicated transaction namespace is provisioned.
+- `TRANSACTIONS` production KV namespace: `5a601879101e4182833601d8f41a3f4f`
+- `TRANSACTIONS` preview KV namespace: `fd639ee79a424fa695612c630b55c2f1`
 - `CLERK_JWT_ISSUER`: `https://close-sheepdog-18.clerk.accounts.dev`
 - `CLERK_JWKS_URL`: `https://close-sheepdog-18.clerk.accounts.dev/.well-known/jwks.json`
 - `CRYPTO_API_KEY` Worker secret
 
-Dedicated `TRANSACTIONS` namespace creation failed in this environment with Cloudflare API authentication error `10000`; keep the prefixed-key binding until account permissions allow namespace creation.
+The Worker was deployed after the transaction auth/metrics/KV update:
+
+```text
+Version ID: 3515b9b4-e068-413c-9c95-f3b9db0baea7
+URL: https://fintech-reliability-api.shubhkapadia2031.workers.dev
+```
+
+Live smoke checks passed for `/health`, `/api/listings?limit=1`, missing transaction bearer rejection, and malformed transaction bearer rejection. Signed-in transaction hydration still needs a manual Expo app check with a real Clerk session token.
 
 Seed files were created outside the repo at:
 

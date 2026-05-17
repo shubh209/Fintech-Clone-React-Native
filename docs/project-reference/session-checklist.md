@@ -13,3 +13,4 @@
 11. Run `npx jest --runInBand --watchman=false` after storage or crypto changes.
 12. Run `npx tsc --noEmit` before claiming the app typechecks.
 13. If touching metrics, check `docs/project-reference/metrics.md` and preserve stable event names unless a rename is intentional.
+14. If touching transaction cloud sync, manually smoke-test signed-in Expo hydration because shell tests cannot mint a real Clerk mobile session token.

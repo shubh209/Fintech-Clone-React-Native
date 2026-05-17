@@ -28,7 +28,9 @@ The project now uses an explicit monorepo layout:
 
 The crypto Worker is deployed at `https://fintech-reliability-api.shubhkapadia2031.workers.dev` with `CRYPTO_API_KEY` stored as a Worker secret and `CRYPTO_FALLBACKS` KV seeded for listings, info, and ticker fallback data.
 
-Home and Activity transactions now use the Worker `/api/transactions` route as the intended source of truth. The frontend still keeps MMKV as a cache/fallback so the existing Home and Activity workflows remain usable when the cloud request fails.
+Home and Activity transactions now use the Worker `/api/transactions` route as the intended source of truth. The frontend sends Clerk bearer tokens, the Worker verifies JWT ownership, and MMKV remains a cache/fallback so the existing Home and Activity workflows stay usable when the cloud request fails.
+
+The transaction Worker now has a dedicated `TRANSACTIONS` KV binding: production `5a601879101e4182833601d8f41a3f4f`, preview `fd639ee79a424fa695612c630b55c2f1`. The deployed Worker version after today’s auth/metrics/KV update is `3515b9b4-e068-413c-9c95-f3b9db0baea7`.
 
 ## Product Strategy
 

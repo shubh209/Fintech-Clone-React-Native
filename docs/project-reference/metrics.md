@@ -38,7 +38,16 @@ Each event has:
 
 ### Transactions
 
-- Transaction sync state visibility is measured through tests until a production analytics sink is added.
+- `transactions.client.load`
+  - Measures transaction snapshot load latency from the cloud API.
+  - Metadata: `source`.
+- `transactions.client.save`
+  - Measures transaction snapshot save latency to the cloud API.
+  - Metadata: `source`, `transactionCount`.
+- `transactions.client.fallback`
+  - Records local cache fallback use after transaction load/save cloud failure.
+  - Metadata: `operation`, `source`, optional `transactionCount`.
+- Transaction sync state visibility is also measured through tests until a production analytics sink is added.
   - `apps/frontend/Store/balance/balanceSyncStatus.test.ts` covers 5 visible states.
   - `apps/backend/__tests__/api/transactions-api.test.ts` covers 3 auth paths: valid bearer accepted, missing bearer rejected, legacy client user header rejected.
 
@@ -100,7 +109,7 @@ Each event has:
 ## Testing Commands
 
 ```bash
-npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
+npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/frontend/utils/transactionRepository.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
 npx jest --runInBand --watchman=false
 npx tsc --noEmit
 ```

@@ -39,6 +39,25 @@ If an API latency number looks high:
 3. If only the client fetch is high, inspect app/runtime routing overhead.
 4. If fallback events appear often, inspect API keys, upstream status codes, and network reliability.
 
+If transaction sync metrics are missing:
+
+1. Check `apps/frontend/utils/transactionRepository.ts`.
+2. Cloud load should emit `transactions.client.load`.
+3. Cloud save should emit `transactions.client.save`.
+4. Cache fallback should emit `transactions.client.fallback`.
+5. Run `npx jest --runTestsByPath apps/frontend/utils/transactionRepository.test.ts --runInBand --watchman=false`.
+
+## Transaction Cloud Sync
+
+If Home or Activity does not hydrate transactions from the cloud:
+
+1. Confirm `EXPO_PUBLIC_API_BASE_URL` points at `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
+2. Confirm the user is signed in through Clerk so `apps/frontend/app/_layout.tsx` can provide a bearer token.
+3. Check Worker vars `CLERK_JWT_ISSUER` and `CLERK_JWKS_URL` in `apps/backend/wrangler.jsonc`.
+4. Confirm `TRANSACTIONS` uses production KV namespace `5a601879101e4182833601d8f41a3f4f`.
+5. Watch Metro/native logs for `transactions.client.load`, `transactions.client.save`, and `transactions.client.fallback`.
+6. Live shell smoke can verify unauthenticated rejection with `curl -i https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/transactions`, but signed-in hydration requires an Expo app session.
+
 ## Zustand Plus MMKV Persistence
 
 If persisted transactions behave strangely:
@@ -100,7 +119,7 @@ npx jest --runTestsByPath apps/frontend/Store/storage/mmkv-storage.test.ts apps/
 For metrics-specific changes:
 
 ```bash
-npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
+npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/frontend/utils/transactionRepository.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
 ```
 
 For API trust and validator changes:
@@ -124,3 +143,5 @@ Watchman can fail under local sandbox permissions, so prefer `--watchman=false` 
 9. Run the Worker with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
 10. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
 11. Watch logs for `[metric]` entries while using Home, Crypto, auth, and lock flows.
+12. Sign in, open Home, and confirm the transaction sync pill moves to `Cloud synced`.
+13. Toggle network failure or point the API base URL at an unavailable host and confirm Home/Activity can show `Offline cache`.

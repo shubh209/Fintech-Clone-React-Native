@@ -41,6 +41,8 @@ The product direction is reliability-first: fewer credible finance workflows, ex
 - Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
 - Home and Activity transaction snapshots hydrate from the Worker `/api/transactions` route when signed in, using Clerk bearer tokens for backend ownership and MMKV as a local cache/fallback.
 - Home and Activity expose transaction sync/fallback state so users can tell whether they are seeing cloud-synced or cached data.
+- Transaction cloud load/save/fallback paths emit local metrics through `apps/frontend/utils/metrics.ts`.
+- `TRANSACTIONS` uses dedicated Cloudflare KV namespaces instead of sharing the crypto fallback namespace.
 - Transaction persistence stores date values as ISO strings and formats them at render time.
 - Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.
 - Activity category labels can be corrected with custom names that are normalized and stored on the transaction.
