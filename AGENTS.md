@@ -44,11 +44,25 @@ Before making changes:
 - Every functionality change must define a measurable customer-impact signal and report before/after impact or newly added measurement coverage. Use `docs/project-reference/measurement-skill.md`.
 - Run `npx jest --runInBand --watchman=false` and `npx tsc --noEmit` after storage or crypto changes.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and planning tasks are tracked as local markdown files in this repo for now. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the default local triage vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use a single-context domain layout based on the existing project-reference docs and ADRs in `docs/architecture/decisions`. See `docs/agents/domain.md`.
+
 
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-16 4:01pm MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-19 9:56am MST
 
 No previous sessions found.
 </claude-mem-context>

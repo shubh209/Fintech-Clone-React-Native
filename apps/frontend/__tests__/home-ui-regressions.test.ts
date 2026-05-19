@@ -4,19 +4,36 @@ import { join } from 'path';
 const readProjectFile = (path: string) =>
   readFileSync(join(process.cwd(), path), 'utf8');
 
-describe('home UI regressions', () => {
-  it('keeps the custom header safe-area padding from shrinking the search field', () => {
+describe('home product cleanup regressions', () => {
+  it('keeps the custom header safe-area padding', () => {
     const source = readProjectFile('apps/frontend/Components/layout/CustomHeader.tsx');
 
     expect(source.includes('padding: top')).toBe(false);
     expect(source.includes('paddingTop: top')).toBe(true);
   });
 
-  it('does not wire Details to the Add Money transaction action', () => {
+  it('does not expose random or destructive money actions', () => {
     const source = readProjectFile('apps/frontend/app/(authenticated)/(tabs)/home.tsx');
 
-    expect(source.includes('const onDetails')).toBe(true);
-    expect(source.includes("text={'Details'} onPress={onAddMoney}")).toBe(false);
+    expect(source.includes("text={'Add Money'}")).toBe(false);
+    expect(source.includes("text={'Exchange'}")).toBe(false);
+    expect(source.includes('Math.random')).toBe(false);
+    expect(source.includes('clearTansactions')).toBe(false);
+  });
+
+  it('does not render the fake More menu or static widgets', () => {
+    const source = readProjectFile('apps/frontend/app/(authenticated)/(tabs)/home.tsx');
+
+    expect(source.includes('<DropDown')).toBe(false);
+    expect(source.includes('<WidgetList')).toBe(false);
+    expect(source.includes('Widgets')).toBe(false);
+  });
+
+  it('keeps Details wired to Activity', () => {
+    const source = readProjectFile('apps/frontend/app/(authenticated)/(tabs)/home.tsx');
+
+    expect(source).toContain("text={'Details'}");
+    expect(source).toContain("router.push('/(authenticated)/(tabs)/activity'");
   });
 
   it('shows the transaction cloud sync state on the Home screen', () => {
@@ -24,12 +41,5 @@ describe('home UI regressions', () => {
 
     expect(source.includes('getBalanceSyncStatusCopy')).toBe(true);
     expect(source.includes('syncStatus')).toBe(true);
-  });
-
-  it('toggles the More menu so repeated taps keep working', () => {
-    const source = readProjectFile('apps/frontend/Components/ui/DropDown.tsx');
-
-    expect(source.includes('const toggleMenu')).toBe(true);
-    expect(source.includes('const openMenu = () => setVisible(true);')).toBe(false);
   });
 });

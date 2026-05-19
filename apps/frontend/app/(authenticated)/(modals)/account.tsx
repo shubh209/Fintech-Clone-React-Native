@@ -123,27 +123,6 @@ export default function AccountScreen() {
           <Ionicons name="log-out" size={24} color={'#fff'} />
           <Text style={{ color: '#fff', fontSize: 18 }}>Log out</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btn}>
-          <Ionicons name="person" size={24} color={'#fff'} />
-          <Text style={{ color: '#fff', fontSize: 18 }}>Account</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn}>
-          <Ionicons name="bulb" size={24} color={'#fff'} />
-          <Text style={{ color: '#fff', fontSize: 18 }}>Learn</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn}>
-          <Ionicons name="megaphone" size={24} color={'#fff'} />
-          <Text style={{ color: '#fff', fontSize: 18, flex: 1 }}>Inbox</Text>
-          <View
-            style={{
-              backgroundColor: Colors.primary,
-              paddingHorizontal: 10,
-              borderRadius: 10,
-              justifyContent: 'center',
-            }}>
-            <Text style={{ color: '#fff', fontSize: 12 }}>14</Text>
-          </View>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.actions}>

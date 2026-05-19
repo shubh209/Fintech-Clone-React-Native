@@ -2,10 +2,8 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Colors from '@/constants/Colors';
 import RoundButton from '@/Components/ui/RoundButton';
-import DropDown from '@/Components/ui/DropDown';
 import { useBalanceStore } from '@/Store/balance/balanceStore';
 import { Ionicons } from '@expo/vector-icons';
-import WidgetList from '@/Components/sortable-list/WidgetList';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { getBalanceSyncStatusCopy } from '@/Store/balance/balanceSyncStatus';
 import { formatTransactionDate, getTransactionsNewestFirst } from '@/Store/balance/transactionUtils';
@@ -18,7 +16,7 @@ const formatDollarAmount = (amount: number) => {
 
 const Home = () => {
   
-  const {balance, runTransaction, clearTansactions, transactions, syncStatus} = useBalanceStore();
+  const { balance, transactions, syncStatus } = useBalanceStore();
   const router = useRouter();
 
   const headerHeight = useHeaderHeight();
@@ -33,16 +31,6 @@ const Home = () => {
       .filter((transaction) => transaction.amount < 0)
       .reduce((total, transaction) => total + transaction.amount, 0)
   );
-
-  const onAddMoney = () => {
-    runTransaction({
-        id: Math.random().toString(),
-        amount: Math.floor(Math.random() * 900) + 100,
-        date: new Date(),
-        title: 'Added Money',
-    });
-
-  };
 
   const onDetails = () => {
     router.push('/(authenticated)/(tabs)/activity' as Href);
@@ -101,27 +89,12 @@ const Home = () => {
 
       <View style={styles.actionRow}>
         <RoundButton
-          icon={'add'}
-          text={'Add Money'}
-          onPress={onAddMoney}
-          accentColor={Colors.primary}
-          iconColor="#fff"
-        />
-        <RoundButton
-          icon={'swap-horizontal'}
-          text={'Exchange'}
-          onPress={clearTansactions}
-          accentColor="#E8F5EF"
-          iconColor="#0A8F5A"
-        />
-        <RoundButton
           icon={'receipt-outline'}
           text={'Details'}
           onPress={onDetails}
           accentColor="#EEF2FF"
           iconColor={Colors.primary}
         />
-        <DropDown />
       </View>
 
 
@@ -131,13 +104,13 @@ const Home = () => {
       </View>
       <View style={styles.transactionCard}>
         {transactions.length === 0 && (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Ionicons name="wallet-outline" size={24} color={Colors.gray}/>
-            </View>
-            <Text style={styles.emptyTitle}>No transactions yet</Text>
-            <Text style={styles.emptyCopy}>Add money to create your first activity entry.</Text>
-          </View>)
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="wallet-outline" size={24} color={Colors.gray}/>
+              </View>
+              <Text style={styles.emptyTitle}>No transactions yet</Text>
+              <Text style={styles.emptyCopy}>Saved transactions will appear here.</Text>
+            </View>)
         }
         {
           displayedTransactions.map((transaction) => (
@@ -169,12 +142,6 @@ const Home = () => {
           ))
         }
       </View>
-      
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>Widgets</Text>
-        <Text style={styles.sectionCaption}>Hold to reorder</Text>
-      </View>
-      <WidgetList />
     </ScrollView>
   )
 }

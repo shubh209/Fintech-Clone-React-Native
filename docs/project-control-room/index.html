@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fintech Project Control Room</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17201b;
+      --muted: #5c675f;
+      --line: #d8dfd9;
+      --paper: #f7f8f4;
+      --panel: #ffffff;
+      --green: #1d7c54;
+      --blue: #2764a2;
+      --amber: #a45f10;
+      --red: #b64034;
+      --violet: #6550a8;
+      --shadow: 0 18px 50px rgba(23, 32, 27, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 22px 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
+      gap: 24px;
+      align-items: stretch;
+      padding: 28px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin-bottom: 14px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    .metric {
+      min-height: 110px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      background: #fbfcf9;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+      margin: 18px 0 28px;
+      padding: 10px;
+      overflow-x: auto;
+      background: rgba(247, 248, 244, 0.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav a {
+      flex: 0 0 auto;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    section {
+      margin-top: 30px;
+    }
+
+    .section-head {
+      display: flex;
+      gap: 18px;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      margin-bottom: 4px;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .section-head p {
+      max-width: 720px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      padding: 18px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-width: 0;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 18px;
+    }
+
+    li + li {
+      margin-top: 7px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      margin: 0 6px 6px 0;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      background: #f7f8f4;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .tag.good {
+      border-color: #b9d9ca;
+      color: var(--green);
+      background: #edf8f2;
+    }
+
+    .tag.warn {
+      border-color: #e5c99d;
+      color: var(--amber);
+      background: #fff8eb;
+    }
+
+    .tag.risk {
+      border-color: #e3b1aa;
+      color: var(--red);
+      background: #fff1ef;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 16px;
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .step b {
+      color: var(--blue);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(135px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+    }
+
+    .node {
+      min-height: 112px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      border-radius: 8px;
+    }
+
+    .node strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .node span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .decision-table th,
+    .decision-table td {
+      padding: 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    .decision-table th {
+      background: #f0f4ef;
+      color: #2f3a33;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .decision-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      padding: 2px 5px;
+      background: #eef1ec;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin-top: 32px;
+      padding: 18px;
+      border-left: 4px solid var(--green);
+      background: #ffffff;
+      color: var(--muted);
+    }
+
+    @media (max-width: 850px) {
+      .hero,
+      .grid,
+      .grid.two {
+        grid-template-columns: 1fr;
+      }
+
+      .scoreboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .shell {
+        padding: 18px 12px 42px;
+      }
+
+      .hero {
+        padding: 20px;
+      }
+
+      .scoreboard {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Project control room</p>
+        <h1>Fintech Clone is now a reliability-first finance app.</h1>
+        <p>
+          The goal is no longer to copy every fintech screen. The goal is to build a small product that behaves like a credible finance system: clear auth, trustworthy transaction state, visible data freshness, tested persistence, and backend-owned market data.
+        </p>
+        <span class="tag good">Current direction: reliability-first</span>
+        <span class="tag good">Primary tabs: Home, Activity, Crypto</span>
+        <span class="tag warn">Next human decision: what product workflow earns the next tab?</span>
+      </div>
+      <aside class="scoreboard" aria-label="Project status summary">
+        <div class="metric"><strong>3</strong><span>real signed-in tabs remain after placeholder cleanup</span></div>
+        <div class="metric"><strong>2</strong><span>Cloudflare KV-backed domains: crypto fallback and transactions</span></div>
+        <div class="metric"><strong>5</strong><span>visible transaction sync states in Home and Activity</span></div>
+        <div class="metric"><strong>20+</strong><span>focused tests around storage, crypto, transactions, and routing</span></div>
+      </aside>
+    </header>
+
+    <nav class="nav" aria-label="Page sections">
+      <a href="#why">Why</a>
+      <a href="#features">Features</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#progress">Progress</a>
+      <a href="#stack">Stack</a>
+      <a href="#risks">Risks</a>
+      <a href="#decisions">Your Decisions</a>
+    </nav>
+
+    <section id="why">
+      <div class="section-head">
+        <div>
+          <h2>What Are We Trying To Achieve?</h2>
+          <p>A portfolio-quality finance app that shows judgment: fewer features, stronger correctness, visible trust signals, and production-style boundaries.</p>
+        </div>
+      </div>
+      <div class="grid three">
+        <article class="card">
+          <h3>Product Thesis</h3>
+          <p>Build a financial command center for everyday confidence: account overview, transaction clarity, market data with source/freshness, then later goals and responsible guidance.</p>
+        </article>
+        <article class="card">
+          <h3>Engineering Thesis</h3>
+          <p>Show that you understand data ownership, persistence, runtime validation, backend boundaries, auth, fallback behavior, and measurement.</p>
+        </article>
+        <article class="card">
+          <h3>Learning Thesis</h3>
+          <p>You should be able to explain every major choice: why the Worker owns provider secrets, why MMKV is now a cache, and why placeholder tabs were removed.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="section-head">
+        <div>
+          <h2>Current App Flow And Features</h2>
+          <p>This is the actual user journey implied by the current route tree and docs.</p>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="step">
+          <b>Public entry</b>
+          <div>Landing, signup, login, help, and phone verification live under <code>apps/frontend/app</code>. Clerk handles auth and SecureStore caches tokens.</div>
+        </div>
+        <div class="step">
+          <b>Signed-in shell</b>
+          <div>After sign-in, Expo Router sends users to <code>/(authenticated)/(tabs)/home</code>. The active primary tabs are Home, Activity, and Crypto.</div>
+        </div>
+        <div class="step">
+          <b>Home</b>
+          <div>Balance and recent transaction state. It hydrates transaction snapshots from the Worker, updates optimistically, and shows sync/fallback status.</div>
+        </div>
+        <div class="step">
+          <b>Activity</b>
+          <div>Searchable and filterable transaction history, category labels, editable custom categories, and monthly income/spending/net totals.</div>
+        </div>
+        <div class="step">
+          <b>Crypto</b>
+          <div>Market list plus detail screens. Mobile calls the deployed Worker through <code>EXPO_PUBLIC_API_BASE_URL</code>; the Worker owns CoinMarketCap and fallback behavior.</div>
+        </div>
+        <div class="step">
+          <b>Security modals</b>
+          <div>Authenticated modal routes include lock and account flows. Inactivity storage also has MMKV plus memory fallback behavior.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="section-head">
+        <div>
+          <h2>Architecture Flow</h2>
+          <p>The app is split into frontend, backend, and shared contracts so trust boundaries are visible instead of buried inside screens.</p>
+        </div>
+      </div>
+      <div class="flow" aria-label="Transaction architecture flow">
+        <div class="node"><strong>Expo Router UI</strong><span>Home and Activity render transaction state and sync labels.</span></div>
+        <div class="node"><strong>Zustand Store</strong><span>Optimistic updates, ISO dates, category migration, MMKV persistence.</span></div>
+        <div class="node"><strong>Repository Client</strong><span>Adds Clerk bearer token and records load/save/fallback metrics.</span></div>
+        <div class="node"><strong>Cloudflare Worker</strong><span>Verifies JWT, derives owner from <code>sub</code>, exposes <code>/api/transactions</code>.</span></div>
+        <div class="node"><strong>TRANSACTIONS KV</strong><span>Cloud snapshot store. MMKV remains device cache/fallback.</span></div>
+      </div>
+      <br />
+      <div class="flow" aria-label="Crypto architecture flow">
+        <div class="node"><strong>Crypto Screens</strong><span>List and detail screens fetch through the crypto API client.</span></div>
+        <div class="node"><strong>API Base URL</strong><span><code>EXPO_PUBLIC_API_BASE_URL</code> points at the deployed Worker.</span></div>
+        <div class="node"><strong>Worker Crypto Service</strong><span>Calls CoinMarketCap when configured and validates renderable payloads.</span></div>
+        <div class="node"><strong>CRYPTO_FALLBACKS KV</strong><span>Fallback data for listings, info, and ticker routes.</span></div>
+        <div class="node"><strong>UI Trust State</strong><span>Loading, error, retry, data source, freshness, and fallback signals.</span></div>
+      </div>
+    </section>
+
+    <section id="progress">
+      <div class="section-head">
+        <div>
+          <h2>What We Already Did</h2>
+          <p>The recent work was mostly about making shaky demo behavior more trustworthy.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <h3>Cleaned Product Scope</h3>
+          <ul>
+            <li>Removed placeholder Invest and Lifestyle tabs.</li>
+            <li>Replaced Transfer placeholder with a real Activity tab.</li>
+            <li>Documented reliability-first roadmap and startup context.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Stabilized Persistence</h3>
+          <ul>
+            <li>Normalized persisted transaction dates to ISO strings.</li>
+            <li>Backfilled legacy transaction categories.</li>
+            <li>Fixed MMKV adapter responsibilities and memory fallback.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Moved Trust To Backend</h3>
+          <ul>
+            <li>Crypto data now comes from the Worker, not mobile-owned API handlers.</li>
+            <li>Transaction snapshots sync through Clerk-authenticated Worker routes.</li>
+            <li>Dedicated KV namespaces separate transaction data from crypto fallback data.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Added Data Trust Signals</h3>
+          <ul>
+            <li>Crypto responses are runtime validated before rendering.</li>
+            <li>Home and Activity show sync states.</li>
+            <li>Crypto screens expose source, freshness, retry, loading, and error states.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Improved Tests</h3>
+          <ul>
+            <li>Storage, transaction utility, crypto validator, API wiring, Worker route, and shared contract tests were added.</li>
+            <li>Recommended verification remains <code>npx jest --runInBand --watchman=false</code> and <code>npx tsc --noEmit</code>.</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Made Metrics Concrete</h3>
+          <ul>
+            <li>Transaction cloud load, cloud save, and cache fallback paths emit local metrics.</li>
+            <li>Measurement is now part of the definition of done for functionality changes.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="stack">
+      <div class="section-head">
+        <div>
+          <h2>Tech Stack</h2>
+          <p>Use this as your mental model when explaining the project in interviews or deciding where a change belongs.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <h3>Frontend</h3>
+          <span class="tag">Expo Router</span>
+          <span class="tag">React Native</span>
+          <span class="tag">TypeScript</span>
+          <span class="tag">React Query</span>
+          <span class="tag">Victory Native</span>
+        </article>
+        <article class="card">
+          <h3>Auth And Local State</h3>
+          <span class="tag">Clerk</span>
+          <span class="tag">SecureStore</span>
+          <span class="tag">Zustand</span>
+          <span class="tag">MMKV</span>
+          <span class="tag">Memory fallback</span>
+        </article>
+        <article class="card">
+          <h3>Backend And Contracts</h3>
+          <span class="tag">Cloudflare Worker</span>
+          <span class="tag">Cloudflare KV</span>
+          <span class="tag">CoinMarketCap</span>
+          <span class="tag">Shared validators</span>
+          <span class="tag">Jest</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="risks">
+      <div class="section-head">
+        <div>
+          <h2>Current Risks And Open Loops</h2>
+          <p>These are the areas where you should be careful before saying the project is production-like.</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <article class="card">
+          <h3><span class="tag risk">High</span> Signed-in transaction smoke test</h3>
+          <p>The Worker rejects missing or malformed bearer tokens correctly, but the docs still call out a manual signed-in Expo smoke test with a real Clerk session token as the next step.</p>
+        </article>
+        <article class="card">
+          <h3><span class="tag warn">Medium</span> Transaction durability still snapshot-based</h3>
+          <p>Home and Activity now sync to the cloud, but mutations are optimistic snapshots rather than a richer transaction event model. That is okay for this stage, but it matters for conflict handling.</p>
+        </article>
+        <article class="card">
+          <h3><span class="tag warn">Low</span> Crypto fallback history</h3>
+          <p>Fallback ticker history may still be BTC-specific when live selected-asset quotes are unavailable. Per-asset fallback seeding is a future product decision.</p>
+        </article>
+        <article class="card">
+          <h3><span class="tag warn">Medium</span> Roadmap drift</h3>
+          <p>The Phase 1 plan file mentions local Expo API handlers, but the repo has moved to a Cloudflare Worker architecture. Treat docs as living references, not orders.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="decisions">
+      <div class="section-head">
+        <div>
+          <h2>Decisions You Should Own Next</h2>
+          <p>This is where control shifts back to you. Pick one row, write down why, then implement the smallest measurable version.</p>
+        </div>
+      </div>
+      <table class="decision-table">
+        <thead>
+          <tr>
+            <th>Decision</th>
+            <th>Why It Matters</th>
+            <th>Good Junior Engineer Move</th>
+            <th>Measurement Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Should Goals become the next tab?</td>
+            <td>It would turn the app from tracking into planning, but only if it is a real workflow.</td>
+            <td>Build one savings goal with target amount, progress, and local validation before adding broad goal types.</td>
+            <td>Supported goal workflow count: 0 to 1; tests for create/update/progress states.</td>
+          </tr>
+          <tr>
+            <td>Should Activity get richer budgeting first?</td>
+            <td>It builds on existing transaction categories and monthly totals.</td>
+            <td>Add monthly category budget thresholds and visible over/under state.</td>
+            <td>Budget insight states: none to under/near/over; metric for threshold warnings rendered.</td>
+          </tr>
+          <tr>
+            <td>Should transaction sync become more robust?</td>
+            <td>It strengthens the production engineering story before adding more UI.</td>
+            <td>Add conflict/error retry handling or a manual refresh flow with clear status.</td>
+            <td>Retry paths covered by tests; fallback recovery scenarios increase.</td>
+          </tr>
+          <tr>
+            <td>Should crypto fallback data be expanded?</td>
+            <td>It makes offline or provider-failure crypto details less misleading.</td>
+            <td>Seed per-asset fallback data and document freshness tradeoffs.</td>
+            <td>Fallback accuracy coverage: BTC-only to selected tracked assets.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="footer-note">
+      Suggested working rule: when an agent recommends a step, ask it to identify the user-facing outcome, the files it expects to touch, the risk level, and the measurement signal before it writes code. That keeps you as the product and engineering decision-maker.
+    </p>
+  </main>
+</body>
+</html>

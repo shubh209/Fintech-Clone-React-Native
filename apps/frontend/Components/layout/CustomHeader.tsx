@@ -1,9 +1,8 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
 
 const CustomHeader = () => {
     const { top } = useSafeAreaInsets();
@@ -20,29 +19,14 @@ const CustomHeader = () => {
         >
             <View style={styles.container} >
 
-                {/* account logo */}
-                <TouchableOpacity style={styles.RoundBtn}>
-                    <Text style={{color: 'white', fontWeight: '500', fontSize: 16}}>SK</Text>
-                </TouchableOpacity>
-                
-                {/* search option */}
-                <View style={styles.searchSection}>
-                    <Ionicons name="search" size={20} color={Colors.gray} />
-                    <TextInput 
-                        style={styles.input}
-                        placeholder='Search'
-                        placeholderTextColor={Colors.gray}
-                    />
+                <View style={styles.roundBtn}>
+                    <Text style={styles.initials}>SK</Text>
                 </View>
 
-                {/* icons */}
-                <View style={styles.circle}>
-                    <Ionicons name="stats-chart" size={30} color={Colors.dark} />
+                <View style={styles.titleBlock}>
+                    <Text style={styles.eyebrow}>Crypto simulator</Text>
+                    <Text style={styles.title}>Market watch</Text>
                 </View>
-                <View style={styles.circle}>
-                    <Ionicons name="card" size={30} color={Colors.dark} />
-                </View>
-                
             </View>
         </BlurView>
     )
@@ -51,13 +35,12 @@ const CustomHeader = () => {
 const styles = StyleSheet.create({
     container:{
         flexDirection: 'row',
-        justifyContent: 'center',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         minHeight: 54,
         backgroundColor: 'transparent',
     },
-    RoundBtn:{
+    roundBtn:{
         width: 44,
         height: 44,
         borderRadius: 22,
@@ -65,32 +48,24 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    searchSection:{
-        flex: 1,
-        flexDirection: 'row',
-        backgroundColor: Colors.lightGray,
-        borderRadius: 24,
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        minWidth: 120,
-        height: 48,
-        paddingHorizontal: 16,
-        gap: 8,
-    },
-    input:{
-        flex: 1,
-        height: 48,
-        padding: 0,
-        color: Colors.dark,
+    initials: {
+        color: 'white',
+        fontWeight: '700',
         fontSize: 16,
     },
-    circle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: Colors.lightGray,
-        justifyContent: 'center',
-        alignItems: 'center',
+    titleBlock: {
+        flex: 1,
+        gap: 2,
+    },
+    eyebrow: {
+        color: Colors.gray,
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    title: {
+        color: Colors.dark,
+        fontSize: 18,
+        fontWeight: '800',
     },
 });
 
