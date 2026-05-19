@@ -14,9 +14,9 @@ Before making changes:
 
 ## High-Risk Areas
 
-- `apps/backend/src/crypto/cryptoService.ts`
-- `apps/backend/src/crypto/coinMarketCapClient.ts`
-- `apps/backend/src/crypto/cloudFallbackStore.ts`
+- `apps/backend/src/domains/crypto-market/cryptoService.ts`
+- `apps/backend/src/domains/crypto-market/coinMarketCapClient.ts`
+- `apps/backend/src/domains/crypto-market/cloudFallbackStore.ts`
 - `packages/shared/src/cryptoValidators.ts`
 - `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx`
 - `apps/frontend/app/(authenticated)/crypto/[id].tsx`
@@ -34,7 +34,7 @@ Before making changes:
 - Cloudflare `CRYPTO_FALLBACKS` KV is configured with production namespace `63a5d0553e734abebbfa23745ceac413` and preview namespace `1f22e8b24b014c4dacb027bfba0373b2`.
 - The Cloudflare Worker uses live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then falls back to `CRYPTO_FALLBACKS` KV data.
 - Crypto detail chart hooks must stay above loading/error early returns.
-- Metrics are centralized in `apps/frontend/utils/metrics.ts`; event names are cataloged in `docs/project-reference/metrics.md`.
+- Metrics are centralized in `apps/frontend/src/shared/metrics/metrics.ts`; event names are cataloged in `docs/project-reference/metrics.md`.
 - Every functionality change must define a measurable customer-impact signal and report before/after impact or newly added measurement coverage. Use `docs/project-reference/measurement-skill.md`.
 - Use `./node_modules/.bin/jest --runInBand --watchman=false` and `./node_modules/.bin/tsc --noEmit` because the repo path contains `:` and npm/npx PATH resolution can fail.
 
@@ -56,7 +56,7 @@ Use a single-context domain layout based on the crypto simulator project-referen
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-19 11:06am MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-19 3:04pm MST
 
 No previous sessions found.
 </claude-mem-context>

@@ -11,10 +11,10 @@ describe('cloud backend wiring', () => {
   it('splits backend crypto API responsibilities by file', () => {
     const files = [
       'apps/backend/src/index.ts',
-      'apps/backend/src/crypto/cryptoRoutes.ts',
-      'apps/backend/src/crypto/cryptoService.ts',
-      'apps/backend/src/crypto/coinMarketCapClient.ts',
-      'apps/backend/src/crypto/cloudFallbackStore.ts',
+      'apps/backend/src/domains/crypto-market/cryptoRoutes.ts',
+      'apps/backend/src/domains/crypto-market/cryptoService.ts',
+      'apps/backend/src/domains/crypto-market/coinMarketCapClient.ts',
+      'apps/backend/src/domains/crypto-market/cloudFallbackStore.ts',
       'packages/shared/src/cryptoValidators.ts',
       'packages/shared/src/apiResult.ts',
     ];

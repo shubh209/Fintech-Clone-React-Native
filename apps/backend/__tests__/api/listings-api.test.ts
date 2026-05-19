@@ -1,4 +1,4 @@
-import { getListings } from '../../src/crypto/cryptoService';
+import { getListings } from '../../src/domains/crypto-market/cryptoService';
 
 describe('listings cloud API service', () => {
   const fallbackListings = [

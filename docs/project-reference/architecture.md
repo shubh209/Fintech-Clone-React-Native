@@ -2,12 +2,12 @@
 
 ## Routing
 
-- `apps/frontend/app/index.tsx` is the landing route.
-- `apps/frontend/app/login.tsx`, `apps/frontend/app/signup.tsx`, `apps/frontend/app/help.tsx`, and `apps/frontend/app/verify/[phone].tsx` are public auth flows.
+- `apps/frontend/app/index.tsx` is the landing route wrapper for `apps/frontend/src/features/auth/screens/landingScreen.tsx`.
+- `apps/frontend/app/login.tsx`, `apps/frontend/app/signup.tsx`, `apps/frontend/app/help.tsx`, and `apps/frontend/app/verify/[phone].tsx` are thin public auth route wrappers for `apps/frontend/src/features/auth/screens`.
 - `apps/frontend/app/(authenticated)/(tabs)` contains the signed-in tab shell.
 - `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` is a thin route wrapper for the crypto market screen.
 - `apps/frontend/app/(authenticated)/crypto/[id].tsx` is a thin route wrapper for the crypto asset detail screen.
-- `apps/frontend/app/(authenticated)/(modals)/account.tsx` contains the account modal.
+- `apps/frontend/app/(authenticated)/(modals)/account.tsx` is a thin route wrapper for `apps/frontend/src/features/auth/screens/accountScreen.tsx`.
 
 Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
@@ -22,7 +22,7 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## State And Persistence
 
-- Clerk auth state is provided from `apps/frontend/app/_layout.tsx`.
+- Clerk auth state is provided from `apps/frontend/app/_layout.tsx`, with token-cache and redirect helpers owned by `apps/frontend/src/features/auth`.
 - React Query is initialized globally in `apps/frontend/app/_layout.tsx`.
 - Crypto data is fetched through React Query on the list/detail screens.
 - No app-owned transaction store, balance store, MMKV transaction cache, or inactivity lock state remains.
@@ -32,7 +32,7 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 - `apps/frontend/src/features/crypto-market/screens/cryptoMarketScreen.tsx` fetches listings and logo/info metadata through `apps/frontend/src/features/crypto-market/api/getCryptoApiUrl.ts`.
 - `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx` fetches detail metadata and selected-asset ticker quote data through `apps/frontend/src/features/crypto-market/api/getCryptoApiUrl.ts`, then normalizes ticker timestamps through `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.ts`.
 - Mobile crypto requests use `EXPO_PUBLIC_API_BASE_URL`; the mobile app must not own CoinMarketCap secrets or `apps/frontend/app/api` crypto handlers.
-- The Cloudflare Worker in `apps/backend` owns CoinMarketCap provider calls, runtime validation, and `CRYPTO_FALLBACKS` KV fallback reads.
+- The Cloudflare Worker crypto-market domain in `apps/backend/src/domains/crypto-market` owns CoinMarketCap provider calls, runtime validation, and `CRYPTO_FALLBACKS` KV fallback reads.
 - The deployed Worker URL is `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
 - `CRYPTO_FALLBACKS` is backed by production KV namespace `63a5d0553e734abebbfa23745ceac413` and preview KV namespace `1f22e8b24b014c4dacb027bfba0373b2`.
 - The ticker route accepts `id=<coinMarketCapId>` and uses CoinMarketCap latest EUR quote data for the selected asset when configured. Cloud KV data remains the fallback.
@@ -56,6 +56,7 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 ## Test Coverage
 
 - `apps/frontend/src/shared/formatting/formatEuroPrice.test.ts`
+- `apps/frontend/src/features/auth/routing/useAuthRedirects.ts`
 - `apps/frontend/src/shared/metrics/metrics.test.ts`
 - `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.test.ts`
 - `apps/frontend/src/shared/api/apiResult.test.ts`
@@ -72,6 +73,6 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## Structural Notes
 
-- Frontend routes live under `apps/frontend/app`; frontend product code lives under `apps/frontend/src`; backend Worker code lives under `apps/backend`; shared crypto contracts live under `packages/shared`.
+- Frontend routes live under `apps/frontend/app`; frontend product code lives under `apps/frontend/src`; backend Worker domain code lives under `apps/backend/src/domains`; shared crypto contracts live under `packages/shared`.
 - The old `Store`, transaction repository, Activity tab, Home tab, lock modal, transaction backend routes, and transaction shared contracts were removed for the crypto simulator pivot.
 - No placeholder primary tabs should be kept in the tab shell.

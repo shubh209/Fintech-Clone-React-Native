@@ -36,8 +36,8 @@ target 'FintechCloneReactNative' do
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"]
   else
     config_command = [
-      'npx',
-      'expo-modules-autolinking',
+      'node',
+      '../node_modules/expo-modules-autolinking/bin/expo-modules-autolinking.js',
       'react-native-config',
       '--json',
       '--platform',
@@ -64,5 +64,20 @@ target 'FintechCloneReactNative' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    resources_script = File.join(__dir__, 'Pods', 'Target Support Files', 'Pods-FintechCloneReactNative', 'Pods-FintechCloneReactNative-resources.sh')
+    if File.exist?(resources_script)
+      script = File.read(resources_script)
+      patch = <<~'SH'
+        LOCAL_RESOURCES_TO_COPY="${TMPDIR:-/tmp}/pods-resources-to-copy-${TARGET_NAME}.txt"
+        cp "$RESOURCES_TO_COPY" "$LOCAL_RESOURCES_TO_COPY"
+        RESOURCES_TO_COPY="$LOCAL_RESOURCES_TO_COPY"
+      SH
+      script = script.sub(
+        "\nmkdir -p \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nrsync -avr --copy-links --no-relative --exclude '*/.svn/*' --files-from=\"$RESOURCES_TO_COPY\" / \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n",
+        "\nmkdir -p \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n#{patch}rsync -avr --copy-links --no-relative --exclude '*/.svn/*' --files-from=\"$RESOURCES_TO_COPY\" / \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n"
+      )
+      File.write(resources_script, script)
+    end
   end
 end

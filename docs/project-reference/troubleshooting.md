@@ -5,7 +5,7 @@
 If crypto screens fail to load:
 
 1. Verify `EXPO_PUBLIC_API_BASE_URL` points at the Cloudflare Worker.
-2. Inspect `apps/backend/src/crypto/cryptoRoutes.ts`, `apps/backend/src/crypto/cryptoService.ts`, and `apps/backend/src/crypto/coinMarketCapClient.ts`.
+2. Inspect `apps/backend/src/domains/crypto-market/cryptoRoutes.ts`, `apps/backend/src/domains/crypto-market/cryptoService.ts`, and `apps/backend/src/domains/crypto-market/coinMarketCapClient.ts`.
 3. Confirm whether Worker `CRYPTO_API_KEY` is configured. Listings, info, and selected-asset ticker quotes use live CoinMarketCap data only when the key is present and the upstream request succeeds.
 4. Check `packages/shared/src/cryptoValidators.ts` if live API calls succeed but fallback data appears; malformed live payloads intentionally fall back to KV data.
 5. Confirm `CRYPTO_FALLBACKS` KV contains `crypto:listings`, `crypto:info`, and `crypto:tickers` JSON values for cloud fallback behavior.
@@ -44,7 +44,7 @@ If an API latency number looks high:
 If auth breaks:
 
 1. Verify `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in the environment.
-2. Check auth redirect logic in `apps/frontend/app/_layout.tsx`.
+2. Check auth redirect logic in `apps/frontend/src/features/auth/routing/useAuthRedirects.ts`.
 3. Re-test phone auth flows through `login`, `signup`, and `verify/[phone]`.
 
 ## Navigation And Product Surface

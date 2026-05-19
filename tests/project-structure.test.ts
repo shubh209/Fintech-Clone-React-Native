@@ -5,9 +5,11 @@ describe('project structure', () => {
   it('keeps product code in explicit frontend and backend app folders', () => {
     const expectedDirectories = [
       'apps/frontend/app',
+      'apps/frontend/src/features/auth',
       'apps/frontend/src/features/crypto-market',
       'apps/frontend/src/shared',
       'apps/backend/src',
+      'apps/backend/src/domains/crypto-market',
       'packages/shared/src',
     ];
 
@@ -48,6 +50,7 @@ describe('project structure', () => {
       'apps/frontend/interfaces',
       'apps/frontend/utils',
       'apps/backend/src/transactions',
+      'apps/backend/src/crypto',
       'packages/shared/src/transactionContracts.ts',
       'packages/shared/src/transactionContracts.test.ts',
     ];

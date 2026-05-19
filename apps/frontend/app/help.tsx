@@ -1,14 +1,3 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { HelpScreen } from '@/features/auth/screens/helpScreen';
 
-const help = () => {
-  return (
-    <View>
-      <Text>help</Text>
-    </View>
-  )
-}
-
-export default help
-
-const styles = StyleSheet.create({})
+export default HelpScreen;

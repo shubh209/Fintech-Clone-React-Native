@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { ApiEnv } from '../types';
+import { ApiEnv } from '../../types';
 import { getInfo, getListings, getTickers } from './cryptoService';
 
 export const cryptoRoutes = new Hono<{ Bindings: ApiEnv }>();

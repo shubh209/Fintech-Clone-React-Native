@@ -3,10 +3,10 @@
 Cloudflare Worker API code lives here.
 
 - `src/index.ts`: Worker entrypoint
-- `src/crypto/cryptoRoutes.ts`: HTTP routes
-- `src/crypto/cryptoService.ts`: live-provider and fallback orchestration
-- `src/crypto/coinMarketCapClient.ts`: CoinMarketCap provider calls
-- `src/crypto/cloudFallbackStore.ts`: Cloudflare KV fallback reads
+- `src/domains/crypto-market/cryptoRoutes.ts`: HTTP routes
+- `src/domains/crypto-market/cryptoService.ts`: live-provider and fallback orchestration
+- `src/domains/crypto-market/coinMarketCapClient.ts`: CoinMarketCap provider calls
+- `src/domains/crypto-market/cloudFallbackStore.ts`: Cloudflare KV fallback reads
 
 Shared response contracts and validators live in `packages/shared`.
 

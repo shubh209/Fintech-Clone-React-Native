@@ -10,14 +10,14 @@
 
 ## When Working On Auth
 
-- Start with `apps/frontend/app/_layout.tsx`, `apps/frontend/app/login.tsx`, `apps/frontend/app/signup.tsx`, and `apps/frontend/app/verify/[phone].tsx`.
+- Start with `apps/frontend/src/features/auth`, then check the thin route wrappers in `apps/frontend/app`.
 - Verify Clerk environment keys before debugging UI logic.
 - Phone auth is the only implemented auth method.
 
 ## When Working On Crypto
 
 - Start with `apps/frontend/src/features/crypto-market/screens/cryptoMarketScreen.tsx` and `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx`.
-- Then inspect `apps/backend/src/crypto/cryptoRoutes.ts`, `apps/backend/src/crypto/cryptoService.ts`, and `apps/backend/src/crypto/coinMarketCapClient.ts`.
+- Then inspect `apps/backend/src/domains/crypto-market/cryptoRoutes.ts`, `apps/backend/src/domains/crypto-market/cryptoService.ts`, and `apps/backend/src/domains/crypto-market/coinMarketCapClient.ts`.
 - Check `apps/frontend/src/shared/api/cryptoValidators.ts` before changing rendered CoinMarketCap response fields.
 - Check `apps/frontend/src/shared/api/apiResult.ts` and `packages/shared/src/apiResult.ts` before changing source/freshness/fallback metadata behavior.
 - Confirm whether fetch behavior is expected to work on native, web, or both before changing transport code.

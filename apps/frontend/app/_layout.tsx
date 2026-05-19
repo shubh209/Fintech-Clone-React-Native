@@ -5,44 +5,26 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, Stack, useRouter, useSegments } from 'expo-router';
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
-import * as SecureStore from 'expo-secure-store';
+import { Link, Stack, useRouter } from 'expo-router';
+import { ClerkProvider } from '@clerk/clerk-expo';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Colors from '@/shared/theme/colors';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { clerkTokenCache } from '@/features/auth/providers/clerkTokenCache';
+import { useAuthRedirects } from '@/features/auth/routing/useAuthRedirects';
 
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
 const queryClient = new QueryClient();
 
-// Clerk token cache
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      return SecureStore.getItemAsync(key);
-    } catch {
-      return null;
-    }
-  },
-  async saveToken(key: string, value: string) {
-    try {
-      return SecureStore.setItemAsync(key, value);
-    } catch {
-      return;
-    }
-  },
-};
-
 // Required by Expo Router
 export { ErrorBoundary } from 'expo-router';
 
 function InitialLayout() {
   const router = useRouter();
-  const segments = useSegments();
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded } = useAuthRedirects();
 
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -67,29 +49,6 @@ function InitialLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
-
-  // Auth-based routing
-  useEffect(() => {
-  if (!isLoaded) return;
-
-  const segment = segments[0];
-  const isAuthRoute =
-    segment === 'login' ||
-    segment === 'signup' ||
-    segment === 'help' ||
-    segment === 'verify';
-
-  const inAuthenticatedGroup = segment === '(authenticated)';
-
-  if (!isSignedIn && inAuthenticatedGroup) {
-    router.replace('/');
-    return;
-  }
-
-  if (isSignedIn && !inAuthenticatedGroup && !isAuthRoute) {
-    router.replace('/(authenticated)/(tabs)/crypto');
-  }
-}, [isSignedIn, isLoaded, segments]);
 
   if (!fontsLoaded || !isLoaded) {
     return (
@@ -188,7 +147,7 @@ function InitialLayout() {
 
 export default function RootLayout() {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={clerkTokenCache}>
       <QueryClientProvider client={queryClient}>
         <PaperProvider>
           <GestureHandlerRootView style={{ flex: 1 }}>

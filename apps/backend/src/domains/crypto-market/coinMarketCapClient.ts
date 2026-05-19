@@ -1,4 +1,4 @@
-import { timeAsync } from '../telemetry/metrics';
+import { timeAsync } from '../../telemetry/metrics';
 
 const coinMarketCapBaseUrl = 'https://pro-api.coinmarketcap.com';
 

@@ -3,9 +3,9 @@ import {
   isCryptoListing,
   normalizeQuoteTicker,
   TickerApiPoint,
-} from '../../../../packages/shared/src';
-import { ApiEnv } from '../types';
-import { recordMetric } from '../telemetry/metrics';
+} from '../../../../../packages/shared/src';
+import { ApiEnv } from '../../types';
+import { recordMetric } from '../../telemetry/metrics';
 import { fetchCryptoInfo, fetchLatestListings, fetchLatestQuote } from './coinMarketCapClient';
 import { cryptoFallbackKeys, getCloudFallback } from './cloudFallbackStore';
 

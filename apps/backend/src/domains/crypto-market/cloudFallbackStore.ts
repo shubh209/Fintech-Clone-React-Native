@@ -1,4 +1,4 @@
-import { ApiEnv } from '../types';
+import { ApiEnv } from '../../types';
 
 export const cryptoFallbackKeys = {
   listings: 'crypto:listings',

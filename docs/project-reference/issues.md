@@ -11,7 +11,7 @@ Old fintech-clone issues around transaction dates, balance persistence, Activity
 ### Crypto list/detail data reliability
 
 - Status: Active code, stabilized
-- Current files: `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx`, `apps/frontend/app/(authenticated)/crypto/[id].tsx`, `apps/backend/src/crypto/*`, `packages/shared/src/cryptoValidators.ts`
+- Current files: `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx`, `apps/frontend/app/(authenticated)/crypto/[id].tsx`, `apps/backend/src/domains/crypto-market/*`, `packages/shared/src/cryptoValidators.ts`
 - Verification: crypto frontend wiring tests, crypto validator tests, backend listings/info/tickers tests.
 
 ### Mobile-owned crypto API handlers
@@ -50,7 +50,7 @@ Old fintech-clone issues around transaction dates, balance persistence, Activity
 
 - Severity: Low
 - Symptom: Existing fallback ticker data may not support rich historical simulations.
-- Affected files: `apps/backend/src/crypto/cloudFallbackStore.ts`, Cloudflare KV data.
+- Affected files: `apps/backend/src/domains/crypto-market/cloudFallbackStore.ts`, Cloudflare KV data.
 - Next step: Do not treat current ticker fallback as simulator historical data.
 
 ### Root product naming still says fintech clone

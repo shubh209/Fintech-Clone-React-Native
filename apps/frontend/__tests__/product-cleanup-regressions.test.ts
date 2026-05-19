@@ -5,8 +5,17 @@ const readProjectFile = (path: string) =>
   readFileSync(join(process.cwd(), path), 'utf8');
 
 describe('product cleanup regressions', () => {
+  it('keeps a public crypto simulator landing page with auth entry points', () => {
+    const source = readProjectFile('apps/frontend/src/features/auth/screens/landingScreen.tsx');
+
+    expect(source.includes('Crypto Market Simulator')).toBe(true);
+    expect(source.includes('Sign up')).toBe(true);
+    expect(source.includes('Log in')).toBe(true);
+    expect(source.includes('Ready to change the way you money?')).toBe(false);
+  });
+
   it('does not expose unimplemented login methods', () => {
-    const source = readProjectFile('apps/frontend/app/login.tsx');
+    const source = readProjectFile('apps/frontend/src/features/auth/screens/loginScreen.tsx');
 
     expect(source.includes('Continue with email')).toBe(false);
     expect(source.includes('logo-google')).toBe(false);
@@ -17,7 +26,7 @@ describe('product cleanup regressions', () => {
   });
 
   it('does not expose fake account modal rows', () => {
-    const source = readProjectFile('apps/frontend/app/(authenticated)/(modals)/account.tsx');
+    const source = readProjectFile('apps/frontend/src/features/auth/screens/accountScreen.tsx');
 
     expect(source.includes('>Account<')).toBe(false);
     expect(source.includes('>Learn<')).toBe(false);
@@ -30,5 +39,12 @@ describe('product cleanup regressions', () => {
     expect(source.includes("placeholder='Search'")).toBe(false);
     expect(source.includes('stats-chart')).toBe(false);
     expect(source.includes('name="card"')).toBe(false);
+  });
+
+  it('keeps signed-in account controls reachable from the crypto header', () => {
+    const source = readProjectFile('apps/frontend/src/shared/ui/customHeader.tsx');
+
+    expect(source.includes('/(authenticated)/(modals)/account')).toBe(true);
+    expect(source.includes('Open account settings')).toBe(true);
   });
 });
