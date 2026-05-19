@@ -13,19 +13,19 @@ describe('metrics', () => {
 
   it('records structured metric events', () => {
     recordMetric({
-      name: 'home.transaction.add',
+      name: 'crypto.simulation.create',
       durationMs: 12,
       status: 'success',
-      metadata: { amountDirection: 'positive' },
+      metadata: { asset: 'BTC' },
     });
 
     expect(getMetricsSnapshot()).toEqual([
       {
-        name: 'home.transaction.add',
+        name: 'crypto.simulation.create',
         durationMs: 12,
         status: 'success',
         timestamp: expect.any(Number),
-        metadata: { amountDirection: 'positive' },
+        metadata: { asset: 'BTC' },
       },
     ]);
   });
@@ -56,9 +56,9 @@ describe('metrics', () => {
   });
 
   it('records sync operation latency', () => {
-    const value = timeSync('home.transaction.add', () => 42);
+    const value = timeSync('crypto.simulation.create', () => 42);
 
     expect(value).toBe(42);
-    expect(getMetricsSnapshot()[0].name).toBe('home.transaction.add');
+    expect(getMetricsSnapshot()[0].name).toBe('crypto.simulation.create');
   });
 });

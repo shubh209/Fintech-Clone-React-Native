@@ -14,14 +14,14 @@ If the crypto detail screen reports a hook-order error:
 
 1. Check `apps/frontend/app/(authenticated)/crypto/[id].tsx`.
 2. Hooks such as `useAnimatedProps()` must stay above loading/error early returns.
-3. Run `npx jest --runTestsByPath apps/frontend/__tests__/crypto-detail-hooks.test.ts --runInBand --watchman=false`.
+3. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/__tests__/crypto-detail-hooks.test.ts --runInBand --watchman=false`.
 
 If the crypto chart renders oddly:
 
 1. Check `apps/frontend/utils/tickers.ts`.
 2. API ticker timestamps should be normalized to numbers before reaching `CartesianChart`.
 3. Live ticker quote responses may contain only one point; the detail screen should show the live quote panel instead of forcing a line chart when there is not enough history.
-4. Run `npx jest --runTestsByPath apps/frontend/utils/tickers.test.ts --runInBand --watchman=false`.
+4. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/utils/tickers.test.ts --runInBand --watchman=false`.
 
 ## Metrics
 
@@ -39,43 +39,6 @@ If an API latency number looks high:
 3. If only the client fetch is high, inspect app/runtime routing overhead.
 4. If fallback events appear often, inspect API keys, upstream status codes, and network reliability.
 
-If transaction sync metrics are missing:
-
-1. Check `apps/frontend/utils/transactionRepository.ts`.
-2. Cloud load should emit `transactions.client.load`.
-3. Cloud save should emit `transactions.client.save`.
-4. Cache fallback should emit `transactions.client.fallback`.
-5. Run `npx jest --runTestsByPath apps/frontend/utils/transactionRepository.test.ts --runInBand --watchman=false`.
-
-## Transaction Cloud Sync
-
-If Home or Activity does not hydrate transactions from the cloud:
-
-1. Confirm `EXPO_PUBLIC_API_BASE_URL` points at `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
-2. Confirm the user is signed in through Clerk so `apps/frontend/app/_layout.tsx` can provide a bearer token.
-3. Check Worker vars `CLERK_JWT_ISSUER` and `CLERK_JWKS_URL` in `apps/backend/wrangler.jsonc`.
-4. Confirm `TRANSACTIONS` uses production KV namespace `5a601879101e4182833601d8f41a3f4f`.
-5. Watch Metro/native logs for `transactions.client.load`, `transactions.client.save`, and `transactions.client.fallback`.
-6. Live shell smoke can verify unauthenticated rejection with `curl -i https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/transactions`, but signed-in hydration requires an Expo app session.
-
-## Zustand Plus MMKV Persistence
-
-If persisted transactions behave strangely:
-
-1. Inspect `apps/frontend/Store/balance/balanceStore.ts` and `apps/frontend/Store/storage/mmkv-storage.ts`.
-2. Check `apps/frontend/Store/balance/transactionUtils.ts` for date normalization, display formatting, and newest-first sorting.
-3. Persisted transaction dates should be ISO strings, not `Date` objects.
-4. The MMKV adapter should return raw strings because Zustand's `createJSONStorage()` owns JSON parsing and stringifying.
-5. Legacy double-encoded persisted strings are unwrapped by `apps/frontend/Store/storage/mmkv-storage.ts`.
-
-If the red screen says `Failed to create a new MMKV instance`:
-
-1. This usually means React Native is running in a remote debugger or another environment where MMKV cannot access on-device JSI.
-2. `apps/frontend/Store/storage/mmkv-storage.ts` now falls back to in-memory storage when MMKV creation fails, so Home actions such as `Add Money` should not crash.
-3. `apps/frontend/context/userInactivityStorage.ts` applies the same fallback for inactivity lock timing.
-4. In-memory fallback data is temporary and only lasts for the current JS runtime session.
-5. For true persisted behavior, test on-device or with an on-device debugger rather than a remote Chrome debugger.
-
 ## Clerk Auth
 
 If auth breaks:
@@ -88,60 +51,36 @@ If auth breaks:
 
 If a screen appears missing:
 
-- Confirm whether it is one of the placeholder tabs before treating it as a regression.
-- Check whether the route exists but has only presentation scaffolding.
-- Transfer was intentionally replaced by Activity.
-- Invest and Lifestyle were intentionally removed instead of kept as placeholder tabs.
-- The current primary tabs are Home, Activity, and Crypto.
-
-If Activity filters look wrong:
-
-1. Check `apps/frontend/Store/balance/transactionUtils.ts`.
-2. Confirm legacy transactions were migrated through balance store version `1`.
-3. Run `npx jest --runTestsByPath apps/frontend/Store/balance/transactionUtils.test.ts apps/frontend/__tests__/activity-tab-wiring.test.ts --runInBand --watchman=false`.
+- Confirm whether it was intentionally removed during the crypto simulator cleanup.
+- Current signed-in tab shell only registers `crypto`.
+- Removed routes include Home, Activity, lock/passcode, transaction store screens, widgets, and fake banking actions.
 
 ## Verification Commands
 
-Run these after changing storage, cloud crypto API routes, or formatting helpers:
+Run these after changing crypto API routes, crypto screens, auth routing, or formatting helpers:
 
 ```bash
-npx jest --runInBand --watchman=false
-npx tsc --noEmit
+./node_modules/.bin/jest --runInBand --watchman=false
+./node_modules/.bin/tsc --noEmit
 node -e "JSON.parse(require('fs').readFileSync('app.json','utf8')); console.log('app.json valid')"
-```
-
-For MMKV fallback-specific checks:
-
-```bash
-npx jest --runTestsByPath apps/frontend/Store/storage/mmkv-storage.test.ts apps/frontend/context/userInactivityStorage.test.ts --runInBand --watchman=false
-```
-
-For metrics-specific changes:
-
-```bash
-npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/frontend/utils/transactionRepository.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
 ```
 
 For API trust and validator changes:
 
 ```bash
-npx jest --runTestsByPath apps/frontend/utils/apiResult.test.ts apps/frontend/utils/cryptoValidators.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts apps/frontend/__tests__/crypto-list-api-wiring.test.ts apps/frontend/__tests__/crypto-detail-api-wiring.test.ts --runInBand --watchman=false
+./node_modules/.bin/jest --runTestsByPath apps/frontend/utils/apiResult.test.ts apps/frontend/utils/cryptoValidators.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts apps/frontend/__tests__/crypto-list-api-wiring.test.ts apps/frontend/__tests__/crypto-detail-api-wiring.test.ts --runInBand --watchman=false
 ```
 
-Watchman can fail under local sandbox permissions, so prefer `--watchman=false` for Jest in this workspace.
+Use direct local binaries because the repo path contains `Web:Apps`, and `:` can break npm/npx PATH resolution.
 
 ## Manual Test Steps
 
 1. Start the app with `npm start`.
 2. Sign in or use the existing authenticated flow.
-3. On Home, tap `Add Money` several times.
-4. Restart or reload the app and confirm transactions still render without date errors.
-5. Confirm the newest transactions appear first.
-6. Open the Crypto tab and confirm prices show EUR formatting such as `€93,478.44`.
-7. Run with `EXPO_PUBLIC_API_BASE_URL` pointed at the Worker and confirm crypto listings render.
-8. Run the Worker without `CRYPTO_API_KEY` and confirm crypto listings render from `CRYPTO_FALLBACKS` KV data.
-9. Run the Worker with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
-10. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
-11. Watch logs for `[metric]` entries while using Home, Crypto, auth, and lock flows.
-12. Sign in, open Home, and confirm the transaction sync pill moves to `Cloud synced`.
-13. Toggle network failure or point the API base URL at an unavailable host and confirm Home/Activity can show `Offline cache`.
+3. Confirm signed-in users land on the Crypto tab.
+4. Open the Crypto tab and confirm prices show EUR formatting such as `€93,478.44`.
+5. Run with `EXPO_PUBLIC_API_BASE_URL` pointed at the Worker and confirm crypto listings render.
+6. Run the Worker without `CRYPTO_API_KEY` and confirm crypto listings render from `CRYPTO_FALLBACKS` KV data.
+7. Run the Worker with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
+8. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
+9. Watch logs for `[metric]` entries while using Crypto and auth flows.

@@ -8,8 +8,6 @@ The current sink is intentionally simple:
 - metric events are logged to the dev console outside Jest
 - no external analytics provider is required yet
 
-This creates a stable pattern now and keeps a clean replacement point for a production analytics backend later.
-
 ## Event Shape
 
 Each event has:
@@ -24,32 +22,17 @@ Each event has:
 
 - `recordMetric(event)`: use for immediate events, counters, or state transitions.
 - `timeSync(name, fn, metadata)`: use for synchronous app work.
-- `timeAsync(name, fn, metadata)`: use for API calls, auth flows, biometric unlock, and other async work.
+- `timeAsync(name, fn, metadata)`: use for API calls, auth flows, and other async work.
 - `getMetricsSnapshot()`: inspect buffered metrics in tests or debugging.
 - `clearMetrics()`: reset the local buffer.
 
 ## Current Event Catalog
 
-### Home
+### Future Simulator
 
-- `home.transaction.add`
-  - Triggered when a transaction is added to the Zustand balance store.
-  - Metadata: `amountDirection`.
-
-### Transactions
-
-- `transactions.client.load`
-  - Measures transaction snapshot load latency from the cloud API.
-  - Metadata: `source`.
-- `transactions.client.save`
-  - Measures transaction snapshot save latency to the cloud API.
-  - Metadata: `source`, `transactionCount`.
-- `transactions.client.fallback`
-  - Records local cache fallback use after transaction load/save cloud failure.
-  - Metadata: `operation`, `source`, optional `transactionCount`.
-- Transaction sync state visibility is also measured through tests until a production analytics sink is added.
-  - `apps/frontend/Store/balance/balanceSyncStatus.test.ts` covers 5 visible states.
-  - `apps/backend/__tests__/api/transactions-api.test.ts` covers 3 auth paths: valid bearer accepted, missing bearer rejected, legacy client user header rejected.
+- `crypto.simulation.create`
+  - Reserved for future simulator creation work.
+  - Metadata should include selected asset and simulation inputs once implemented.
 
 ### Crypto Client Fetches
 
@@ -88,16 +71,6 @@ Each event has:
 - `auth.sign_up.phone.verify`
   - Measures sign-up phone code verification.
 
-### Security
-
-- `security.passcode_unlock`
-  - Records passcode unlock success or failure.
-- `security.biometric_unlock`
-  - Measures biometric authentication latency.
-- `security.inactivity_lock.triggered`
-  - Records when the inactivity lock is triggered.
-  - Metadata: `elapsedMs`.
-
 ## How To Use Metrics While Developing
 
 1. Run the app with `npm start`.
@@ -109,7 +82,7 @@ Each event has:
 ## Testing Commands
 
 ```bash
-npx jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/frontend/utils/transactionRepository.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
-npx jest --runInBand --watchman=false
-npx tsc --noEmit
+./node_modules/.bin/jest --runTestsByPath apps/frontend/utils/metrics.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts --runInBand --watchman=false
+./node_modules/.bin/jest --runInBand --watchman=false
+./node_modules/.bin/tsc --noEmit
 ```

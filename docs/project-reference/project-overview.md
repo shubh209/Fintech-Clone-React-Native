@@ -2,48 +2,38 @@
 
 ## Summary
 
-`Fintech-Clone-React-Native` is an Expo Router React Native app that imitates a consumer fintech experience with phone-based auth, a home dashboard, transaction state, and crypto market screens.
+`Fintech-Clone-React-Native` is being pivoted into a crypto market simulator.
 
-The product direction is reliability-first: fewer credible finance workflows, explicit data freshness and fallback states, strong persistence behavior, and responsible AI guidance only after the core is trustworthy.
+The old fintech-clone surfaces were removed so the codebase can stay minimal while the new product direction is designed. The current app keeps auth, crypto market browsing, crypto detail data, the Cloudflare crypto API, shared crypto validators, and local metrics.
 
 ## Current Feature State
 
 - Public auth routes exist for signup, login, help, and phone verification.
-- Authenticated tabs exist for home, activity, and crypto.
-- Home, activity, and crypto have meaningful implementations.
-- Invest and lifestyle were removed from the primary navigation rather than preserved as placeholders.
+- The signed-in app currently has one primary tab: Crypto.
+- Crypto list and detail screens fetch market data through the Cloudflare Worker.
+- Home, Activity, fake money actions, transaction persistence, lock/passcode, widgets, and transaction backend routes were removed during the crypto simulator pivot cleanup.
 
 ## Repository Layout
 
-- `apps/frontend` contains the Expo Router app, React Native UI, Zustand/MMKV state, assets, and frontend tests.
-- `apps/backend` contains the Cloudflare Worker API for crypto and transaction snapshots.
-- `packages/shared` contains shared API metadata helpers plus crypto and transaction runtime validators.
+- `apps/frontend` contains the Expo Router app, React Native UI, assets, crypto screens, and frontend tests.
+- `apps/backend` contains the Cloudflare Worker API for crypto data.
+- `packages/shared` contains shared API metadata helpers plus crypto runtime validators.
 
 ## Key Libraries
 
 - `expo` and `expo-router`
 - `@clerk/clerk-expo`
-- `zustand`
-- `react-native-mmkv`
 - `@tanstack/react-query`
 - `victory-native`
+- `@shopify/react-native-skia`
 
 ## Important Constraints
 
-- `docs/product-strategy/reliable-finance-app-roadmap.md` is the guiding roadmap.
-- `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` is the current implementation plan for reliability scaffolding.
-- `docs/architecture/decisions/` records product and data-trust architecture decisions.
+- The next product direction is crypto simulation: historical buy date, historical price, quantity/value today, and later purchasing-power comparisons.
 - Crypto data is served by the Cloudflare Worker in `apps/backend`; mobile screens call `EXPO_PUBLIC_API_BASE_URL`.
 - The deployed crypto Worker is `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
 - `CRYPTO_FALLBACKS` KV is configured for production and preview fallback data.
 - Listings and info endpoints use live CoinMarketCap data when the Worker has `CRYPTO_API_KEY` configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
 - Detail ticker quotes use live selected-asset CoinMarketCap latest quote data when configured and fall back to `CRYPTO_FALLBACKS` KV data otherwise.
-- Crypto API responses are validated before live data is rendered; malformed live responses fall back to local data.
-- Home and Activity transaction snapshots hydrate from the Worker `/api/transactions` route when signed in, using Clerk bearer tokens for backend ownership and MMKV as a local cache/fallback.
-- Home and Activity expose transaction sync/fallback state so users can tell whether they are seeing cloud-synced or cached data.
-- Transaction cloud load/save/fallback paths emit local metrics through `apps/frontend/utils/metrics.ts`.
-- `TRANSACTIONS` uses dedicated Cloudflare KV namespaces instead of sharing the crypto fallback namespace.
-- Transaction persistence stores date values as ISO strings and formats them at render time.
-- Transaction categories are inferred and legacy persisted transactions are backfilled during store migration.
-- Activity category labels can be corrected with custom names that are normalized and stored on the transaction.
-- The root README now explains reliability guarantees, known limits, and project references.
+- Crypto API responses are validated before live data is rendered; malformed live responses fall back to KV data.
+- The repo intentionally no longer contains transaction snapshot storage, balance state, Activity ledger UI, or transaction Worker routes.

@@ -1,64 +1,48 @@
 # Fintech Clone React Native
 
-An Expo Router finance app focused on reliability over feature count.
+Expo Router app pivoting into a crypto market simulator.
 
-The goal is to show production-minded engineering in a consumer finance context: correct persisted state, explicit API failure handling, visible data freshness, privacy-aware product thinking, and tests around high-risk behavior.
+The current repo is intentionally minimal: auth, crypto market data, crypto detail screens, Cloudflare Worker crypto APIs, shared crypto validators, and tests. Old fintech-clone features such as Home balance, Activity ledger, fake money actions, transaction sync, lock/passcode, and static widgets were removed to keep the codebase easy to manipulate before the simulator is built.
 
 ## Product Direction
 
-This project is being reshaped from a broad fintech clone into a small, credible financial command center.
+The next product goal is a crypto time-machine simulator:
 
-Primary goals:
-
-- reliable account and transaction state
-- live market data with source, freshness, fallback, and retry states
-- useful spending and goal workflows before adding more tabs
-- responsible AI guidance later, with visible inputs and privacy controls
-- documentation that explains what is real, mocked, reliable, and still risky
-
-Read [the product roadmap](docs/product-strategy/reliable-finance-app-roadmap.md) before planning new product work.
+- choose a crypto asset
+- choose a historical buy date
+- enter an investment amount or quantity
+- compare historical value against current value
+- later show purchasing-power comparisons for assets by region
 
 ## Current Feature State
 
 - Auth routes exist for signup, login, help, and phone verification through Clerk.
-- Primary signed-in tabs are Home, Activity, and Crypto.
-- Home tracks balance and transactions through the Cloudflare Worker, with Zustand plus MMKV as the local cache/fallback.
-- Activity provides searchable/filterable transaction history, editable category labels including custom names, and monthly totals.
-- Activity uses the same cloud-backed transaction snapshot as Home.
+- The only current signed-in tab is Crypto.
 - Crypto calls the Cloudflare Worker backend configured through `EXPO_PUBLIC_API_BASE_URL`.
+- Crypto list/detail screens show market data, data source/freshness copy, retry states, and chart/detail views.
 
 ## Monorepo Layout
 
-- `apps/frontend`: Expo Router mobile app, frontend state, UI, assets, and frontend tests.
+- `apps/frontend`: Expo Router mobile app, React Native UI, assets, crypto screens, and frontend tests.
 - `apps/backend`: Cloudflare Worker API for crypto data.
-- `packages/shared`: shared response contracts and runtime validators used across app boundaries.
+- `packages/shared`: shared crypto response contracts and runtime validators.
 - `docs`: project references, architecture decisions, product strategy, and implementation plans.
 
-## Reliability Guarantees
+## Current Guarantees
 
-- Persisted transaction dates are normalized to ISO strings.
-- Persisted transaction categories are inferred and legacy transactions are backfilled during store migration.
-- Home and Activity hydrate transaction snapshots from `/api/transactions` after Clerk sign-in.
-- Transaction mutations update the UI optimistically, then sync the normalized snapshot to the Worker.
-- Transaction API requests now send Clerk bearer tokens, and the Worker derives the transaction owner from the verified JWT `sub`.
-- Home and Activity expose the transaction sync state: awaiting sync, syncing, cloud synced, offline cache, or sync issue.
-- Transaction cloud load/save/fallback paths emit local metric events so sync latency and cache recovery can be compared over time.
-- Transaction sorting uses copies and does not mutate store arrays during render.
-- MMKV storage falls back to memory when native JSI storage is unavailable and remains the transaction cache/fallback.
 - Crypto list and detail screens use EUR formatting for EUR quote data.
 - Crypto API routes prefer live CoinMarketCap data when the Worker has `CRYPTO_API_KEY`, then fall back to Cloudflare KV data.
 - Crypto API routes validate provider payloads before rendering or falling back.
 - API-backed crypto screens expose source, freshness, loading, retry, and error states.
-- High-risk storage and crypto behavior has Jest coverage.
+- The codebase no longer contains transaction snapshot storage, balance state, fake exchange/money actions, or passcode lock behavior.
 
 ## Known Limits
 
+- Historical crypto simulation is not implemented yet.
 - The app is not connected to real bank accounts.
-- Money movement is simulated and must not be presented as real transfer behavior.
-- Crypto fallback ticker history is BTC-specific when live quote data is unavailable.
-- Signed-in transaction hydration should still be manually smoke-tested in the Expo app after auth-sensitive Worker changes because shell smoke tests cannot mint a real Clerk mobile session token.
+- No real trading, transfer, or exchange behavior exists.
+- Crypto fallback ticker history is limited when live quote data is unavailable.
 - Native builds require `EXPO_PUBLIC_API_BASE_URL` to point at the deployed Worker.
-- AI guidance is planned as educational assistance only, not investment, legal, or tax advice.
 
 ## Cloud Backend
 
@@ -74,25 +58,11 @@ Local development should set:
 EXPO_PUBLIC_API_BASE_URL=https://fintech-reliability-api.shubhkapadia2031.workers.dev
 ```
 
-Worker transaction auth uses these configured public Clerk values:
+Configured bindings:
 
 ```text
-CLERK_JWT_ISSUER=https://close-sheepdog-18.clerk.accounts.dev
-CLERK_JWKS_URL=https://close-sheepdog-18.clerk.accounts.dev/.well-known/jwks.json
-```
-
-Transaction KV namespaces:
-
-```text
-TRANSACTIONS production: 5a601879101e4182833601d8f41a3f4f
-TRANSACTIONS preview: fd639ee79a424fa695612c630b55c2f1
-```
-
-Worker transaction auth uses these configured public Clerk values:
-
-```text
-CLERK_JWT_ISSUER=https://close-sheepdog-18.clerk.accounts.dev
-CLERK_JWKS_URL=https://close-sheepdog-18.clerk.accounts.dev/.well-known/jwks.json
+CRYPTO_FALLBACKS production: 63a5d0553e734abebbfa23745ceac413
+CRYPTO_FALLBACKS preview: 1f22e8b24b014c4dacb027bfba0373b2
 ```
 
 Worker commands:
@@ -108,9 +78,8 @@ npx wrangler deploy --config apps/backend/wrangler.jsonc
 - Expo Router
 - React Native
 - Clerk
-- Zustand
-- React Native MMKV
 - React Query
+- Cloudflare Worker/KV
 - CoinMarketCap API
 - Jest and TypeScript
 
@@ -137,15 +106,15 @@ npm run backend:dev
 Run verification:
 
 ```bash
-npx jest --runInBand --watchman=false
-npx tsc --noEmit
+./node_modules/.bin/jest --runInBand --watchman=false
+./node_modules/.bin/tsc --noEmit
 ```
 
-Watchman can fail under local sandbox permissions, so this repo prefers `--watchman=false` for Jest.
+The repo path contains `Web:Apps`, and `:` can break npm/npx PATH resolution. Prefer direct local binaries for verification.
 
 ## Project References
 
 - Durable project context: [docs/project-reference/README.md](docs/project-reference/README.md)
-- Product roadmap: [docs/product-strategy/reliable-finance-app-roadmap.md](docs/product-strategy/reliable-finance-app-roadmap.md)
-- Current reliability plan: [docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md](docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md)
+- Current cleanup spec: [docs/superpowers/specs/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md](docs/superpowers/specs/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md)
+- Current cleanup plan: [docs/superpowers/plans/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md](docs/superpowers/plans/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md)
 - Architecture decisions: [docs/architecture/decisions](docs/architecture/decisions)

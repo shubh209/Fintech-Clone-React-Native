@@ -11,12 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Colors from '../constants/Colors';
-import { UserInactivityProvider } from '../context/UserInactivity';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { useBalanceStore } from '../Store/balance/balanceStore';
-import {
-  setTransactionAuthTokenProvider,
-} from '../utils/transactionApiClient';
 
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
@@ -47,7 +42,7 @@ export { ErrorBoundary } from 'expo-router';
 function InitialLayout() {
   const router = useRouter();
   const segments = useSegments();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -92,24 +87,9 @@ function InitialLayout() {
   }
 
   if (isSignedIn && !inAuthenticatedGroup && !isAuthRoute) {
-    router.replace('/(authenticated)/(tabs)/home');
+    router.replace('/(authenticated)/(tabs)/crypto');
   }
 }, [isSignedIn, isLoaded, segments]);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    setTransactionAuthTokenProvider(async () => {
-      if (!isSignedIn) return null;
-
-      return getToken();
-    });
-
-    if (isSignedIn) {
-      useBalanceStore.getState().hydrateTransactions();
-    }
-  }, [getToken, isLoaded, isSignedIn]);
-
 
   if (!fontsLoaded || !isLoaded) {
     return (
@@ -190,11 +170,6 @@ function InitialLayout() {
       />
 
       <Stack.Screen
-        name="(authenticated)/(modals)/lock"
-        options={{ headerShown: false, animation: 'none' }}
-      />
-
-      <Stack.Screen
         name="(authenticated)/(modals)/account"
         options={{
           presentation: 'transparentModal',
@@ -216,12 +191,10 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
         <PaperProvider>
-          <UserInactivityProvider>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <StatusBar style="light" />
-              <InitialLayout />
-            </GestureHandlerRootView>
-          </UserInactivityProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <StatusBar style="light" />
+            <InitialLayout />
+          </GestureHandlerRootView>
         </PaperProvider>
       </QueryClientProvider>
     </ClerkProvider>

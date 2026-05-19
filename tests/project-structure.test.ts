@@ -6,7 +6,6 @@ describe('project structure', () => {
     const expectedDirectories = [
       'apps/frontend/app',
       'apps/frontend/Components',
-      'apps/frontend/Store',
       'apps/frontend/utils',
       'apps/backend/src',
       'packages/shared/src',
@@ -34,5 +33,23 @@ describe('project structure', () => {
   it('removes generated desktop metadata from tracked source folders', () => {
     expect(existsSync(join(process.cwd(), '.DS_Store'))).toBe(false);
     expect(existsSync(join(process.cwd(), 'apps/frontend/assets/.DS_Store'))).toBe(false);
+  });
+
+  it('removes old fintech transaction surfaces for crypto simulator pivot', () => {
+    const removedPaths = [
+      'apps/frontend/app/(authenticated)/(tabs)/home.tsx',
+      'apps/frontend/app/(authenticated)/(tabs)/activity.tsx',
+      'apps/frontend/app/(authenticated)/(modals)/lock.tsx',
+      'apps/frontend/Store/balance',
+      'apps/frontend/utils/transactionApiClient.ts',
+      'apps/frontend/utils/transactionRepository.ts',
+      'apps/backend/src/transactions',
+      'packages/shared/src/transactionContracts.ts',
+      'packages/shared/src/transactionContracts.test.ts',
+    ];
+
+    removedPaths.forEach((removedPath) => {
+      expect(existsSync(join(process.cwd(), removedPath))).toBe(false);
+    });
   });
 });

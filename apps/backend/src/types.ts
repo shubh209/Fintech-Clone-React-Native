@@ -9,5 +9,4 @@ export interface ApiEnv {
   CLERK_JWT_ISSUER?: string;
   CRYPTO_API_KEY?: string;
   CRYPTO_FALLBACKS?: JsonStore;
-  TRANSACTIONS?: JsonStore;
 }

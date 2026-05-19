@@ -1,158 +1,60 @@
 # Issues Ledger
 
-## Resolved In High-Confidence Stabilization Pass
+## Current State
 
-### 1. Persisted transaction dates can rehydrate as strings
+The repo has been reset to a minimal crypto simulator foundation.
 
-- Status: Fixed
-- Severity: High
-- Fix: `apps/frontend/Store/balance/balanceStore.ts` now normalizes incoming transaction dates to ISO strings through `apps/frontend/Store/balance/transactionUtils.ts`.
-- Verification: `apps/frontend/Store/balance/transactionUtils.test.ts` covers date normalization and display formatting.
+Old fintech-clone issues around transaction dates, balance persistence, Activity filtering, transaction cloud sync, MMKV transaction cache, lock/passcode behavior, and placeholder Home actions are no longer active because the related code was removed.
 
-### 2. Transactions are mutated during render
+## Resolved Or Removed
 
-- Status: Fixed
-- Severity: Medium
-- Fix: `apps/frontend/app/(authenticated)/(tabs)/home.tsx` renders `getTransactionsNewestFirst(transactions)`, which returns a sorted copy.
-- Verification: `apps/frontend/Store/balance/transactionUtils.test.ts` verifies the original array is not mutated.
+### Crypto list/detail data reliability
 
-### 3. Crypto screens show EUR prices with dollar labels
+- Status: Active code, stabilized
+- Current files: `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx`, `apps/frontend/app/(authenticated)/crypto/[id].tsx`, `apps/backend/src/crypto/*`, `packages/shared/src/cryptoValidators.ts`
+- Verification: crypto frontend wiring tests, crypto validator tests, backend listings/info/tickers tests.
 
-- Status: Fixed for the crypto list
-- Severity: Low
-- Fix: `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` now formats `quote.EUR.price` with `formatEuroPrice()`.
-- Verification: `apps/frontend/utils/currency.test.ts` covers EUR formatting.
+### Mobile-owned crypto API handlers
 
-### 4. Listings/info API routes ignored live success responses
+- Status: Removed
+- Current behavior: Mobile crypto screens call the Cloudflare Worker through `EXPO_PUBLIC_API_BASE_URL`.
+- Verification: `apps/frontend/__tests__/cloud-backend-wiring.test.ts`.
 
-- Status: Fixed for listings and info
-- Severity: Medium
-- Fix: Cloud crypto services now return live CoinMarketCap data when Worker `CRYPTO_API_KEY` is configured and the upstream response succeeds. They fall back to `CRYPTO_FALLBACKS` KV data when no key is present or the request fails.
-- Affected files: `apps/backend/src/crypto/cryptoService.ts`, `apps/backend/src/crypto/coinMarketCapClient.ts`
-- Verification: `apps/backend/__tests__/api/listings-api.test.ts` and `apps/backend/__tests__/api/info-api.test.ts`.
+### Placeholder fintech actions
 
-### 5. Custom Zustand MMKV storage duplicated JSON responsibilities
+- Status: Removed
+- Removed surfaces: random Add Money, destructive Exchange, More menu, static widgets, fake login providers, fake account rows, Home tab, Activity tab, lock/passcode modal.
+- Verification: `apps/frontend/__tests__/product-cleanup-regressions.test.ts` and `tests/project-structure.test.ts`.
 
-- Status: Fixed
-- Severity: Medium
-- Fix: `apps/frontend/Store/storage/mmkv-storage.ts` now stores and returns raw strings, leaving JSON serialization to Zustand's `createJSONStorage()`.
-- Migration note: The adapter also unwraps legacy double-encoded persisted strings created by the old adapter.
-- Debugger fallback: If MMKV cannot create a native JSI instance, the adapter falls back to in-memory storage instead of crashing.
-- Verification: `apps/frontend/Store/storage/mmkv-storage.test.ts`.
+### Transaction snapshot backend
 
-### 6. Inactivity lock MMKV storage could crash in remote debugger environments
-
-- Status: Fixed
-- Severity: Medium
-- Fix: `apps/frontend/context/UserInactivity.tsx` now uses `apps/frontend/context/userInactivityStorage.ts`, which falls back to in-memory storage if MMKV cannot be created.
-- Verification: `apps/frontend/context/userInactivityStorage.test.ts`.
-
-### 7. Crypto detail screen rendered more hooks after loading completed
-
-- Status: Fixed
-- Severity: High
-- Symptom: React reported `Rendered more hooks than during the previous render` on `apps/frontend/app/(authenticated)/crypto/[id].tsx`.
-- Cause: `useAnimatedProps()` hooks were declared after loading/error early returns, so they were skipped on the first render and added after data loaded.
-- Fix: Animated hooks now run before any conditional return.
-- Verification: `apps/frontend/__tests__/crypto-detail-hooks.test.ts`.
-
-### 8. Crypto chart received unnormalized ticker timestamps
-
-- Status: Fixed
-- Severity: Medium
-- Symptom: Ticker API data contains timestamp strings, while the chart screen treated timestamps as numbers.
-- Fix: `apps/frontend/utils/tickers.ts` normalizes API ticker points to `{ timestamp: number, price: number }` before chart rendering.
-- Verification: `apps/frontend/utils/tickers.test.ts`.
-
-### 9. Crypto detail tickers waited on an unreliable CoinPaprika historical request
-
-- Status: Fixed
-- Severity: Medium
-- Symptom: `/api/tickers` could spend hundreds of milliseconds waiting on CoinPaprika and then fall back to local data anyway.
-- Fix: The cloud service reads `CRYPTO_FALLBACKS` KV immediately when no live API key is configured.
-- Verification: `apps/backend/__tests__/api/tickers-api.test.ts`.
-
-### 10. Crypto detail prices were BTC-specific/static
-
-- Status: Fixed
-- Severity: Medium
-- Symptom: The old mobile-owned ticker API returned BTC fallback data regardless of the selected crypto asset, so detail prices could be stale or wrong for non-BTC assets.
-- Fix: `/api/tickers?id=<coinMarketCapId>` now uses CoinMarketCap `quotes/latest` from the Worker when `CRYPTO_API_KEY` is configured, returns the selected asset's latest EUR quote, and falls back to cloud KV data only when live data is unavailable.
-- Verification: `apps/backend/__tests__/api/tickers-api.test.ts`, `apps/frontend/__tests__/crypto-detail-api-wiring.test.ts`, and `apps/frontend/utils/tickers.test.ts`.
-
-### 11. `app.json` contained a sample Expo Router `origin` value
-
-- Status: Fixed
-- Severity: High
-- Fix: Removed the `https://evanbacon.dev/` sample origin from `app.json`.
-- Remaining note: A real production native API origin still needs to be chosen before shipping API routes to production native builds.
-
-### 12. Live crypto provider payloads were trusted without runtime validation
-
-- Status: Fixed
-- Severity: Medium
-- Symptom: Listings, info, and ticker routes could return malformed live provider payloads directly to screens.
-- Fix: `packages/shared/src/cryptoValidators.ts` now validates the rendered CoinMarketCap fields and cloud API routes fall back to KV data when live payloads are malformed.
-- Verification: `apps/frontend/utils/cryptoValidators.test.ts`, `apps/backend/__tests__/api/listings-api.test.ts`, `apps/backend/__tests__/api/info-api.test.ts`, and `apps/backend/__tests__/api/tickers-api.test.ts`.
-
-### 13. Transfer tab was a placeholder instead of a reliable finance workflow
-
-- Status: Fixed
-- Severity: Low
-- Symptom: The transfer tab was a minimal placeholder and did not provide a reliable, testable user workflow.
-- Fix: Replaced it with `apps/frontend/app/(authenticated)/(tabs)/activity.tsx`, which provides searchable/filterable transaction history, category labels, monthly income/spending/net totals, and a tested tab route.
-- Verification: `apps/frontend/__tests__/activity-tab-wiring.test.ts` and `apps/frontend/Store/balance/transactionUtils.test.ts`.
-
-### 14. Legacy persisted transactions lacked category metadata
-
-- Status: Fixed
-- Severity: Medium
-- Symptom: Older persisted transactions only had `id`, `amount`, `title`, and `date`, so category-based Activity filters could render undefined categories.
-- Fix: `apps/frontend/Store/balance/transactionUtils.ts` infers categories and `apps/frontend/Store/balance/balanceStore.ts` migrates persisted balance state to version `1`.
-- Verification: `apps/frontend/Store/balance/transactionUtils.test.ts`.
-
-### 15. Several tabs were placeholders
-
-- Status: Fixed
-- Severity: Low
-- Symptom: Invest and lifestyle screens are minimal placeholder views.
-- Fix: Removed `apps/frontend/app/(authenticated)/(tabs)/invest.tsx`, `apps/frontend/app/(authenticated)/(tabs)/lifestyle.tsx`, and their tab registrations from `apps/frontend/app/(authenticated)/(tabs)/_layout.tsx`.
-- Verification: `apps/frontend/__tests__/activity-tab-wiring.test.ts`.
+- Status: Removed for pivot
+- Removed files: `apps/backend/src/transactions`, `apps/frontend/utils/transactionRepository.ts`, `apps/frontend/utils/transactionApiClient.ts`, `packages/shared/src/transactionContracts.ts`.
+- Reason: transaction ledger behavior does not belong in the minimal crypto simulator foundation.
 
 ## Remaining Issues Or Risk Areas
 
-### 16. Relative `/api/...` fetches may need production origin planning
+### Historical crypto data source not chosen
 
-- Status: Fixed for crypto
 - Severity: High
-- Symptom: Native screens called `fetch('/api/...')` for crypto data.
-- Fix: Crypto screens now build cloud URLs with `apps/frontend/utils/cryptoApiClient.ts` and `EXPO_PUBLIC_API_BASE_URL`.
-- Verification: `apps/frontend/__tests__/cloud-backend-wiring.test.ts`, `apps/frontend/__tests__/crypto-list-api-wiring.test.ts`, and `apps/frontend/__tests__/crypto-detail-api-wiring.test.ts`.
+- Symptom: The simulator idea needs reliable historical crypto prices by asset/date.
+- Next step: Choose provider strategy, likely CoinGecko or paid CoinMarketCap depending historical coverage/cost.
 
-### 17. Historical fallback ticker data is BTC-specific
+### Simulator data model not implemented
+
+- Severity: High
+- Symptom: No saved simulations, historical purchase records, or simulated net worth exist yet.
+- Next step: design the first simulator flow before adding storage.
+
+### Historical fallback ticker data is limited
 
 - Severity: Low
-- Symptom: When CoinMarketCap quote requests are unavailable, the ticker fallback can still be BTC-specific if `CRYPTO_FALLBACKS` KV is seeded with BTC-only history.
+- Symptom: Existing fallback ticker data may not support rich historical simulations.
 - Affected files: `apps/backend/src/crypto/cloudFallbackStore.ts`, Cloudflare KV data.
-- Current state: Live selected-asset quotes are used when Worker `CRYPTO_API_KEY` is configured and the upstream request succeeds. The fallback is cloud-owned KV data.
-- Next step: Seed per-asset fallback values in KV if offline multi-asset chart accuracy becomes a product goal.
+- Next step: Do not treat current ticker fallback as simulator historical data.
 
-### 18. Root README is too generic to onboard future sessions
+### Root product naming still says fintech clone
 
-- Status: Fixed
 - Severity: Low
-- Symptom: `README.md` does not describe actual routes, data flow, or known issues.
-- Fix: `README.md` now describes reliability-first product direction, reliability guarantees, known limits, verification commands, and project references.
-
-### 19. Activity and balance data are still local-first
-
-- Status: Mostly fixed
-- Severity: High
-- Symptom: Home and Activity transaction state still persists through frontend MMKV, so the app is not yet cloud-first for user finance data.
-- Affected files: `apps/frontend/Store/balance/balanceStore.ts`, `apps/frontend/Store/balance/balanceSyncStatus.ts`, `apps/frontend/utils/transactionRepository.ts`, `apps/backend/src/transactions/transactionAuth.ts`, `apps/backend/src/transactions/transactionRoutes.ts`, `apps/backend/src/transactions/transactionStore.ts`, `packages/shared/src/transactionContracts.ts`.
-- Current state: Home and Activity hydrate from `/api/transactions` after Clerk sign-in. Mutations remain optimistic in the Zustand store and sync the normalized transaction snapshot to the Worker. MMKV is retained as a cache/fallback through `transactions-cache` and the persisted balance state. Home and Activity now show whether transaction data is awaiting sync, syncing, cloud synced, using offline cache, or in a sync issue state.
-- Security fix: Transaction routes now require a Clerk bearer token and derive the storage owner from the verified JWT `sub`; the old client-provided `x-fintech-user-id` path is rejected in tests.
-- KV fix: `TRANSACTIONS` now uses dedicated Cloudflare KV namespaces: production `5a601879101e4182833601d8f41a3f4f`, preview `fd639ee79a424fa695612c630b55c2f1`.
-- Deploy/smoke: Worker version `3515b9b4-e068-413c-9c95-f3b9db0baea7` was deployed. `/health` returned 200, `/api/listings?limit=1` returned live BTC data, and `/api/transactions` rejected missing/malformed bearer tokens with 401.
-- Next step: Manually smoke-test signed-in Expo transaction hydration with a real Clerk session token.
-- Measurement: transaction auth coverage increased from 1 trusted client header path to 3 tested paths: valid bearer accepted, missing bearer rejected, legacy client user header rejected. Visible transaction sync-state coverage increased from 0 screen states to 5 named states. Transaction sync metric coverage increased from 0 measured repository paths to 3 measured paths: cloud load, cloud save, and cache fallback.
+- Symptom: Repo/package/app naming still uses `Fintech-Clone-React-Native`.
+- Next step: Decide later whether to rename the app after simulator direction stabilizes.

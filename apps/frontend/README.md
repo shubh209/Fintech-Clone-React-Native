@@ -4,7 +4,6 @@ Expo Router mobile app code lives here.
 
 - `app/`: routes, tabs, modals, and screens
 - `Components/`: reusable React Native UI
-- `Store/`: Zustand state and persistence adapters
 - `utils/`: frontend helpers and client-side API utilities
 - `assets/`: fonts, images, and videos used by the Expo app
 

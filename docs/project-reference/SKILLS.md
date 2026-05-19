@@ -2,28 +2,17 @@
 
 ## When Planning Product Work
 
-- Start with `docs/product-strategy/reliable-finance-app-roadmap.md`.
-- Use `docs/superpowers/plans/2026-05-14-reliability-first-phase-1.md` for the current reliability implementation sequence.
+- Treat the current product direction as crypto market simulation.
+- Use `docs/superpowers/specs/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` and `docs/superpowers/plans/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` for pivot context.
 - Use `docs/project-reference/measurement-skill.md` for every functionality change so customer-impact measurement is designed, instrumented, tested, and summarized.
-- Prefer fewer complete workflows over additional placeholder tabs.
-- Treat reliability, data freshness, privacy boundaries, and observability as product features.
-- Do not add AI financial advice; future AI work should be explainable educational guidance with visible inputs and privacy controls.
+- Prefer fewer complete simulator workflows over additional placeholder tabs.
+- Do not present fake banking, exchange, passcode, or transaction actions as product features.
 
 ## When Working On Auth
 
 - Start with `apps/frontend/app/_layout.tsx`, `apps/frontend/app/login.tsx`, `apps/frontend/app/signup.tsx`, and `apps/frontend/app/verify/[phone].tsx`.
 - Verify Clerk environment keys before debugging UI logic.
-
-## When Working On Storage
-
-- Start with `apps/frontend/Store/balance/balanceStore.ts`, `apps/frontend/Store/balance/transactionUtils.ts`, and `apps/frontend/Store/storage/mmkv-storage.ts`.
-- Persist transaction dates as ISO strings.
-- Persist transaction categories as inferred category strings and preserve the version `1` backfill migration.
-- Use `getTransactionsNewestFirst()` instead of mutating arrays from the Zustand store.
-- Use `filterTransactions()` and `getMonthlyTransactionSummary()` for Activity views instead of duplicating transaction logic in screens.
-- Keep `apps/frontend/Store/storage/mmkv-storage.ts` raw-string based because `createJSONStorage()` owns JSON parsing and stringifying.
-- Preserve the legacy double-encoded MMKV read compatibility unless all users have migrated storage.
-- Preserve the in-memory fallback path for environments where MMKV cannot create a JSI-backed native instance.
+- Phone auth is the only implemented auth method.
 
 ## When Working On Crypto
 
@@ -43,7 +32,7 @@
 
 - Start with `apps/frontend/utils/metrics.ts` and `docs/project-reference/metrics.md`.
 - Also read `docs/project-reference/measurement-skill.md` before adding or changing functionality.
-- Use `timeAsync()` for API calls, auth calls, and biometric operations.
+- Use `timeAsync()` for API calls and auth calls.
 - Use `timeSync()` for synchronous state operations.
 - Use `recordMetric()` for immediate success/failure events or fallback use.
 - Add tests with `clearMetrics()` and `getMetricsSnapshot()` before changing event behavior.
@@ -54,3 +43,4 @@
 - Relative `/api/...` fetches are intentionally avoided in native crypto screens.
 - `EXPO_PUBLIC_API_BASE_URL` must point at the deployed Worker before shipping native builds.
 - Static fallback data can mask live integration failures.
+- Historical crypto simulation has not been implemented yet.

@@ -16,9 +16,9 @@ Before planning or changing product behavior, read:
 4. `docs/project-reference/issues.md`
 5. `docs/project-reference/measurement-skill.md`
 
-For broad product direction, also read:
+For pivot context, also read:
 
-- `docs/product-strategy/reliable-finance-app-roadmap.md`
+- `docs/project-reference/README.md`
 
 For architecture decisions, read:
 
@@ -26,10 +26,9 @@ For architecture decisions, read:
 
 ## Domain Language
 
-Use the repo's reliability-first language:
+Use the repo's crypto simulator language:
 
-- Prefer "reliable finance workflow" over broad clone features.
-- Treat transaction snapshots, MMKV fallback, Worker sync, data freshness, runtime validation, and measurable customer impact as core product concepts.
-- Do not present fake or placeholder finance actions as complete features.
-
-If the product pivots toward the crypto market simulator direction, update this file and the project-reference docs so future sessions inherit the new language.
+- Prefer "crypto market simulator" over broad fintech clone features.
+- Treat historical buy date, historical price, current value, simulated holdings, data freshness, runtime validation, and measurable customer impact as core product concepts.
+- Do not present fake or placeholder banking, exchange, passcode, transaction, or portfolio actions as complete features.
+- Old transaction snapshots, balance state, MMKV transaction persistence, and Activity ledger code were intentionally removed.
