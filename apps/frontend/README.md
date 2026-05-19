@@ -2,9 +2,9 @@
 
 Expo Router mobile app code lives here.
 
-- `app/`: routes, tabs, modals, and screens
-- `Components/`: reusable React Native UI
-- `utils/`: frontend helpers and client-side API utilities
+- `app/`: Expo Router route wrappers, tabs, and modals
+- `src/features/`: feature-owned product code
+- `src/shared/`: shared frontend UI, theme, formatting, metrics, and API helpers
 - `assets/`: fonts, images, and videos used by the Expo app
 
 The root `app.json` points Expo Router at `apps/frontend/app` through `extra.router.root`.

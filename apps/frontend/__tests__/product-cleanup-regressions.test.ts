@@ -25,7 +25,7 @@ describe('product cleanup regressions', () => {
   });
 
   it('does not expose non-functional global header controls', () => {
-    const source = readProjectFile('apps/frontend/Components/layout/CustomHeader.tsx');
+    const source = readProjectFile('apps/frontend/src/shared/ui/customHeader.tsx');
 
     expect(source.includes("placeholder='Search'")).toBe(false);
     expect(source.includes('stats-chart')).toBe(false);

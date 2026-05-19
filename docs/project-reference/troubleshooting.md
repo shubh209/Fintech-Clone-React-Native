@@ -12,23 +12,23 @@ If crypto screens fail to load:
 
 If the crypto detail screen reports a hook-order error:
 
-1. Check `apps/frontend/app/(authenticated)/crypto/[id].tsx`.
+1. Check `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx`.
 2. Hooks such as `useAnimatedProps()` must stay above loading/error early returns.
-3. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/__tests__/crypto-detail-hooks.test.ts --runInBand --watchman=false`.
+3. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailHooks.test.ts --runInBand --watchman=false`.
 
 If the crypto chart renders oddly:
 
-1. Check `apps/frontend/utils/tickers.ts`.
+1. Check `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.ts`.
 2. API ticker timestamps should be normalized to numbers before reaching `CartesianChart`.
 3. Live ticker quote responses may contain only one point; the detail screen should show the live quote panel instead of forcing a line chart when there is not enough history.
-4. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/utils/tickers.test.ts --runInBand --watchman=false`.
+4. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.test.ts --runInBand --watchman=false`.
 
 ## Metrics
 
 If a metric is missing:
 
 1. Check the event catalog in `docs/project-reference/metrics.md`.
-2. Confirm the feature path uses `recordMetric()`, `timeSync()`, or `timeAsync()` from `apps/frontend/utils/metrics.ts`.
+2. Confirm the feature path uses `recordMetric()`, `timeSync()`, or `timeAsync()` from `apps/frontend/src/shared/metrics/metrics.ts`.
 3. Run the app and watch for `[metric]` entries in the Metro/native logs.
 4. In tests, use `clearMetrics()` before the action and `getMetricsSnapshot()` after the action.
 
@@ -68,7 +68,7 @@ node -e "JSON.parse(require('fs').readFileSync('app.json','utf8')); console.log(
 For API trust and validator changes:
 
 ```bash
-./node_modules/.bin/jest --runTestsByPath apps/frontend/utils/apiResult.test.ts apps/frontend/utils/cryptoValidators.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts apps/frontend/__tests__/crypto-list-api-wiring.test.ts apps/frontend/__tests__/crypto-detail-api-wiring.test.ts --runInBand --watchman=false
+./node_modules/.bin/jest --runTestsByPath apps/frontend/src/shared/api/apiResult.test.ts apps/frontend/src/shared/api/cryptoValidators.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts apps/frontend/src/features/crypto-market/api/cryptoListApiWiring.test.ts apps/frontend/src/features/crypto-market/api/cryptoDetailApiWiring.test.ts --runInBand --watchman=false
 ```
 
 Use direct local binaries because the repo path contains `Web:Apps`, and `:` can break npm/npx PATH resolution.

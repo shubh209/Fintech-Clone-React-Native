@@ -1,4 +1,4 @@
-import { normalizeTickerPoints } from './tickers';
+import { normalizeTickerPoints } from './normalizeTickerPoints';
 
 describe('ticker utilities', () => {
   it('normalizes API timestamp strings to chart-friendly numbers', () => {

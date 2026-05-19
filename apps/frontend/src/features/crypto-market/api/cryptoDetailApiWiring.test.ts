@@ -4,7 +4,7 @@ import { join } from 'path';
 describe('crypto detail API wiring', () => {
   it('requests ticker data for the selected crypto id', () => {
     const source = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx'),
       'utf8'
     );
 
@@ -14,7 +14,7 @@ describe('crypto detail API wiring', () => {
 
   it('uses finance-relevant detail tabs instead of placeholder product tabs', () => {
     const source = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx'),
       'utf8'
     );
 
@@ -26,7 +26,7 @@ describe('crypto detail API wiring', () => {
 
   it('surfaces crypto detail data trust labels and retry copy', () => {
     const source = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx'),
       'utf8'
     );
 

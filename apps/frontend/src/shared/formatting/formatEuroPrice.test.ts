@@ -1,4 +1,4 @@
-import { formatEuroPrice } from './currency';
+import { formatEuroPrice } from './formatEuroPrice';
 
 describe('currency formatting', () => {
   it('formats crypto EUR prices with the euro symbol', () => {

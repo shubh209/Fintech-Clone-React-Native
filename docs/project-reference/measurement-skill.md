@@ -10,7 +10,7 @@ Every implemented functionality needs a measurable customer-impact signal. Treat
 
 1. Define the user-facing outcome before implementation.
 2. Choose at least one metric that can compare before and after behavior.
-3. Record the metric through `apps/frontend/utils/metrics.ts`, backend telemetry, tests, or a documented verification command.
+3. Record the metric through `apps/frontend/src/shared/metrics/metrics.ts`, backend telemetry, tests, or a documented verification command.
 4. Add or update tests when metric behavior is code-owned.
 5. Report the result in the final summary as a comparison when possible, such as `load time decreased from 420ms to 260ms`, `fallback recovery coverage increased from 0 to 3 states`, or `validated transaction paths increased from 2 to 5`.
 

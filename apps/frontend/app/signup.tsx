@@ -1,5 +1,5 @@
-import Colors from '@/constants/Colors';
-import { defaultStyles } from '@/constants/Styles';
+import Colors from '@/shared/theme/colors';
+import { defaultStyles } from '@/shared/theme/defaultStyles';
 import { useSignUp } from '@clerk/clerk-expo';
 import { Link, useRouter } from 'expo-router';
 import React from 'react';
@@ -13,7 +13,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { timeAsync } from '@/utils/metrics';
+import { timeAsync } from '@/shared/metrics/metrics';
 const Page = () => {
   const [countryCode, setCountryCode] = useState('+1');
   const [phoneNumber, setPhoneNumber] = useState('');

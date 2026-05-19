@@ -10,7 +10,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Colors from '../constants/Colors';
+import Colors from '@/shared/theme/colors';
 import { Provider as PaperProvider } from 'react-native-paper';
 
 

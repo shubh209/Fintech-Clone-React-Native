@@ -1,8 +1,8 @@
-import Colors from '@/constants/Colors';
+import Colors from '@/shared/theme/colors';
 import { FontAwesome } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import CustomHeader from '@/Components/layout/CustomHeader';
+import CustomHeader from '@/shared/ui/customHeader';
 
 const Layout = () => {
   return (

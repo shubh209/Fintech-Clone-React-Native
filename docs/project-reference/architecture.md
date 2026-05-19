@@ -5,8 +5,8 @@
 - `apps/frontend/app/index.tsx` is the landing route.
 - `apps/frontend/app/login.tsx`, `apps/frontend/app/signup.tsx`, `apps/frontend/app/help.tsx`, and `apps/frontend/app/verify/[phone].tsx` are public auth flows.
 - `apps/frontend/app/(authenticated)/(tabs)` contains the signed-in tab shell.
-- `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` is the current primary signed-in screen.
-- `apps/frontend/app/(authenticated)/crypto/[id].tsx` is the crypto detail screen.
+- `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` is a thin route wrapper for the crypto market screen.
+- `apps/frontend/app/(authenticated)/crypto/[id].tsx` is a thin route wrapper for the crypto asset detail screen.
 - `apps/frontend/app/(authenticated)/(modals)/account.tsx` contains the account modal.
 
 Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
@@ -17,6 +17,8 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 - Do not re-add generic banking clone surfaces unless they directly serve the simulator.
 - New primary tabs should have a clear simulator job, tests, and documented data behavior before being added.
 - Architecture decisions belong in `docs/architecture/decisions/`.
+- Frontend product code is organized by feature/domain under `apps/frontend/src/features`.
+- Shared frontend support code lives under `apps/frontend/src/shared`.
 
 ## State And Persistence
 
@@ -27,8 +29,8 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## Crypto Data Flow
 
-- `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` fetches listings and logo/info metadata through `apps/frontend/utils/cryptoApiClient.ts`.
-- `apps/frontend/app/(authenticated)/crypto/[id].tsx` fetches detail metadata and selected-asset ticker quote data through `apps/frontend/utils/cryptoApiClient.ts`, then normalizes ticker timestamps through `apps/frontend/utils/tickers.ts`.
+- `apps/frontend/src/features/crypto-market/screens/cryptoMarketScreen.tsx` fetches listings and logo/info metadata through `apps/frontend/src/features/crypto-market/api/getCryptoApiUrl.ts`.
+- `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx` fetches detail metadata and selected-asset ticker quote data through `apps/frontend/src/features/crypto-market/api/getCryptoApiUrl.ts`, then normalizes ticker timestamps through `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.ts`.
 - Mobile crypto requests use `EXPO_PUBLIC_API_BASE_URL`; the mobile app must not own CoinMarketCap secrets or `apps/frontend/app/api` crypto handlers.
 - The Cloudflare Worker in `apps/backend` owns CoinMarketCap provider calls, runtime validation, and `CRYPTO_FALLBACKS` KV fallback reads.
 - The deployed Worker URL is `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
@@ -38,7 +40,7 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## Metrics
 
-- Metrics helpers live in `apps/frontend/utils/metrics.ts`.
+- Metrics helpers live in `apps/frontend/src/shared/metrics/metrics.ts`.
 - The current metrics sink is local: in-memory buffer plus dev console output.
 - Use `timeAsync()` for latency-sensitive async work and `recordMetric()` for immediate state transitions.
 - The event catalog lives in `docs/project-reference/metrics.md`.
@@ -46,21 +48,21 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## API Trust Helpers
 
-- `apps/frontend/utils/apiResult.ts` re-exports shared source/fallback/freshness metadata helpers from `packages/shared/src/apiResult.ts`.
-- `apps/frontend/utils/cryptoValidators.ts` validates the subset of CoinMarketCap payloads the app renders.
+- `apps/frontend/src/shared/api/apiResult.ts` re-exports shared source/fallback/freshness metadata helpers from `packages/shared/src/apiResult.ts`.
+- `apps/frontend/src/shared/api/cryptoValidators.ts` validates the subset of CoinMarketCap payloads the app renders.
 - Cloud API routes should validate live provider data before returning it and fall back to KV data when the live shape is malformed.
 - Crypto UI should expose `Data source`, `Last updated`, and `Retry` affordances for API-backed data.
 
 ## Test Coverage
 
-- `apps/frontend/utils/currency.test.ts`
-- `apps/frontend/utils/metrics.test.ts`
-- `apps/frontend/utils/tickers.test.ts`
-- `apps/frontend/utils/apiResult.test.ts`
-- `apps/frontend/utils/cryptoValidators.test.ts`
-- `apps/frontend/__tests__/crypto-detail-hooks.test.ts`
-- `apps/frontend/__tests__/crypto-detail-api-wiring.test.ts`
-- `apps/frontend/__tests__/crypto-list-api-wiring.test.ts`
+- `apps/frontend/src/shared/formatting/formatEuroPrice.test.ts`
+- `apps/frontend/src/shared/metrics/metrics.test.ts`
+- `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.test.ts`
+- `apps/frontend/src/shared/api/apiResult.test.ts`
+- `apps/frontend/src/shared/api/cryptoValidators.test.ts`
+- `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailHooks.test.ts`
+- `apps/frontend/src/features/crypto-market/api/cryptoDetailApiWiring.test.ts`
+- `apps/frontend/src/features/crypto-market/api/cryptoListApiWiring.test.ts`
 - `apps/frontend/__tests__/cloud-backend-wiring.test.ts`
 - `apps/frontend/__tests__/product-cleanup-regressions.test.ts`
 - `apps/backend/__tests__/api/listings-api.test.ts`
@@ -70,6 +72,6 @@ Signed-in users are routed to `/(authenticated)/(tabs)/crypto`.
 
 ## Structural Notes
 
-- Frontend app code lives under `apps/frontend`; backend Worker code lives under `apps/backend`; shared crypto contracts live under `packages/shared`.
+- Frontend routes live under `apps/frontend/app`; frontend product code lives under `apps/frontend/src`; backend Worker code lives under `apps/backend`; shared crypto contracts live under `packages/shared`.
 - The old `Store`, transaction repository, Activity tab, Home tab, lock modal, transaction backend routes, and transaction shared contracts were removed for the crypto simulator pivot.
 - No placeholder primary tabs should be kept in the tab shell.

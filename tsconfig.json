@@ -10,7 +10,13 @@
     ],
     "paths": {
       "@/*": [
-        "./apps/frontend/*"
+        "./apps/frontend/src/*"
+      ],
+      "@assets/*": [
+        "./apps/frontend/assets/*"
+      ],
+      "@shared/*": [
+        "./packages/shared/src/*"
       ]
     }
   },

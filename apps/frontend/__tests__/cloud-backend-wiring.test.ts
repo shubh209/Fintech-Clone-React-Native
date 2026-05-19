@@ -26,11 +26,11 @@ describe('cloud backend wiring', () => {
 
   it('keeps mobile crypto screens on the cloud API client', () => {
     const listSource = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/(tabs)/crypto.tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoMarketScreen.tsx'),
       'utf8'
     );
     const detailSource = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx'),
       'utf8'
     );
 

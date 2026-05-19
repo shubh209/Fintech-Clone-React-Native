@@ -16,21 +16,21 @@
 
 ## When Working On Crypto
 
-- Start with `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx` and `apps/frontend/app/(authenticated)/crypto/[id].tsx`.
+- Start with `apps/frontend/src/features/crypto-market/screens/cryptoMarketScreen.tsx` and `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx`.
 - Then inspect `apps/backend/src/crypto/cryptoRoutes.ts`, `apps/backend/src/crypto/cryptoService.ts`, and `apps/backend/src/crypto/coinMarketCapClient.ts`.
-- Check `apps/frontend/utils/cryptoValidators.ts` before changing rendered CoinMarketCap response fields.
-- Check `apps/frontend/utils/apiResult.ts` and `packages/shared/src/apiResult.ts` before changing source/freshness/fallback metadata behavior.
+- Check `apps/frontend/src/shared/api/cryptoValidators.ts` before changing rendered CoinMarketCap response fields.
+- Check `apps/frontend/src/shared/api/apiResult.ts` and `packages/shared/src/apiResult.ts` before changing source/freshness/fallback metadata behavior.
 - Confirm whether fetch behavior is expected to work on native, web, or both before changing transport code.
 - Listings and info use live CoinMarketCap data when Worker `CRYPTO_API_KEY` is present, then fall back to `CRYPTO_FALLBACKS` KV data.
 - Detail ticker quotes use live CoinMarketCap selected-asset quote data when Worker `CRYPTO_API_KEY` is present, then fall back to `CRYPTO_FALLBACKS` KV data.
 - API-backed crypto screens should show source, freshness, loading, error, retry, and fallback states.
 - Malformed live crypto payloads should fall back locally rather than rendering invalid values.
-- Keep hooks above early returns in `apps/frontend/app/(authenticated)/crypto/[id].tsx`.
-- Normalize ticker data through `apps/frontend/utils/tickers.ts` before chart rendering.
+- Keep hooks above early returns in `apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx`.
+- Normalize ticker data through `apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.ts` before chart rendering.
 
 ## When Working On Metrics
 
-- Start with `apps/frontend/utils/metrics.ts` and `docs/project-reference/metrics.md`.
+- Start with `apps/frontend/src/shared/metrics/metrics.ts` and `docs/project-reference/metrics.md`.
 - Also read `docs/project-reference/measurement-skill.md` before adding or changing functionality.
 - Use `timeAsync()` for API calls and auth calls.
 - Use `timeSync()` for synchronous state operations.

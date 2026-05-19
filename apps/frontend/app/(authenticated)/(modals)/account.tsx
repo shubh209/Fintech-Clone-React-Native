@@ -2,7 +2,7 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Colors from '../../../constants/Colors';
+import Colors from '@/shared/theme/colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { getAppIcon, setAppIcon } from 'expo-dynamic-app-icon';

@@ -4,7 +4,7 @@ import { join } from 'path';
 describe('crypto detail hook ordering', () => {
   it('declares animated hooks before loading or error early returns', () => {
     const source = readFileSync(
-      join(process.cwd(), 'apps/frontend/app/(authenticated)/crypto/[id].tsx'),
+      join(process.cwd(), 'apps/frontend/src/features/crypto-market/screens/cryptoAssetDetailScreen.tsx'),
       'utf8'
     );
 
