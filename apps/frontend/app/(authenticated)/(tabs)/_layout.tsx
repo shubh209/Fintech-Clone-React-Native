@@ -30,6 +30,16 @@ const Layout = () => {
         },
       }}>
       <Tabs.Screen
+        name="simulation"
+        options={{
+          title: 'Simulation',
+          tabBarIcon: ({ size, color }) => <FontAwesome name="calculator" size={size} color={color} />,
+          header: () => <CustomHeader />,
+          headerTransparent: true,
+        }}
+      />
+
+      <Tabs.Screen
         name="crypto"
         options={{
           title: 'Crypto',

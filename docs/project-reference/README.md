@@ -37,21 +37,26 @@ The latest deep cleanup removed:
 The project now keeps:
 
 - Clerk phone auth screens
-- one signed-in Crypto tab
+- signed-in Simulation and Crypto tabs
+- Simulation v1 for BTC/ETH/SOL historical scenarios
+- saved hypothetical simulations on device
 - crypto detail screen
 - Cloudflare Worker crypto API
+- Cloudflare Worker Simulation API backed by historical D1 data and CoinGecko current prices
 - `CRYPTO_FALLBACKS` KV fallback data
-- shared crypto validators
+- shared crypto and simulation validators
 - local metrics helpers
 
 ## Product Strategy
 
-Next product work should build the crypto simulator direction:
+The current simulator direction is:
 
 - choose asset
+- explore historical prices by year on a press-and-drag chart
 - choose historical buy date
-- enter investment amount or quantity
+- enter a hypothetical USD amount
 - compare historical price against current value
+- save the simulation locally
 - later compare simulated crypto value against purchasable assets by region
 
 Use `docs/superpowers/specs/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` and `docs/superpowers/plans/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` for pivot context.

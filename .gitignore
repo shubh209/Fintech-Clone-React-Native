@@ -5,6 +5,11 @@ expo-env.d.ts
 # @end expo-cli
 node_modules/
 .env
+apps/backend/.dev.vars
+data/
+tmp/
+__pycache__/
+*.pyc
 .expo/
 .DS_Store
 .wrangler/

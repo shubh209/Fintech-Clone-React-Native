@@ -13,5 +13,12 @@
 			"id": "63a5d0553e734abebbfa23745ceac413",
 			"preview_id": "1f22e8b24b014c4dacb027bfba0373b2"
 		}
+	],
+	"d1_databases": [
+		{
+			"binding": "HISTORICAL_PRICES_DB",
+			"database_name": "fintech-historical-prices",
+			"database_id": "cce18a99-efa1-463a-9958-1926e1ed6ad2"
+		}
 	]
 }

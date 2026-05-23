@@ -8,6 +8,7 @@
 6. Confirm whether the task is docs-only, audit-only, strategy, or runtime-fix work.
 7. If touching crypto, verify whether the intended source of truth is live APIs or fallback fixtures.
 8. For API-backed screens, preserve visible loading, error, retry, source, freshness, and fallback states.
-9. Run `./node_modules/.bin/jest --runInBand --watchman=false` after crypto changes.
-10. Run `./node_modules/.bin/tsc --noEmit` before claiming the app typechecks.
-11. If touching metrics, check `docs/project-reference/metrics.md` and preserve stable event names unless a rename is intentional.
+9. If touching Simulation, preserve BTC/ETH/SOL product boundaries, hypothetical language, chart date selection, Data Trust metadata, and local Saved Simulation semantics.
+10. Run `./node_modules/.bin/jest --runInBand --watchman=false` after crypto or Simulation changes.
+11. Run `./node_modules/.bin/tsc --noEmit` before claiming the app typechecks.
+12. If touching metrics, check `docs/project-reference/metrics.md` and preserve stable event names unless a rename is intentional.

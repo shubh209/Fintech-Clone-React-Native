@@ -9,7 +9,7 @@ Before making changes:
 1. Read `docs/project-reference/README.md`.
 2. Read `docs/project-reference/issues.md`.
 3. Check `app.json`, `.env`, and `apps/frontend/app/_layout.tsx` for environment assumptions.
-4. Treat `apps/backend/`, shared crypto contracts, auth routes, and crypto screens as high-risk areas.
+4. Treat `apps/backend/`, shared crypto/simulation contracts, auth routes, crypto screens, and simulation screens as high-risk areas.
 5. Read `docs/project-reference/measurement-skill.md` before any code change that adds or changes functionality.
 
 ## High-Risk Areas
@@ -17,19 +17,27 @@ Before making changes:
 - `apps/backend/src/domains/crypto-market/cryptoService.ts`
 - `apps/backend/src/domains/crypto-market/coinMarketCapClient.ts`
 - `apps/backend/src/domains/crypto-market/cloudFallbackStore.ts`
+- `apps/backend/src/domains/simulation/`
 - `packages/shared/src/cryptoValidators.ts`
+- `packages/shared/src/simulationTypes.ts`
+- `packages/shared/src/simulationValidators.ts`
 - `apps/frontend/app/(authenticated)/(tabs)/crypto.tsx`
+- `apps/frontend/app/(authenticated)/(tabs)/simulation.tsx`
 - `apps/frontend/app/(authenticated)/crypto/[id].tsx`
+- `apps/frontend/src/features/simulation/screens/simulationScreen.tsx`
 - `apps/frontend/app/_layout.tsx`
 
 ## Project Notes
 
 - The product direction is crypto market simulation: historical buy date, historical price, current value, and later purchasing-power comparisons.
-- Use `docs/superpowers/specs/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` and `docs/superpowers/plans/2026-05-19-product-cleanup-for-crypto-simulator-pivot.md` for current pivot context.
+- Use `docs/superpowers/specs/2026-05-21-crypto-simulation-mvp.md`, `docs/superpowers/specs/2026-05-22-simulation-price-api.md`, and `docs/superpowers/plans/2026-05-22-crypto-simulation-mvp-implementation.md` for current Simulation context.
 - The monorepo separates product code into `apps/frontend`, `apps/backend`, and `packages/shared`.
-- The only current signed-in tab is Crypto.
+- Current signed-in tabs are Simulation and Crypto.
 - Home, Activity, transaction storage, lock/passcode, fake widgets, and transaction Worker routes were removed for a minimal simulator foundation.
 - Mobile crypto screens call `EXPO_PUBLIC_API_BASE_URL`; do not reintroduce mobile-owned `apps/frontend/app/api` crypto handlers.
+- Mobile Simulation calls `GET /api/simulation/prices` and `GET /api/simulation/history` through `EXPO_PUBLIC_API_BASE_URL`.
+- Simulation v1 supports BTC, ETH, and SOL, uses a chart-driven historical date selector, computes hypothetical current value, and saves local Saved Simulation snapshots.
+- Python owns offline historical CSV ingestion; TypeScript stays runtime-only for Worker/shared/frontend simulation behavior.
 - The deployed Worker URL is `https://fintech-reliability-api.shubhkapadia2031.workers.dev`.
 - Cloudflare `CRYPTO_FALLBACKS` KV is configured with production namespace `63a5d0553e734abebbfa23745ceac413` and preview namespace `1f22e8b24b014c4dacb027bfba0373b2`.
 - The Cloudflare Worker uses live CoinMarketCap data when `CRYPTO_API_KEY` is configured, then falls back to `CRYPTO_FALLBACKS` KV data.
@@ -56,7 +64,7 @@ Use a single-context domain layout based on the crypto simulator project-referen
 <claude-mem-context>
 # Memory Context
 
-# [Fintech-Clone-React-Native] recent context, 2026-05-19 3:04pm MST
+# [Fintech-Clone-React-Native] recent context, 2026-05-23 10:59am MST
 
 No previous sessions found.
 </claude-mem-context>

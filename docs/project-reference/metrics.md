@@ -33,9 +33,24 @@ Each event has:
 - `crypto.simulation.create`
   - Reserved for future simulator creation work.
   - Metadata should include selected asset and simulation inputs once implemented.
+- `crypto.simulation.started`
+  - Records when a signed-in user begins the create-simulation flow.
+- `crypto.simulation.completed`
+  - Records when a completed simulation result renders.
+  - Metadata should include selected asset, historical date resolution, and current price cache status.
+- `crypto.simulation.failed`
+  - Records validation or unavailable outcomes in the simulation flow.
+  - Metadata should include selected asset when known and the error/unavailable code.
+- `crypto.simulation.saved`
+  - Records a successful Saved Simulation creation.
+  - Metadata should include selected asset and historical date resolution.
 
 ### Crypto Client Fetches
 
+- `crypto.client.simulation_prices.fetch`
+  - Measures the mobile request to the cloud `/api/simulation/prices` endpoint.
+- `crypto.client.simulation_history.fetch`
+  - Measures the mobile request to the cloud `/api/simulation/history` endpoint that powers the year chart explorer.
 - `crypto.client.listings.fetch`
   - Measures the Crypto tab request to the cloud `/api/listings` endpoint.
 - `crypto.client.info.fetch`
@@ -47,6 +62,14 @@ Each event has:
 
 ### Crypto API Routes
 
+- `crypto.api.simulation_prices.historical_d1`
+  - Measures D1 historical price lookup for Simulation.
+- `crypto.api.simulation_prices.current_coingecko`
+  - Measures CoinGecko Simple Price refresh for Simulation current USD prices.
+- `crypto.api.simulation_prices.current_cache`
+  - Records current-price cache use for Simulation.
+- `crypto.api.simulation_prices.compute`
+  - Measures Worker-side Simulation result calculation.
 - `crypto.api.listings.upstream`
   - Measures the server route call to CoinMarketCap listings.
 - `crypto.api.listings.fallback`

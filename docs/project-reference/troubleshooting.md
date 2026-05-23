@@ -23,6 +23,58 @@ If the crypto chart renders oddly:
 3. Live ticker quote responses may contain only one point; the detail screen should show the live quote panel instead of forcing a line chart when there is not enough history.
 4. Run `./node_modules/.bin/jest --runTestsByPath apps/frontend/src/features/crypto-market/chart/normalizeTickerPoints.test.ts --runInBand --watchman=false`.
 
+## Simulation API Requests
+
+If `GET /api/simulation/prices` or `GET /api/simulation/history` fails:
+
+1. Verify `apps/backend/wrangler.jsonc` includes D1 binding `HISTORICAL_PRICES_DB` for database `fintech-historical-prices`.
+2. If `/api/simulation/prices` fails, confirm the Worker secret `COINGECKO_API_KEY` is configured for current USD prices.
+3. If `/api/simulation/history` returns `404`, deploy the Worker after backend route changes.
+4. Inspect `apps/backend/src/domains/simulation/simulationRoutes.ts`, `simulationPriceService.ts`, `simulationHistoryService.ts`, `historicalPriceRepository.ts`, and `coinGeckoCurrentPriceClient.ts`.
+5. Check that requested dates are from `2021-01-01` through `2026-03-22`, the latest verified common historical date for BTC, ETH, and SOL.
+6. Remember that Simulation v1 rejects unsupported product symbols even though D1 contains more imported assets.
+
+To verify deployed Simulation endpoints:
+
+```bash
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/prices?asset=BTC&date=2021-01-01&amountUsd=100'
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/history?asset=BTC&year=2021'
+```
+
+Expected behavior:
+
+- `/api/simulation/prices` returns JSON with `status: "success"` or a structured `error`/`unavailable` response.
+- `/api/simulation/history` returns JSON with yearly `points` for the selected asset/year.
+
+To verify historical D1 data:
+
+```bash
+./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT COUNT(*) AS row_count, COUNT(DISTINCT asset_symbol) AS asset_count, MIN(date) AS first_date, MAX(date) AS last_date FROM historical_crypto_prices;"
+./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT asset_symbol, asset_name, date, close_usd FROM historical_crypto_prices WHERE asset_symbol IN ('BTC','ETH','SOL') AND date = '2026-03-22' ORDER BY asset_symbol;"
+```
+
+Expected current import:
+
+- `row_count`: `120740`
+- `asset_count`: `88`
+- `first_date`: `2021-01-01`
+- `last_date`: `2026-03-22`
+
+To regenerate import SQL from the local CSV dataset:
+
+```bash
+/Users/shubhkapadia/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 \
+  scripts/historical_prices/import_historical_prices.py \
+  --source-root ./data/crypto_data \
+  --source-name "Top 100 Cryptocurrency Historical Prices" \
+  --source-url "<dataset-url>" \
+  --source-version "2026-05-22" \
+  --downloaded-at "2026-05-22T00:00:00.000Z" \
+  --end-date 2026-03-22 \
+  --output-sql ./tmp/historical_prices/historical_crypto_prices.sql \
+  --output-report ./tmp/historical_prices/coverage_report.json
+```
+
 ## Metrics
 
 If a metric is missing:
@@ -52,7 +104,7 @@ If auth breaks:
 If a screen appears missing:
 
 - Confirm whether it was intentionally removed during the crypto simulator cleanup.
-- Current signed-in tab shell only registers `crypto`.
+- Current signed-in tab shell registers `simulation` and `crypto`.
 - Removed routes include Home, Activity, lock/passcode, transaction store screens, widgets, and fake banking actions.
 
 ## Verification Commands
@@ -71,6 +123,14 @@ For API trust and validator changes:
 ./node_modules/.bin/jest --runTestsByPath apps/frontend/src/shared/api/apiResult.test.ts apps/frontend/src/shared/api/cryptoValidators.test.ts apps/backend/__tests__/api/listings-api.test.ts apps/backend/__tests__/api/info-api.test.ts apps/backend/__tests__/api/tickers-api.test.ts apps/frontend/src/features/crypto-market/api/cryptoListApiWiring.test.ts apps/frontend/src/features/crypto-market/api/cryptoDetailApiWiring.test.ts --runInBand --watchman=false
 ```
 
+For Simulation API/runtime changes:
+
+```bash
+/Users/shubhkapadia/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -m unittest scripts/historical_prices/test_import_historical_prices.py
+./node_modules/.bin/jest --runTestsByPath apps/frontend/src/shared/api/simulationValidators.test.ts apps/backend/__tests__/simulation/historicalPriceRepository.test.ts apps/backend/__tests__/simulation/coinGeckoCurrentPriceClient.test.ts apps/backend/__tests__/simulation/currentPriceCache.test.ts apps/backend/__tests__/api/simulation-prices-api.test.ts apps/frontend/src/features/simulation/api/getSimulationHistory.test.ts apps/frontend/src/features/simulation/api/getSimulationPrice.test.ts apps/frontend/src/features/simulation/screens/simulationScreen.test.ts apps/frontend/src/features/simulation/storage/savedSimulationsStore.test.ts --runInBand --watchman=false
+./node_modules/.bin/tsc --noEmit
+```
+
 Use direct local binaries because the repo path contains `Web:Apps`, and `:` can break npm/npx PATH resolution.
 
 ## Manual Test Steps
@@ -84,3 +144,5 @@ Use direct local binaries because the repo path contains `Web:Apps`, and `:` can
 7. Run the Worker with `CRYPTO_API_KEY` and confirm listings/info/tickers routes return live CoinMarketCap data.
 8. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
 9. Watch logs for `[metric]` entries while using Crypto and auth flows.
+10. Open the Simulation tab, pick BTC/ETH/SOL, change years, press and drag across the chart, and confirm the Buy date updates.
+11. Run a simulation for `BTC`, `2021-01-01`, `$100`, then save it and confirm it appears under Saved simulations.
