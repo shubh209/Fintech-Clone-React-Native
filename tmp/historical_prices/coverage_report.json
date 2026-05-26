@@ -964,8 +964,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "bitcoin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ethereum",
@@ -983,8 +983,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ethereum",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "tether",
@@ -1002,8 +1002,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "tether",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ripple",
@@ -1021,8 +1021,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ripple",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "binancecoin",
@@ -1040,8 +1040,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "binancecoin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usd-coin",
@@ -1059,8 +1059,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "usd-coin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "solana",
@@ -1078,8 +1078,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "solana",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "tron",
@@ -1097,8 +1097,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "tron",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "dogecoin",
@@ -1116,8 +1116,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "dogecoin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usds",
@@ -1135,8 +1135,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "USDS has Close outside Low/High range",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "whitebit",
@@ -1154,8 +1154,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "whitebit",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "cardano",
@@ -1173,8 +1173,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "cardano",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "hyperliquid",
@@ -1192,8 +1192,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "hyperliquid",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "bitcoin-cash",
@@ -1211,8 +1211,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "bitcoin-cash",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "leo-token",
@@ -1230,8 +1230,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "leo-token",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "monero",
@@ -1249,8 +1249,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "monero",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "chainlink",
@@ -1268,8 +1268,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "chainlink",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ethena-usde",
@@ -1287,8 +1287,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ethena-usde",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "canton-network",
@@ -1306,8 +1306,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "canton-network",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "stellar",
@@ -1325,8 +1325,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "stellar",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usd1-wlfi",
@@ -1344,8 +1344,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "usd1-wlfi",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "dai",
@@ -1363,8 +1363,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "dai",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "litecoin",
@@ -1382,8 +1382,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "litecoin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "paypal-usd",
@@ -1401,8 +1401,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "paypal-usd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "avalanche-2",
@@ -1420,8 +1420,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "avalanche-2",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "rain",
@@ -1439,8 +1439,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "rain",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "hedera-hashgraph",
@@ -1458,8 +1458,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "hedera-hashgraph",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "zcash",
@@ -1477,8 +1477,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "zcash",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "sui",
@@ -1496,8 +1496,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "SUI has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "shiba-inu",
@@ -1515,8 +1515,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "Open is required",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "crypto-com-chain",
@@ -1534,8 +1534,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "crypto-com-chain",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "the-open-network",
@@ -1553,8 +1553,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "the-open-network",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "memecore",
@@ -1572,8 +1572,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "memecore",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "world-liberty-financial",
@@ -1591,8 +1591,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "Open is required",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "tether-gold",
@@ -1610,8 +1610,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "tether-gold",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "polkadot",
@@ -1629,8 +1629,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "polkadot",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "mantle",
@@ -1648,8 +1648,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "mantle",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "pax-gold",
@@ -1667,8 +1667,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "pax-gold",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "uniswap",
@@ -1686,8 +1686,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "uniswap",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "blackrock-usd-institutional-digital-liquidity-fund",
@@ -1705,8 +1705,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "blackrock-usd-institutional-digital-liquidity-fund",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "pi-network",
@@ -1724,8 +1724,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "pi-network",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "okb",
@@ -1743,8 +1743,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "okb",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "global-dollar",
@@ -1762,8 +1762,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "global-dollar",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "falcon-finance",
@@ -1781,8 +1781,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "falcon-finance",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "sky",
@@ -1800,8 +1800,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "sky",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "near",
@@ -1819,8 +1819,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "near",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "aave",
@@ -1838,8 +1838,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "aave",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "aster-2",
@@ -1857,8 +1857,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "aster-2",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "htx-dao",
@@ -1876,8 +1876,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "htx-dao",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ripple-usd",
@@ -1895,8 +1895,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ripple-usd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "bitget-token",
@@ -1914,8 +1914,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "bitget-token",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "pepe",
@@ -1933,8 +1933,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "pepe",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "internet-computer",
@@ -1952,8 +1952,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "ICP has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "bfusd",
@@ -1971,8 +1971,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "bfusd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ondo-us-dollar-yield",
@@ -1990,8 +1990,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ondo-us-dollar-yield",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ethereum-classic",
@@ -2009,8 +2009,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ethereum-classic",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ondo-finance",
@@ -2028,8 +2028,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ondo-finance",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "gatechain-token",
@@ -2047,8 +2047,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "gatechain-token",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "quant-network",
@@ -2066,8 +2066,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "quant-network",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "kucoin-shares",
@@ -2085,8 +2085,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "kucoin-shares",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "polygon-ecosystem-token",
@@ -2104,8 +2104,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "POL has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "kaspa",
@@ -2123,8 +2123,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "kaspa",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "morpho",
@@ -2142,8 +2142,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "morpho",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "worldcoin-wld",
@@ -2161,8 +2161,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "WLD has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "cosmos",
@@ -2180,8 +2180,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "cosmos",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "nexo",
@@ -2199,8 +2199,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "nexo",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "render-token",
@@ -2218,8 +2218,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "render-token",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ethena",
@@ -2237,8 +2237,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ethena",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usdtb",
@@ -2256,8 +2256,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "usdtb",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "aptos",
@@ -2275,8 +2275,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "aptos",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "algorand",
@@ -2294,8 +2294,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "algorand",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "hash-2",
@@ -2313,8 +2313,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "HASH has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "official-trump",
@@ -2332,8 +2332,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "TRUMP has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usdd",
@@ -2351,8 +2351,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "usdd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "midnight-3",
@@ -2370,8 +2370,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "midnight-3",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ousg",
@@ -2389,8 +2389,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ousg",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "flare-networks",
@@ -2408,8 +2408,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "flare-networks",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "siren-2",
@@ -2427,8 +2427,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "siren-2",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "filecoin",
@@ -2446,8 +2446,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "filecoin",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "xdce-crowd-sale",
@@ -2465,8 +2465,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "xdce-crowd-sale",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "beldex",
@@ -2484,8 +2484,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "beldex",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "vechain",
@@ -2503,8 +2503,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "vechain",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "gho",
@@ -2522,8 +2522,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "gho",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "arbitrum",
@@ -2541,8 +2541,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "arbitrum",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "usual-usd",
@@ -2560,8 +2560,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "usual-usd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "jupiter-exchange-solana",
@@ -2579,8 +2579,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "JUP has non-positive OHLC values",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "stable-2",
@@ -2598,8 +2598,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "stable-2",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "just",
@@ -2617,8 +2617,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "just",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "bonk",
@@ -2636,8 +2636,8 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "Open is required",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "river",
@@ -2655,8 +2655,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "river",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "true-usd",
@@ -2674,8 +2674,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "true-usd",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "layerzero",
@@ -2693,8 +2693,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "layerzero",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "fetch-ai",
@@ -2712,8 +2712,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "fetch-ai",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "a7a5",
@@ -2731,8 +2731,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "a7a5",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "fasttoken",
@@ -2750,8 +2750,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "fasttoken",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "ether-fi",
@@ -2769,8 +2769,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "ether-fi",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "pancakeswap-token",
@@ -2788,8 +2788,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "pancakeswap-token",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "virtual-protocol",
@@ -2807,8 +2807,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "virtual-protocol",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "blockstack",
@@ -2826,8 +2826,8 @@
       "unavailable_reason": null,
       "unavailable_detail": null,
       "coin_gecko_id": "blockstack",
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     },
     {
       "asset_id": "pudgy-penguins",
@@ -2845,18 +2845,18 @@
       "unavailable_reason": "Historical data needs validation.",
       "unavailable_detail": "Open is required",
       "coin_gecko_id": null,
-      "imported_at": "2026-05-26T02:04:48.676044+00:00",
-      "updated_at": "2026-05-26T02:04:48.676044+00:00"
+      "imported_at": "2026-05-26T02:15:32.161309+00:00",
+      "updated_at": "2026-05-26T02:15:32.161309+00:00"
     }
   ],
   "provenance": {
-    "import_id": "2026-05-22-2026-05-26T02:04:48.676044+00:00",
+    "import_id": "2026-05-22-2026-05-26T02:15:32.161309+00:00",
     "source_name": "Top 100 Cryptocurrency Historical Prices",
     "source_url": "local_csv_dataset",
     "source_version": "2026-05-22",
     "source_root_path": "data/crypto_data",
     "downloaded_at": "2026-05-22T00:00:00.000Z",
-    "imported_at": "2026-05-26T02:04:48.676044+00:00",
+    "imported_at": "2026-05-26T02:15:32.161309+00:00",
     "imported_assets": [
       "A7A5",
       "AAVE",

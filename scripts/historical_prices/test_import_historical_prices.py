@@ -96,6 +96,7 @@ class HistoricalPriceImportTests(unittest.TestCase):
             },
         )
         output_report = root / "report.json"
+        output_sql = root / "out.sql"
 
         result = build_import(
             source_root=root,
@@ -103,7 +104,7 @@ class HistoricalPriceImportTests(unittest.TestCase):
             source_url="https://example.test/dataset",
             source_version="test",
             downloaded_at="2026-05-22T00:00:00.000Z",
-            output_sql=root / "out.sql",
+            output_sql=output_sql,
             output_report=output_report,
             imported_at="2026-05-22T01:00:00.000Z",
             end_date=date(2021, 1, 3),
@@ -115,10 +116,20 @@ class HistoricalPriceImportTests(unittest.TestCase):
         report = json.loads(output_report.read_text(encoding="utf-8"))
         assets = {asset["asset_id"]: asset for asset in report["simulation_assets"]}
         self.assertEqual(assets["bitcoin"]["status"], "ready")
+        self.assertEqual(assets["bitcoin"]["category"], "Layer 1")
+        self.assertEqual(assets["bitcoin"]["coin_gecko_id"], "bitcoin")
         self.assertEqual(assets["broken"]["status"], "historical_invalid")
+        self.assertEqual(assets["broken"]["category"], "Other")
         self.assertEqual(assets["broken"]["unavailable_reason"], "Historical data needs validation.")
         self.assertIn("Open is required", assets["broken"]["unavailable_detail"])
+        self.assertIsNone(assets["broken"]["coin_gecko_id"])
         self.assertEqual(result.imported_row_count, 3)
+
+        sql = output_sql.read_text(encoding="utf-8")
+        self.assertLess(sql.index("DELETE FROM simulation_assets;"), sql.index("DELETE FROM historical_crypto_prices;"))
+        self.assertIn("INSERT INTO simulation_assets", sql)
+        self.assertIn("'bitcoin', 'BTC'", sql)
+        self.assertIn("'broken', 'BAD'", sql)
 
     def test_fails_on_product_gap_over_three_days(self):
         root = self.make_source(

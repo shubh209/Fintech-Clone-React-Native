@@ -317,10 +317,6 @@ def _write_sql(rows: pd.DataFrame, report: dict, output_sql: Path) -> None:
         "imported_at",
     ]
     with output_sql.open("w", encoding="utf-8") as handle:
-        handle.write("DELETE FROM historical_crypto_prices;\n")
-        for row in rows[columns].itertuples(index=False, name=None):
-            values = ", ".join(_sql_quote(value) for value in row)
-            handle.write(f"INSERT INTO historical_crypto_prices ({', '.join(columns)}) VALUES ({values});\n")
         simulation_asset_columns = [
             "asset_id",
             "symbol",
@@ -346,6 +342,10 @@ def _write_sql(rows: pd.DataFrame, report: dict, output_sql: Path) -> None:
             handle.write(
                 f"INSERT INTO simulation_assets ({', '.join(simulation_asset_columns)}) VALUES ({values});\n"
             )
+        handle.write("DELETE FROM historical_crypto_prices;\n")
+        for row in rows[columns].itertuples(index=False, name=None):
+            values = ", ".join(_sql_quote(value) for value in row)
+            handle.write(f"INSERT INTO historical_crypto_prices ({', '.join(columns)}) VALUES ({values});\n")
         provenance = report["provenance"]
         provenance_columns = [
             "import_id",
@@ -401,7 +401,8 @@ def build_import(
     start_date = date(2021, 1, 1)
     end_date = end_date or _utc_yesterday(now)
     category_map = category_map or {}
-    required_product_symbols = required_product_symbols or PRODUCT_SUPPORTED_SYMBOLS
+    if required_product_symbols is None:
+        required_product_symbols = PRODUCT_SUPPORTED_SYMBOLS
     entries = read_directory_entries(source_root)
     assert_product_assets(entries, required_product_symbols)
 
