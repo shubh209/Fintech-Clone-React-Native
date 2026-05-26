@@ -57,12 +57,34 @@ class CoverageReport:
 
 
 @dataclass(frozen=True)
+class SimulationAssetMetadata:
+    asset_id: str
+    symbol: str
+    name: str
+    csv_file_name: str
+    category: str
+    status: str
+    historical_symbol: str
+    first_imported_date: str | None
+    last_imported_date: str | None
+    imported_row_count: int
+    missing_date_count: int
+    largest_gap_days: int
+    unavailable_reason: str | None
+    unavailable_detail: str | None
+    coin_gecko_id: str | None
+    imported_at: str
+    updated_at: str
+
+
+@dataclass(frozen=True)
 class ImportResult:
     imported_assets: list[str]
     skipped_assets: list[SkippedAsset]
     imported_row_count: int
     rejected_row_count: int
     coverage_report: list[CoverageReport]
+    simulation_assets: list[SimulationAssetMetadata]
 
 
 def _utc_yesterday(now: datetime) -> date:
@@ -75,6 +97,13 @@ def _extract_symbol(file_name: str) -> str:
     if "_" not in stem:
         return ""
     return stem.rsplit("_", 1)[1]
+
+
+def _asset_id_from_file_name(file_name: str) -> str:
+    stem = Path(file_name).stem
+    if "_" not in stem:
+        return stem
+    return stem.rsplit("_", 1)[0]
 
 
 def _normalize_date(value: object) -> date:
@@ -128,9 +157,13 @@ def read_directory_entries(source_root: Path) -> list[DirectoryEntry]:
     return entries
 
 
-def assert_product_assets(entries: Iterable[DirectoryEntry]) -> None:
+def read_category_map(path: Path) -> dict[str, str]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def assert_product_assets(entries: Iterable[DirectoryEntry], required_product_symbols: set[str]) -> None:
     symbols = {entry.symbol for entry in entries}
-    missing = sorted(PRODUCT_SUPPORTED_SYMBOLS - symbols)
+    missing = sorted(required_product_symbols - symbols)
     if missing:
         raise ValueError(f"Missing required product asset(s): {', '.join(missing)}")
 
@@ -221,6 +254,47 @@ def _normalize_asset(
     return normalized, _coverage_for(entry.symbol, normalized["date"].tolist())
 
 
+def _build_simulation_asset_metadata(
+    entries: list[DirectoryEntry],
+    coverage: list[CoverageReport],
+    skipped_assets: list[SkippedAsset],
+    category_map: dict[str, str],
+    imported_at: str,
+) -> list[SimulationAssetMetadata]:
+    coverage_by_symbol = {item.asset_symbol: item for item in coverage}
+    skipped_by_symbol = {item.asset_symbol: item for item in skipped_assets}
+    metadata: list[SimulationAssetMetadata] = []
+
+    for entry in entries:
+        asset_id = _asset_id_from_file_name(entry.file_name)
+        asset_coverage = coverage_by_symbol.get(entry.symbol)
+        skipped = skipped_by_symbol.get(entry.symbol)
+        status = "ready" if asset_coverage else "historical_invalid"
+        metadata.append(
+            SimulationAssetMetadata(
+                asset_id=asset_id,
+                symbol=entry.symbol,
+                name=entry.asset_name,
+                csv_file_name=entry.file_name,
+                category=category_map.get(entry.symbol, "Other"),
+                status=status,
+                historical_symbol=entry.symbol,
+                first_imported_date=asset_coverage.first_imported_date if asset_coverage else None,
+                last_imported_date=asset_coverage.last_imported_date if asset_coverage else None,
+                imported_row_count=asset_coverage.imported_row_count if asset_coverage else 0,
+                missing_date_count=asset_coverage.missing_date_count if asset_coverage else 0,
+                largest_gap_days=asset_coverage.largest_gap_days if asset_coverage else 0,
+                unavailable_reason=None if asset_coverage else "Historical data needs validation.",
+                unavailable_detail=skipped.reason if skipped else None,
+                coin_gecko_id=asset_id if asset_coverage else None,
+                imported_at=imported_at,
+                updated_at=imported_at,
+            )
+        )
+
+    return metadata
+
+
 def _write_sql(rows: pd.DataFrame, report: dict, output_sql: Path) -> None:
     output_sql.parent.mkdir(parents=True, exist_ok=True)
     columns = [
@@ -247,6 +321,31 @@ def _write_sql(rows: pd.DataFrame, report: dict, output_sql: Path) -> None:
         for row in rows[columns].itertuples(index=False, name=None):
             values = ", ".join(_sql_quote(value) for value in row)
             handle.write(f"INSERT INTO historical_crypto_prices ({', '.join(columns)}) VALUES ({values});\n")
+        simulation_asset_columns = [
+            "asset_id",
+            "symbol",
+            "name",
+            "csv_file_name",
+            "category",
+            "status",
+            "historical_symbol",
+            "first_imported_date",
+            "last_imported_date",
+            "imported_row_count",
+            "missing_date_count",
+            "largest_gap_days",
+            "unavailable_reason",
+            "unavailable_detail",
+            "coin_gecko_id",
+            "imported_at",
+            "updated_at",
+        ]
+        handle.write("DELETE FROM simulation_assets;\n")
+        for asset in report["simulation_assets"]:
+            values = ", ".join(_sql_quote(asset[column]) for column in simulation_asset_columns)
+            handle.write(
+                f"INSERT INTO simulation_assets ({', '.join(simulation_asset_columns)}) VALUES ({values});\n"
+            )
         provenance = report["provenance"]
         provenance_columns = [
             "import_id",
@@ -294,13 +393,17 @@ def build_import(
     imported_at: str | None = None,
     end_date: date | None = None,
     now: datetime | None = None,
+    category_map: dict[str, str] | None = None,
+    required_product_symbols: set[str] | None = None,
 ) -> ImportResult:
     now = now or datetime.now(timezone.utc)
     imported_at = imported_at or now.isoformat()
     start_date = date(2021, 1, 1)
     end_date = end_date or _utc_yesterday(now)
+    category_map = category_map or {}
+    required_product_symbols = required_product_symbols or PRODUCT_SUPPORTED_SYMBOLS
     entries = read_directory_entries(source_root)
-    assert_product_assets(entries)
+    assert_product_assets(entries, required_product_symbols)
 
     frames: list[pd.DataFrame] = []
     skipped_assets: list[SkippedAsset] = []
@@ -318,23 +421,31 @@ def build_import(
                 downloaded_at=downloaded_at,
                 imported_at=imported_at,
             )
-            if entry.symbol in PRODUCT_SUPPORTED_SYMBOLS:
+            if entry.symbol in required_product_symbols:
                 _assert_product_coverage(asset_coverage, start_date, end_date)
             frames.append(frame)
             coverage.append(asset_coverage)
         except Exception as error:
-            if entry.symbol in PRODUCT_SUPPORTED_SYMBOLS:
+            if entry.symbol in required_product_symbols:
                 raise
             skipped_assets.append(SkippedAsset(entry.symbol, entry.file_name, str(error)))
 
     rows = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     imported_assets = sorted(rows["asset_symbol"].unique().tolist()) if not rows.empty else []
+    simulation_assets = _build_simulation_asset_metadata(
+        entries=entries,
+        coverage=coverage,
+        skipped_assets=skipped_assets,
+        category_map=category_map,
+        imported_at=imported_at,
+    )
     report = {
         "imported_assets": imported_assets,
         "skipped_assets": [asdict(asset) for asset in skipped_assets],
         "imported_row_count": int(len(rows)),
         "rejected_row_count": len(skipped_assets),
         "coverage_report": [asdict(item) for item in coverage],
+        "simulation_assets": [asdict(item) for item in simulation_assets],
         "provenance": {
             "import_id": f"{source_version}-{imported_at}",
             "source_name": source_name,
@@ -344,7 +455,7 @@ def build_import(
             "downloaded_at": downloaded_at,
             "imported_at": imported_at,
             "imported_assets": imported_assets,
-            "product_supported_assets": sorted(PRODUCT_SUPPORTED_SYMBOLS),
+            "product_supported_assets": sorted(required_product_symbols),
             "imported_row_count": int(len(rows)),
             "rejected_row_count": len(skipped_assets),
             "coverage_report": [asdict(item) for item in coverage],
@@ -363,6 +474,7 @@ def build_import(
         imported_row_count=int(len(rows)),
         rejected_row_count=len(skipped_assets),
         coverage_report=coverage,
+        simulation_assets=simulation_assets,
     )
 
 
@@ -387,6 +499,7 @@ def main() -> None:
         output_sql=args.output_sql,
         output_report=args.output_report,
         end_date=date.fromisoformat(args.end_date) if args.end_date else None,
+        category_map=read_category_map(Path(__file__).with_name("asset_categories.json")),
     )
     print(json.dumps(asdict(result), indent=2))
 

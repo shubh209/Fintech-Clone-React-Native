@@ -1,4 +1,5 @@
 import csv
+import json
 import sys
 import tempfile
 import unittest
@@ -82,6 +83,42 @@ class HistoricalPriceImportTests(unittest.TestCase):
         result = self.build(root)
         self.assertEqual(result.imported_assets, ["BTC", "ETH", "SOL"])
         self.assertEqual(result.skipped_assets[0].asset_symbol, "DOGE")
+
+    def test_build_import_reports_all_directory_assets_in_metadata(self):
+        root = self.make_source(
+            directory_rows=[[1, "bitcoin", "bitcoin_BTC.csv"], [2, "broken", "broken_BAD.csv"]],
+            files={
+                "bitcoin_BTC.csv": csv_rows(["2021-01-01", "2021-01-02", "2021-01-03"]),
+                "broken_BAD.csv": [
+                    HEADER,
+                    ["2021-01-01 00:00:00+00:00", "", 12, 9, 11, 1000, "", 3, 10, 10],
+                ],
+            },
+        )
+        output_report = root / "report.json"
+
+        result = build_import(
+            source_root=root,
+            source_name="Test source",
+            source_url="https://example.test/dataset",
+            source_version="test",
+            downloaded_at="2026-05-22T00:00:00.000Z",
+            output_sql=root / "out.sql",
+            output_report=output_report,
+            imported_at="2026-05-22T01:00:00.000Z",
+            end_date=date(2021, 1, 3),
+            now=datetime(2026, 5, 22, tzinfo=timezone.utc),
+            category_map={"BTC": "Layer 1", "BAD": "Other"},
+            required_product_symbols={"BTC"},
+        )
+
+        report = json.loads(output_report.read_text(encoding="utf-8"))
+        assets = {asset["asset_id"]: asset for asset in report["simulation_assets"]}
+        self.assertEqual(assets["bitcoin"]["status"], "ready")
+        self.assertEqual(assets["broken"]["status"], "historical_invalid")
+        self.assertEqual(assets["broken"]["unavailable_reason"], "Historical data needs validation.")
+        self.assertIn("Open is required", assets["broken"]["unavailable_detail"])
+        self.assertEqual(result.imported_row_count, 3)
 
     def test_fails_on_product_gap_over_three_days(self):
         root = self.make_source(
