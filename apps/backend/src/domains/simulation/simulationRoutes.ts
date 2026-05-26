@@ -1,9 +1,15 @@
 import { Hono } from 'hono';
 import { ApiEnv } from '../../types';
+import { getSimulationAssets } from './simulationAssetsService';
 import { getSimulationHistory } from './simulationHistoryService';
 import { getSimulationPrice } from './simulationPriceService';
 
 export const simulationRoutes = new Hono<{ Bindings: ApiEnv }>();
+
+simulationRoutes.get('/assets', async (context) => {
+  const result = await getSimulationAssets({ env: context.env });
+  return context.json(result.body, result.status as 200);
+});
 
 simulationRoutes.get('/prices', async (context) => {
   const result = await getSimulationPrice({
