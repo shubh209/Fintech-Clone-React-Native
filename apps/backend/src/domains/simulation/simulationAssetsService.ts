@@ -18,6 +18,17 @@ interface ServiceResult {
 
 type MarketCacheResult = Awaited<ReturnType<typeof getCachedSimulationMarkets>>;
 
+function unavailableCatalogResult(): ServiceResult {
+  return {
+    status: 503,
+    body: {
+      status: 'error',
+      code: 'simulation_assets_unavailable',
+      message: 'Simulation asset catalog is unavailable.',
+    },
+  };
+}
+
 function emptyMarket(coinGeckoId: string | null): SimulationAssetCatalogItem['market'] {
   return {
     coinGeckoId,
@@ -117,17 +128,16 @@ export async function getSimulationAssets({
   now?: Date;
 }): Promise<ServiceResult> {
   if (!env.HISTORICAL_PRICES_DB) {
-    return {
-      status: 503,
-      body: {
-        status: 'error',
-        code: 'simulation_assets_unavailable',
-        message: 'Simulation asset catalog is unavailable.',
-      },
-    };
+    return unavailableCatalogResult();
   }
 
-  const assets = await listSimulationAssets({ db: env.HISTORICAL_PRICES_DB });
+  let assets: SimulationAssetMetadataRecord[];
+  try {
+    assets = await listSimulationAssets({ db: env.HISTORICAL_PRICES_DB });
+  } catch {
+    return unavailableCatalogResult();
+  }
+
   const readyCoinGeckoIds = assets
     .filter((asset) => asset.status === 'ready' && asset.coinGeckoId)
     .map((asset) => asset.coinGeckoId as string);
