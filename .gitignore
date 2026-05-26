@@ -13,3 +13,5 @@ __pycache__/
 .expo/
 .DS_Store
 .wrangler/
+Build_with_ai.txt
+build_with_at.txt
