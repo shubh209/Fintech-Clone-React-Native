@@ -62,4 +62,62 @@ describe('fetchCoinGeckoMarkets', () => {
 
     expect(message).toBe('invalid CoinGecko market row');
   });
+
+  it('throws with the response status when CoinGecko returns a non-ok response', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+    }) as unknown as typeof fetch;
+
+    let message = '';
+    try {
+      await fetchCoinGeckoMarkets({ coinGeckoIds: ['bitcoin'], fetchImpl });
+    } catch (error) {
+      message = error instanceof Error ? error.message : '';
+    }
+
+    expect(message).toBe('CoinGecko markets request failed: 429');
+  });
+
+  it('rejects market rows missing a CoinGecko id', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ current_price: 77000 }],
+    }) as unknown as typeof fetch;
+
+    let message = '';
+    try {
+      await fetchCoinGeckoMarkets({ coinGeckoIds: ['bitcoin'], fetchImpl });
+    } catch (error) {
+      message = error instanceof Error ? error.message : '';
+    }
+
+    expect(message).toBe('invalid CoinGecko market row');
+  });
+
+  it('maps invalid or missing optional market fields to null', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: 'bitcoin',
+          current_price: 77000,
+          market_cap_rank: '1',
+          image: '',
+          price_change_percentage_24h: Number.NaN,
+        },
+      ],
+    }) as unknown as typeof fetch;
+
+    const markets = await fetchCoinGeckoMarkets({ coinGeckoIds: ['bitcoin'], fetchImpl });
+
+    expect(markets.bitcoin).toEqual({
+      coinGeckoId: 'bitcoin',
+      rank: null,
+      imageUrl: null,
+      currentPriceUsd: 77000,
+      priceChangePercentage24h: null,
+      updatedAt: null,
+    });
+  });
 });

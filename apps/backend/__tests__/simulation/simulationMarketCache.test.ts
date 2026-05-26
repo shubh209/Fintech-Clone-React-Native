@@ -1,3 +1,8 @@
+jest.mock('../../src/telemetry/metrics', () => ({
+  recordMetric: jest.fn(),
+}));
+
+import { recordMetric } from '../../src/telemetry/metrics';
 import {
   clearSimulationMarketCache,
   getCachedSimulationMarkets,
@@ -12,8 +17,17 @@ const market = {
   updatedAt: '2026-05-26T00:00:00.000Z',
 };
 
+const updatedMarket = {
+  ...market,
+  currentPriceUsd: 88000,
+  updatedAt: '2026-05-26T01:00:00.000Z',
+};
+
 describe('simulationMarketCache', () => {
-  beforeEach(() => clearSimulationMarketCache());
+  beforeEach(() => {
+    clearSimulationMarketCache();
+    (recordMetric as any).mockClear();
+  });
 
   it('returns fresh cache within 60 seconds', async () => {
     const refresh = jest.fn().mockResolvedValue({ bitcoin: market }) as any;
@@ -45,6 +59,39 @@ describe('simulationMarketCache', () => {
     expect(stale.markets.bitcoin.currentPriceUsd).toBe(77000);
   });
 
+  it('refreshes expired fresh cache and returns new market data', async () => {
+    let refreshCalls = 0;
+    const refresh = jest.fn();
+    refresh.mockImplementation(async () => {
+      refreshCalls += 1;
+      return refreshCalls === 1 ? { bitcoin: market } : { bitcoin: updatedMarket };
+    });
+
+    await getCachedSimulationMarkets({ refresh: refresh as any, nowMs: 1000 });
+    const refreshed = await getCachedSimulationMarkets({ refresh: refresh as any, nowMs: 62_000 });
+
+    expect((refresh as any).mock.calls.length).toBe(2);
+    expect(refreshed).toEqual({
+      markets: { bitcoin: updatedMarket },
+      cacheStatus: 'refreshed',
+      cachedAtMs: 62_000,
+    });
+  });
+
+  it('throws unavailable when refresh fails without a cache', async () => {
+    let message = '';
+    try {
+      await getCachedSimulationMarkets({
+        refresh: jest.fn().mockRejectedValue(new Error('network')) as any,
+        nowMs: 1000,
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : '';
+    }
+
+    expect(message).toBe('Simulation market data unavailable');
+  });
+
   it('throws when stale cache is older than 24 hours and refresh fails', async () => {
     await getCachedSimulationMarkets({
       refresh: jest.fn().mockResolvedValue({ bitcoin: market }) as any,
@@ -62,5 +109,34 @@ describe('simulationMarketCache', () => {
     }
 
     expect(message).toBe('Simulation market data unavailable');
+  });
+
+  it('records metrics for fresh, refreshed, stale, and unavailable cache states', async () => {
+    await getCachedSimulationMarkets({
+      refresh: jest.fn().mockResolvedValue({ bitcoin: market }) as any,
+      nowMs: 1000,
+    });
+    await getCachedSimulationMarkets({
+      refresh: jest.fn().mockResolvedValue({ bitcoin: updatedMarket }) as any,
+      nowMs: 2000,
+    });
+    await getCachedSimulationMarkets({
+      refresh: jest.fn().mockRejectedValue(new Error('network')) as any,
+      nowMs: 2 * 60 * 1000,
+    });
+    clearSimulationMarketCache();
+    try {
+      await getCachedSimulationMarkets({
+        refresh: jest.fn().mockRejectedValue(new Error('network')) as any,
+        nowMs: 3000,
+      });
+    } catch (error) {
+      // Expected path for unavailable metric coverage.
+    }
+
+    const cacheStatuses = (recordMetric as any).mock.calls.map(
+      ([metric]: any[]) => metric.metadata.cacheStatus
+    );
+    expect(cacheStatuses).toEqual(['refreshed', 'fresh', 'stale', 'unavailable']);
   });
 });
