@@ -78,6 +78,31 @@ describe('simulationMarketCache', () => {
     });
   });
 
+  it('coalesces concurrent cold-start refreshes', async () => {
+    const marketRecord = { bitcoin: market };
+    let resolveRefresh: (markets: typeof marketRecord) => void = () => {};
+    const refresh = jest.fn();
+    refresh.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        })
+    );
+
+    const first = getCachedSimulationMarkets({ refresh: refresh as any, nowMs: 1000 });
+    const second = getCachedSimulationMarkets({ refresh: refresh as any, nowMs: 1000 });
+
+    expect((refresh as any).mock.calls.length).toBe(1);
+
+    resolveRefresh(marketRecord);
+
+    const results = await Promise.all([first, second]);
+    expect(results).toEqual([
+      { markets: marketRecord, cacheStatus: 'refreshed', cachedAtMs: 1000 },
+      { markets: marketRecord, cacheStatus: 'refreshed', cachedAtMs: 1000 },
+    ]);
+  });
+
   it('throws unavailable when refresh fails without a cache', async () => {
     let message = '';
     try {

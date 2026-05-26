@@ -4,10 +4,17 @@ import { CoinGeckoMarket } from './coinGeckoMarketsClient';
 export const simulationMarketFreshTtlMs = 60_000;
 export const simulationMarketStaleTtlMs = 24 * 60 * 60 * 1000;
 
-let cacheEntry: { markets: Record<string, CoinGeckoMarket>; cachedAtMs: number } | null = null;
+interface SimulationMarketCacheEntry {
+  markets: Record<string, CoinGeckoMarket>;
+  cachedAtMs: number;
+}
+
+let cacheEntry: SimulationMarketCacheEntry | null = null;
+let inFlightRefresh: Promise<SimulationMarketCacheEntry> | null = null;
 
 export function clearSimulationMarketCache() {
   cacheEntry = null;
+  inFlightRefresh = null;
 }
 
 function recordMarketCacheMetric({
@@ -31,6 +38,27 @@ function recordMarketCacheMetric({
       ageMs,
     },
   });
+}
+
+function refreshSimulationMarkets({
+  refresh,
+  nowMs,
+}: {
+  refresh: () => Promise<Record<string, CoinGeckoMarket>>;
+  nowMs: number;
+}) {
+  if (!inFlightRefresh) {
+    inFlightRefresh = refresh()
+      .then((markets) => {
+        cacheEntry = { markets, cachedAtMs: nowMs };
+        return cacheEntry;
+      })
+      .finally(() => {
+        inFlightRefresh = null;
+      });
+  }
+
+  return inFlightRefresh;
 }
 
 export async function getCachedSimulationMarkets({
@@ -58,15 +86,14 @@ export async function getCachedSimulationMarkets({
   }
 
   try {
-    const markets = await refresh();
-    cacheEntry = { markets, cachedAtMs: nowMs };
+    const refreshed = await refreshSimulationMarkets({ refresh, nowMs });
     recordMarketCacheMetric({
-      markets,
+      markets: refreshed.markets,
       cacheStatus: 'refreshed',
       ageMs: 0,
       status: 'success',
     });
-    return { ...cacheEntry, cacheStatus: 'refreshed' };
+    return { ...refreshed, cacheStatus: 'refreshed' };
   } catch (error) {
     if (cacheEntry) {
       const ageMs = nowMs - cacheEntry.cachedAtMs;
