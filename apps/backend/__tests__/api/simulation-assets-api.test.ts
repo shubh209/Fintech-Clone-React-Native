@@ -3,6 +3,7 @@ import {
   clearSimulationMarketCache,
   simulationMarketFreshTtlMs,
 } from '../../src/domains/simulation/simulationMarketCache';
+import { clearMetrics, getMetricsSnapshot } from '../../src/telemetry/metrics';
 import { SqlDatabase } from '../../src/types';
 
 const catalogUnavailableError = {
@@ -122,6 +123,7 @@ function setSystemDate(date: Date) {
 describe('GET /api/simulation/assets', () => {
   beforeEach(() => {
     clearSimulationMarketCache();
+    clearMetrics();
   });
 
   afterEach(() => {
@@ -147,6 +149,20 @@ describe('GET /api/simulation/assets', () => {
     expect(body.assets.ready[0].market.currentPriceUsd).toBe(77000);
     expect(body.assets.unavailable[0].assetId).toBe('sui');
     expect(body.assets.unavailable[0].availability.detail).toContain('non-positive');
+    const catalogMetric = getMetricsSnapshot().find(
+      (metric) => metric.name === 'crypto.api.simulation_assets.catalog'
+    );
+    expect(catalogMetric).toEqual(
+      expect.objectContaining({
+        name: 'crypto.api.simulation_assets.catalog',
+        status: 'success',
+        metadata: expect.objectContaining({
+          readyCount: 1,
+          unavailableCount: 1,
+          marketCacheStatus: 'fresh',
+        }),
+      })
+    );
   });
 
   it('returns the shared unavailable error when the D1 binding is missing', async () => {

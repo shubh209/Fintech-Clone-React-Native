@@ -209,7 +209,11 @@ export async function getSimulationPrice({
     name: 'crypto.api.simulation_prices.compute',
     durationMs: Date.now() - startedAt,
     status: 'success',
-    metadata: { asset: validated.asset, dateResolution: historical.dateResolution },
+    metadata: {
+      asset: validated.asset,
+      dateResolution: historical.dateResolution,
+      cacheStatus: current.cacheStatus,
+    },
   });
 
   const assetConfig = getSimulationAsset(validated.asset);

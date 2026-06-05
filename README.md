@@ -2,7 +2,7 @@
 
 Expo Router app pivoting into a crypto market simulator.
 
-The current repo is intentionally minimal: auth, crypto market data, crypto detail screens, Cloudflare Worker crypto APIs, shared crypto validators, and tests. Old fintech-clone features such as Home balance, Activity ledger, fake money actions, transaction sync, lock/passcode, and static widgets were removed to keep the codebase easy to manipulate before the simulator is built.
+The current repo is intentionally focused: auth, crypto market data, crypto detail screens, Simulation, Cloudflare Worker crypto APIs, shared validators, and tests. Old fintech-clone features such as Home balance, Activity ledger, fake money actions, transaction sync, lock/passcode, and static widgets were removed to keep the codebase centered on the simulator.
 
 ## Product Direction
 
@@ -12,12 +12,12 @@ The next product goal is a crypto time-machine simulator:
 - choose a historical buy date
 - enter an investment amount or quantity
 - compare historical value against current value
-- later show purchasing-power comparisons for assets by region
+- show purchasing-power comparisons by city
 
 ## Current Feature State
 
 - Auth routes exist for signup, login, help, and phone verification through Clerk.
-- The only current signed-in tab is Crypto.
+- The current signed-in tabs are Simulation and Crypto.
 - Crypto calls the Cloudflare Worker backend configured through `EXPO_PUBLIC_API_BASE_URL`.
 - Crypto list/detail screens show market data, data source/freshness copy, retry states, and chart/detail views.
 
@@ -38,7 +38,7 @@ The next product goal is a crypto time-machine simulator:
 
 ## Known Limits
 
-- Historical crypto simulation is not implemented yet.
+- Simulation v1 is limited to BTC, ETH, and SOL.
 - The app is not connected to real bank accounts.
 - No real trading, transfer, or exchange behavior exists.
 - Crypto fallback ticker history is limited when live quote data is unavailable.
@@ -109,6 +109,8 @@ Run verification:
 ./node_modules/.bin/jest --runInBand --watchman=false
 ./node_modules/.bin/tsc --noEmit
 ```
+
+CI runs the same quality gate in GitHub Actions on pull requests and pushes to `main`.
 
 The repo path contains `Web:Apps`, and `:` can break npm/npx PATH resolution. Prefer direct local binaries for verification.
 

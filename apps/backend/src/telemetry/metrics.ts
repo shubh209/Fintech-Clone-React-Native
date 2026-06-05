@@ -5,7 +5,16 @@ export interface MetricPayload {
   metadata?: Record<string, unknown>;
 }
 
+const MAX_BUFFER_SIZE = 200;
+const metricsBuffer: MetricPayload[] = [];
+
 export function recordMetric(metric: MetricPayload) {
+  metricsBuffer.push(metric);
+
+  if (metricsBuffer.length > MAX_BUFFER_SIZE) {
+    metricsBuffer.shift();
+  }
+
   if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
     return;
   }
@@ -13,6 +22,14 @@ export function recordMetric(metric: MetricPayload) {
   if (typeof console !== 'undefined') {
     console.log(`[metric] ${metric.name}`, metric);
   }
+}
+
+export function getMetricsSnapshot() {
+  return [...metricsBuffer];
+}
+
+export function clearMetrics() {
+  metricsBuffer.length = 0;
 }
 
 export async function timeAsync<T>(

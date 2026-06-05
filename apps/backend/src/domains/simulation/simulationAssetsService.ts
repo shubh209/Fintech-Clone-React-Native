@@ -10,6 +10,7 @@ import {
   SimulationAssetMetadataRecord,
 } from './simulationAssetRepository';
 import { getCachedSimulationMarkets } from './simulationMarketCache';
+import { recordMetric } from '../../telemetry/metrics';
 
 interface ServiceResult {
   status: number;
@@ -174,14 +175,27 @@ export async function getSimulationAssets({
 
     return toCatalogItem({ asset, market, marketStatus: marketCacheStatus });
   });
+  const ready = items.filter((item) => item.status === 'ready');
+  const unavailable = items.filter((item) => item.status !== 'ready');
+
+  recordMetric({
+    name: 'crypto.api.simulation_assets.catalog',
+    durationMs: 0,
+    status: 'success',
+    metadata: {
+      readyCount: ready.length,
+      unavailableCount: unavailable.length,
+      marketCacheStatus,
+    },
+  });
 
   return {
     status: 200,
     body: {
       status: 'success',
       assets: {
-        ready: items.filter((item) => item.status === 'ready'),
-        unavailable: items.filter((item) => item.status !== 'ready'),
+        ready,
+        unavailable,
       },
       source: {
         historicalProvider: 'historical_csv',

@@ -39,12 +39,14 @@ To verify deployed Simulation endpoints:
 ```bash
 curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/prices?asset=BTC&date=2021-01-01&amountUsd=100'
 curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/history?asset=BTC&year=2021'
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/purchasing-power/comparisons?city=phoenix&amountUsd=2500'
 ```
 
 Expected behavior:
 
 - `/api/simulation/prices` returns JSON with `status: "success"` or a structured `error`/`unavailable` response.
 - `/api/simulation/history` returns JSON with yearly `points` for the selected asset/year.
+- `/api/purchasing-power/comparisons` returns JSON with monthly essentials and big-purchase comparisons for the selected city.
 
 To verify historical D1 data:
 
@@ -108,6 +110,14 @@ If a screen appears missing:
 - Removed routes include Home, Activity, lock/passcode, transaction store screens, widgets, and fake banking actions.
 
 ## Verification Commands
+
+GitHub Actions runs the core quality gate on pull requests and pushes to `main`.
+Run the same commands locally before pushing:
+
+```bash
+./node_modules/.bin/jest --runInBand --watchman=false
+./node_modules/.bin/tsc --noEmit
+```
 
 Run these after changing crypto API routes, crypto screens, auth routing, or formatting helpers:
 

@@ -1,5 +1,6 @@
 import app from '../../src';
 import { clearCurrentPriceCache } from '../../src/domains/simulation/currentPriceCache';
+import { clearMetrics, getMetricsSnapshot } from '../../src/telemetry/metrics';
 import { SqlDatabase } from '../../src/types';
 
 function fakeHistoricalDb(rows: Array<Record<string, unknown>>): SqlDatabase {
@@ -66,6 +67,7 @@ const env = {
 describe('simulation prices API', () => {
   beforeEach(() => {
     clearCurrentPriceCache();
+    clearMetrics();
     jest.restoreAllMocks();
   });
 
@@ -114,6 +116,20 @@ describe('simulation prices API', () => {
     expect(body.result.currentValueUsd).toBe(250);
     expect(body.result.gainLossUsd).toBe(150);
     expect(body.result.gainLossPercent).toBe(150);
+    const computeMetric = getMetricsSnapshot().find(
+      (metric) => metric.name === 'crypto.api.simulation_prices.compute'
+    );
+    expect(computeMetric).toEqual(
+      expect.objectContaining({
+        name: 'crypto.api.simulation_prices.compute',
+        status: 'success',
+        metadata: expect.objectContaining({
+          asset: 'BTC',
+          dateResolution: 'exact',
+          cacheStatus: 'refreshed',
+        }),
+      })
+    );
   });
 
   it('returns current unavailable when CoinGecko fails and cache is empty', async () => {

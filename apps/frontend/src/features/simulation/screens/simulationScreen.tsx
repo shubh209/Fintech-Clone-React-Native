@@ -15,6 +15,8 @@ import { CartesianChart, Line, useChartPressState } from 'victory-native';
 import { Circle, useFont } from '@shopify/react-native-skia';
 import { runOnJS, SharedValue, useAnimatedReaction } from 'react-native-reanimated';
 
+import { getPurchasingPowerComparisons } from '@/features/simulation/api/getPurchasingPowerComparisons';
+import { getSimulationAssets } from '@/features/simulation/api/getSimulationAssets';
 import { getSimulationHistory } from '@/features/simulation/api/getSimulationHistory';
 import { getSimulationPrice } from '@/features/simulation/api/getSimulationPrice';
 import {
@@ -31,6 +33,10 @@ import {
   SimulationPriceResponse,
   SimulationPriceSuccessResponse,
 } from '@shared/simulationTypes';
+import {
+  PurchasingPowerCityId,
+  PurchasingPowerComparison,
+} from '@shared/purchasingPowerTypes';
 
 const MIN_SIMULATION_DATE = '2021-01-01';
 const MAX_SIMULATION_DATE = '2026-03-22';
@@ -42,6 +48,18 @@ const SIMULATION_ASSETS: Array<{ symbol: SimulationAssetSymbol; name: string }> 
 ];
 
 const SIMULATION_YEARS = [2021, 2022, 2023, 2024, 2025, 2026];
+
+const PURCHASING_POWER_CITIES: Array<{
+  id: PurchasingPowerCityId;
+  name: string;
+  shortName: string;
+}> = [
+  { id: 'phoenix', name: 'Phoenix', shortName: 'Phoenix' },
+  { id: 'san_francisco', name: 'San Francisco', shortName: 'SF' },
+  { id: 'new_york', name: 'New York', shortName: 'NYC' },
+  { id: 'austin', name: 'Austin', shortName: 'Austin' },
+  { id: 'seattle', name: 'Seattle', shortName: 'Seattle' },
+];
 
 function formatUsd(value: number) {
   return new Intl.NumberFormat('en-US', {
@@ -103,6 +121,22 @@ function ChartToolTip({
   return <Circle cx={x} cy={y} r={7} color="#F2827F" />;
 }
 
+function ComparisonRows({ items }: { items: PurchasingPowerComparison[] }) {
+  return (
+    <View style={styles.comparisonList}>
+      {items.map((item) => (
+        <View key={item.itemId} style={styles.comparisonRow}>
+          <View style={styles.comparisonCopy}>
+            <Text style={styles.comparisonTitle}>{item.label}</Text>
+            <Text style={styles.comparisonMeta}>{formatUsd(item.costUsd)} baseline</Text>
+          </View>
+          <Text style={styles.comparisonQuantity}>{item.quantity.toFixed(2)}x</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function SimulationScreen() {
   const headerHeight = useHeaderHeight();
   const chartFont = useFont(require('@assets/fonts/SpaceMono-Regular.ttf'), 10);
@@ -118,6 +152,7 @@ export default function SimulationScreen() {
   const [latestResult, setLatestResult] = useState<SimulationPriceResponse | null>(null);
   const [savedItems, setSavedItems] = useState<SavedSimulation[]>([]);
   const [saveMessage, setSaveMessage] = useState('');
+  const [selectedCity, setSelectedCity] = useState<PurchasingPowerCityId>('phoenix');
 
   const selectedAsset = useMemo(
     () => SIMULATION_ASSETS.find((item) => item.symbol === asset) ?? SIMULATION_ASSETS[0],
@@ -128,6 +163,38 @@ export default function SimulationScreen() {
     queryKey: ['simulation-history', asset, selectedYear],
     queryFn: () => getSimulationHistory({ asset, year: selectedYear }),
   });
+  const assetCatalogQuery = useQuery({
+    queryKey: ['simulation-assets'],
+    queryFn: getSimulationAssets,
+  });
+  const assetCatalog =
+    assetCatalogQuery.data?.status === 'success' ? assetCatalogQuery.data : null;
+  const catalogReadyCount = assetCatalog?.assets.ready.length ?? 0;
+  const catalogUnavailableCount = assetCatalog?.assets.unavailable.length ?? 0;
+  const topCatalogAssets = useMemo(
+    () =>
+      [...(assetCatalog?.assets.ready ?? [])]
+        .sort((left, right) => (left.market.rank ?? 9999) - (right.market.rank ?? 9999))
+        .slice(0, 3),
+    [assetCatalog]
+  );
+  const firstUnavailableAsset = assetCatalog?.assets.unavailable[0] ?? null;
+  const successfulResult = isSuccessfulResult(latestResult) ? latestResult : null;
+  const purchasingPowerQuery = useQuery({
+    queryKey: [
+      'purchasing-power',
+      selectedCity,
+      successfulResult?.result.currentValueUsd ?? null,
+    ],
+    queryFn: () =>
+      getPurchasingPowerComparisons({
+        city: selectedCity,
+        amountUsd: successfulResult?.result.currentValueUsd ?? 0,
+      }),
+    enabled: !!successfulResult,
+  });
+  const purchasingPower =
+    purchasingPowerQuery.data?.status === 'success' ? purchasingPowerQuery.data : null;
 
   const history = historyQuery.data?.status === 'success' ? historyQuery.data : null;
   const historyPoints = history?.points ?? [];
@@ -278,6 +345,64 @@ export default function SimulationScreen() {
             Historical dates: {MIN_SIMULATION_DATE} to {MAX_SIMULATION_DATE}
           </Text>
         </View>
+      </View>
+
+      <View style={styles.panel}>
+        <View style={styles.resultHeader}>
+          <View>
+            <Text style={styles.panelTitle}>Asset catalog</Text>
+            <Text style={styles.helperText}>
+              Not all catalog assets are enabled for Simulation v1.
+            </Text>
+          </View>
+          {assetCatalogQuery.isLoading && <ActivityIndicator size="small" color={Colors.primary} />}
+        </View>
+
+        {assetCatalogQuery.isError && (
+          <View style={styles.stateRow}>
+            <Ionicons name="cloud-offline-outline" size={20} color="#C24135" />
+            <Text style={styles.stateText}>Unable to load asset catalog.</Text>
+          </View>
+        )}
+
+        {assetCatalog && (
+          <>
+            <View style={styles.catalogStatsRow}>
+              <View style={styles.catalogStat}>
+                <Text style={styles.resultLabel}>Ready assets</Text>
+                <Text style={styles.resultValue}>{catalogReadyCount}</Text>
+              </View>
+              <View style={styles.catalogStat}>
+                <Text style={styles.resultLabel}>Unavailable assets</Text>
+                <Text style={styles.resultValue}>{catalogUnavailableCount}</Text>
+              </View>
+              <View style={styles.catalogStat}>
+                <Text style={styles.resultLabel}>Market cache</Text>
+                <Text style={styles.resultValue}>{assetCatalog.source.marketCacheStatus}</Text>
+              </View>
+            </View>
+
+            {topCatalogAssets.length > 0 && (
+              <View style={styles.catalogList}>
+                {topCatalogAssets.map((item) => (
+                  <View key={item.assetId} style={styles.catalogRow}>
+                    <Text style={styles.catalogSymbol}>{item.symbol}</Text>
+                    <Text style={styles.catalogName}>{item.name}</Text>
+                    <Text style={styles.catalogMeta}>
+                      {item.market.rank ? `#${item.market.rank}` : 'ready'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {firstUnavailableAsset && (
+              <Text style={styles.helperText}>
+                {firstUnavailableAsset.symbol}: {firstUnavailableAsset.availability.reason}
+              </Text>
+            )}
+          </>
+        )}
       </View>
 
       <View style={styles.panel}>
@@ -488,13 +613,13 @@ export default function SimulationScreen() {
         </View>
       )}
 
-      {isSuccessfulResult(latestResult) && (
+      {successfulResult && (
         <View style={styles.panel}>
           <View style={styles.resultHeader}>
             <View>
               <Text style={styles.panelTitle}>Hypothetical simulation</Text>
               <Text style={styles.subtitle}>
-                {selectedAsset.name} from {latestResult.historical.resolvedDate}
+                {selectedAsset.name} from {successfulResult.historical.resolvedDate}
               </Text>
             </View>
             <TouchableOpacity style={styles.saveButton} onPress={onSave} activeOpacity={0.82}>
@@ -506,22 +631,22 @@ export default function SimulationScreen() {
           <View style={styles.resultGrid}>
             <View style={styles.resultCell}>
               <Text style={styles.resultLabel}>Historical price</Text>
-              <Text style={styles.resultValue}>{formatUsd(latestResult.historical.priceUsd)}</Text>
+              <Text style={styles.resultValue}>{formatUsd(successfulResult.historical.priceUsd)}</Text>
             </View>
             <View style={styles.resultCell}>
               <Text style={styles.resultLabel}>Current price</Text>
-              <Text style={styles.resultValue}>{formatUsd(latestResult.current.priceUsd)}</Text>
+              <Text style={styles.resultValue}>{formatUsd(successfulResult.current.priceUsd)}</Text>
             </View>
             <View style={styles.resultCell}>
               <Text style={styles.resultLabel}>Estimated quantity</Text>
               <Text style={styles.resultValue}>
-                {latestResult.result.impliedQuantity.toFixed(8)}
+                {successfulResult.result.impliedQuantity.toFixed(8)}
               </Text>
             </View>
             <View style={styles.resultCell}>
               <Text style={styles.resultLabel}>Current value</Text>
               <Text style={styles.resultValue}>
-                {formatUsd(latestResult.result.currentValueUsd)}
+                {formatUsd(successfulResult.result.currentValueUsd)}
               </Text>
             </View>
           </View>
@@ -529,43 +654,106 @@ export default function SimulationScreen() {
           <View
             style={[
               styles.gainRow,
-              latestResult.result.gainLossUsd >= 0 ? styles.gainPositive : styles.gainNegative,
+              successfulResult.result.gainLossUsd >= 0 ? styles.gainPositive : styles.gainNegative,
             ]}
           >
             <Ionicons
-              name={latestResult.result.gainLossUsd >= 0 ? 'trending-up' : 'trending-down'}
+              name={successfulResult.result.gainLossUsd >= 0 ? 'trending-up' : 'trending-down'}
               size={20}
-              color={latestResult.result.gainLossUsd >= 0 ? '#0A8F5A' : '#C24135'}
+              color={successfulResult.result.gainLossUsd >= 0 ? '#0A8F5A' : '#C24135'}
             />
             <Text
               style={[
                 styles.gainText,
-                latestResult.result.gainLossUsd >= 0
+                successfulResult.result.gainLossUsd >= 0
                   ? styles.gainTextPositive
                   : styles.gainTextNegative,
               ]}
             >
-              {formatUsd(latestResult.result.gainLossUsd)} ({formatPercent(
-                latestResult.result.gainLossPercent
+              {formatUsd(successfulResult.result.gainLossUsd)} ({formatPercent(
+                successfulResult.result.gainLossPercent
               )})
             </Text>
           </View>
 
-          {latestResult.historical.dateResolution === 'next_available' && (
+          {successfulResult.historical.dateResolution === 'next_available' && (
             <Text style={styles.helperText}>
-              Requested {latestResult.historical.requestedDate}; using next available date{' '}
-              {latestResult.historical.resolvedDate}.
+              Requested {successfulResult.historical.requestedDate}; using next available date{' '}
+              {successfulResult.historical.resolvedDate}.
             </Text>
           )}
+
+          <View style={styles.comparisonBlock}>
+            <View>
+              <Text style={styles.trustHeading}>Purchasing power</Text>
+              <Text style={styles.helperText}>
+                Compare the current value with everyday costs by city.
+              </Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.cityRow}>
+                {PURCHASING_POWER_CITIES.map((city) => {
+                  const isSelected = city.id === selectedCity;
+                  return (
+                    <TouchableOpacity
+                      key={city.id}
+                      style={[styles.cityButton, isSelected && styles.cityButtonSelected]}
+                      onPress={() => setSelectedCity(city.id)}
+                      activeOpacity={0.82}
+                    >
+                      <Text style={[styles.cityText, isSelected && styles.cityTextSelected]}>
+                        {city.shortName}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            {purchasingPowerQuery.isLoading && (
+              <View style={styles.stateRow}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+                <Text style={styles.stateText}>Loading city comparisons.</Text>
+              </View>
+            )}
+
+            {purchasingPowerQuery.isError && (
+              <View style={styles.stateRow}>
+                <Ionicons name="refresh-outline" size={20} color="#C24135" />
+                <Text style={styles.stateText}>Unable to load city comparisons.</Text>
+              </View>
+            )}
+
+            {purchasingPowerQuery.data?.status === 'error' && (
+              <Text style={styles.stateText}>{purchasingPowerQuery.data.message}</Text>
+            )}
+
+            {purchasingPower && (
+              <>
+                <View style={styles.comparisonSection}>
+                  <Text style={styles.comparisonSectionTitle}>Monthly essentials</Text>
+                  <ComparisonRows items={purchasingPower.comparisons.monthlyEssentials} />
+                </View>
+                <View style={styles.comparisonSection}>
+                  <Text style={styles.comparisonSectionTitle}>Big purchases</Text>
+                  <ComparisonRows items={purchasingPower.comparisons.bigPurchases} />
+                </View>
+                <Text style={styles.trustText}>
+                  Data estimate: {purchasingPower.source.provider},{' '}
+                  {purchasingPower.source.datasetVersion}
+                </Text>
+              </>
+            )}
+          </View>
 
           <View style={styles.trustBlock}>
             <Text style={styles.trustHeading}>Data source</Text>
             <Text style={styles.trustText}>
-              Historical: {latestResult.historical.source.provider}
+              Historical: {successfulResult.historical.source.provider}
             </Text>
-            <Text style={styles.trustText}>Current: {latestResult.current.source.provider}</Text>
+            <Text style={styles.trustText}>Current: {successfulResult.current.source.provider}</Text>
             <Text style={styles.trustText}>
-              Current cache: {latestResult.current.cache.status}, {latestResult.current.cache.ttlSeconds}s
+              Current cache: {successfulResult.current.cache.status}, {successfulResult.current.cache.ttlSeconds}s
             </Text>
           </View>
 
@@ -880,6 +1068,48 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '900',
   },
+  catalogStatsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  catalogStat: {
+    flex: 1,
+    minHeight: 66,
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 9,
+    justifyContent: 'center',
+  },
+  catalogList: {
+    gap: 8,
+  },
+  catalogRow: {
+    minHeight: 42,
+    borderRadius: 10,
+    backgroundColor: '#FAFBFD',
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  catalogSymbol: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '900',
+    width: 48,
+  },
+  catalogName: {
+    flex: 1,
+    color: Colors.dark,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  catalogMeta: {
+    color: Colors.gray,
+    fontSize: 12,
+    fontWeight: '800',
+  },
   gainRow: {
     minHeight: 46,
     borderRadius: 12,
@@ -910,6 +1140,80 @@ const styles = StyleSheet.create({
   trustHeading: {
     color: Colors.dark,
     fontSize: 13,
+    fontWeight: '900',
+  },
+  comparisonBlock: {
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 12,
+    gap: 12,
+  },
+  cityRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  cityButton: {
+    height: 34,
+    paddingHorizontal: 13,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  cityButtonSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEF2FF',
+  },
+  cityText: {
+    color: Colors.gray,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  cityTextSelected: {
+    color: Colors.primary,
+  },
+  comparisonSection: {
+    gap: 8,
+  },
+  comparisonSectionTitle: {
+    color: Colors.dark,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  comparisonList: {
+    gap: 8,
+  },
+  comparisonRow: {
+    minHeight: 54,
+    borderRadius: 10,
+    backgroundColor: '#FAFBFD',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  comparisonCopy: {
+    flex: 1,
+  },
+  comparisonTitle: {
+    color: Colors.dark,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  comparisonMeta: {
+    color: Colors.gray,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 3,
+  },
+  comparisonQuantity: {
+    color: Colors.primary,
+    fontSize: 14,
     fontWeight: '900',
   },
   saveMessage: {

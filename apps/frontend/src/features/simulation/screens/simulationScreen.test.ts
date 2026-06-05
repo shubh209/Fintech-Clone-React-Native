@@ -24,6 +24,33 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('Data source');
   });
 
+  it('adds city-based purchasing power comparisons after a simulation result', () => {
+    const source = screenSource();
+
+    expect(source).toContain('getPurchasingPowerComparisons');
+    expect(source).toContain('selectedCity');
+    expect(source).toContain('Phoenix');
+    expect(source).toContain('San Francisco');
+    expect(source).toContain('New York');
+    expect(source).toContain('Austin');
+    expect(source).toContain('Seattle');
+    expect(source).toContain('Purchasing power');
+    expect(source).toContain('Monthly essentials');
+    expect(source).toContain('Big purchases');
+    expect(source).toContain('Data estimate');
+  });
+
+  it('shows asset catalog scale without enabling unsupported simulation assets', () => {
+    const source = screenSource();
+
+    expect(source).toContain('getSimulationAssets');
+    expect(source).toContain('Asset catalog');
+    expect(source).toContain('Ready assets');
+    expect(source).toContain('Unavailable assets');
+    expect(source).toContain('Market cache');
+    expect(source).toContain('Not all catalog assets are enabled for Simulation v1.');
+  });
+
   it('uses a chart-inspired year explorer to guide date selection', () => {
     const source = screenSource();
 

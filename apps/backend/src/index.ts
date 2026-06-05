@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { ApiEnv } from './types';
 import { cryptoRoutes } from './domains/crypto-market/cryptoRoutes';
+import { purchasingPowerRoutes } from './domains/purchasing-power/purchasingPowerRoutes';
 import { simulationRoutes } from './domains/simulation/simulationRoutes';
 
 const app = new Hono<{ Bindings: ApiEnv }>();
@@ -10,6 +11,7 @@ app.use('*', cors());
 
 app.get('/health', (context) => context.json({ status: 'ok' }));
 app.route('/api', cryptoRoutes);
+app.route('/api/purchasing-power', purchasingPowerRoutes);
 app.route('/api/simulation', simulationRoutes);
 
 export default app;

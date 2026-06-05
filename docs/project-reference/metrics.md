@@ -45,8 +45,19 @@ Each event has:
   - Records a successful Saved Simulation creation.
   - Metadata should include selected asset and historical date resolution.
 
+### Purchasing Power
+
+- `crypto.client.purchasing_power.fetch`
+  - Measures the mobile request to the cloud `/api/purchasing-power/comparisons` endpoint.
+  - Metadata should include selected city.
+- `crypto.api.purchasing_power.compute`
+  - Records Worker-side purchasing-power comparison calculation.
+  - Metadata should include city, amount bucket, monthly essentials count, and big purchase count.
+
 ### Crypto Client Fetches
 
+- `crypto.client.simulation_assets.fetch`
+  - Measures the mobile request to the cloud `/api/simulation/assets` endpoint.
 - `crypto.client.simulation_prices.fetch`
   - Measures the mobile request to the cloud `/api/simulation/prices` endpoint.
 - `crypto.client.simulation_history.fetch`
@@ -62,6 +73,8 @@ Each event has:
 
 ### Crypto API Routes
 
+- `crypto.api.simulation_assets.catalog`
+  - Records Simulation asset catalog readiness counts and market cache status.
 - `crypto.api.simulation_prices.historical_d1`
   - Measures D1 historical price lookup for Simulation.
 - `crypto.api.simulation_prices.current_coingecko`
