@@ -8,15 +8,14 @@ import {
 } from '../../../../../packages/shared/src';
 import { ApiEnv } from '../../types';
 import { recordMetric } from '../../telemetry/metrics';
-import { fetchCoinGeckoCurrentPrices } from './coinGeckoCurrentPriceClient';
+import { fetchCoinGeckoSimplePrices } from './current-prices/coinGeckoSimplePriceClient';
 import { getCachedCurrentPrices } from './currentPriceCache';
 import { findHistoricalPrice, HistoricalPriceRecord } from './historicalPriceRepository';
+import { simulationHistoricalDateRange } from './simulationAssets';
 import {
-  getSimulationAsset,
-  isSimulationAssetSymbol,
-  simulationHistoricalDateRange,
-  SimulationAssetSymbol,
-} from './simulationAssets';
+  findSupportedSimulationAssetBySymbol,
+  listSupportedSimulationAssets,
+} from './assets/simulationSupportedAssetService';
 
 interface ServiceResult {
   status: number;
@@ -48,19 +47,14 @@ function validateRequest({
   asset,
   date,
   amountUsd,
-  now,
 }: {
   asset?: string;
   date?: string;
   amountUsd?: string;
-  now: Date;
-}): ServiceResult | { asset: SimulationAssetSymbol; date: string; amountUsd: number } {
+}): ServiceResult | { asset: string; date: string; amountUsd: number } {
   if (!asset) return validationError(400, 'missing_asset', 'Asset is required.');
 
   const normalizedAsset = asset.toUpperCase();
-  if (!isSimulationAssetSymbol(normalizedAsset)) {
-    return validationError(400, 'unsupported_asset', 'Simulation v1 supports BTC, ETH, and SOL.');
-  }
 
   if (!date) return validationError(400, 'missing_date', 'Historical buy date is required.');
   if (!isValidDateText(date)) {
@@ -143,7 +137,7 @@ export async function getSimulationPrice({
   amountUsd?: string;
   now?: Date;
 }): Promise<ServiceResult> {
-  const validated = validateRequest({ asset, date, amountUsd, now });
+  const validated = validateRequest({ asset, date, amountUsd });
   if ('body' in validated) return validated;
 
   if (!env.HISTORICAL_PRICES_DB) {
@@ -153,9 +147,17 @@ export async function getSimulationPrice({
     });
   }
 
+  const supportedAsset = await findSupportedSimulationAssetBySymbol({
+    db: env.HISTORICAL_PRICES_DB,
+    symbol: validated.asset,
+  });
+  if (!supportedAsset) {
+    return validationError(400, 'unsupported_asset', 'Simulation supports the top 20 ready assets.');
+  }
+
   const historical = await findHistoricalPrice({
     db: env.HISTORICAL_PRICES_DB,
-    assetSymbol: validated.asset,
+    assetSymbol: supportedAsset.historicalSymbol,
     requestedDate: validated.date,
     historicalMaxDate: simulationHistoricalDateRange.max,
   });
@@ -181,10 +183,15 @@ export async function getSimulationPrice({
 
   let current;
   try {
+    const supportedAssets = await listSupportedSimulationAssets({ db: env.HISTORICAL_PRICES_DB });
     current = await getCachedCurrentPrices({
       refresh: () =>
-        fetchCoinGeckoCurrentPrices({
+        fetchCoinGeckoSimplePrices({
           apiKey: env.COINGECKO_API_KEY,
+          assets: supportedAssets.map((assetConfig) => ({
+            symbol: assetConfig.symbol,
+            coinGeckoId: assetConfig.coinGeckoId,
+          })),
         }),
       nowMs: now.getTime(),
     });
@@ -195,7 +202,7 @@ export async function getSimulationPrice({
     });
   }
 
-  const currentPrice = current.prices[validated.asset];
+  const currentPrice = current.prices[supportedAsset.symbol];
   if (
     !currentPrice ||
     !isPositiveFiniteNumber(currentPrice.priceUsd) ||
@@ -225,13 +232,12 @@ export async function getSimulationPrice({
     },
   });
 
-  const assetConfig = getSimulationAsset(validated.asset);
   const body: SimulationPriceSuccessResponse = {
     status: 'success',
     asset: {
-      symbol: assetConfig.symbol,
-      name: assetConfig.name,
-      coinGeckoId: assetConfig.coinGeckoId,
+      symbol: supportedAsset.symbol,
+      name: supportedAsset.name,
+      coinGeckoId: supportedAsset.coinGeckoId,
     },
     input: {
       requestedDate: validated.date,

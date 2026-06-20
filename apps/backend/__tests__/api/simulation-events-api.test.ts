@@ -3,6 +3,24 @@ import { clearCurrentPriceCache } from '../../src/domains/simulation/currentPric
 import { clearMetrics, getMetricsSnapshot } from '../../src/telemetry/metrics';
 import { SqlDatabase } from '../../src/types';
 
+function supportedAssetRow(symbol: string, coinGeckoId: string, marketRank: number) {
+  return {
+    asset_id: coinGeckoId,
+    symbol,
+    name: coinGeckoId,
+    status: 'ready',
+    coin_gecko_id: coinGeckoId,
+    historical_symbol: symbol,
+    first_imported_date: '2017-11-09',
+    last_imported_date: '2026-03-22',
+    imported_row_count: 3055,
+    market_rank: marketRank,
+  };
+}
+
+const btcAssetRow = supportedAssetRow('BTC', 'bitcoin', 1);
+const bnbAssetRow = supportedAssetRow('BNB', 'binancecoin', 4);
+
 const eventRow = {
   id: 'btc-2024-spot-etf-approval',
   asset_symbol: 'BTC',
@@ -81,10 +99,12 @@ function fakeDb({
   events = [eventRow],
   sources = sourceRows,
   prices = historicalRows,
+  assetRows = [btcAssetRow],
 }: {
   events?: Array<Record<string, unknown>>;
   sources?: Array<Record<string, unknown>>;
   prices?: Array<Record<string, unknown>>;
+  assetRows?: Array<Record<string, unknown>>;
 } = {}): SqlDatabase {
   return {
     prepare: (query: string) => ({
@@ -94,6 +114,8 @@ function fakeDb({
             const [eventId] = values;
             return events.find((row) => row.id === eventId && row.status === 'active') ?? null;
           }
+
+          if (query.includes('FROM simulation_assets')) return null;
 
           if (query.includes('FROM historical_crypto_prices')) {
             const [assetSymbol, requestedDate, upperBound] = values;
@@ -114,6 +136,10 @@ function fakeDb({
           return null;
         },
         all: async () => {
+          if (query.includes('FROM simulation_assets')) {
+            return { results: assetRows };
+          }
+
           if (query.includes('FROM simulation_events')) {
             const [assetSymbol] = values;
             return {
@@ -152,7 +178,12 @@ function fakeDb({
         run: async () => ({}),
       }),
       first: async () => null,
-      all: async () => ({ results: [] }),
+      all: async () => {
+        if (query.includes('FROM simulation_assets')) {
+          return { results: assetRows };
+        }
+        return { results: [] };
+      },
       run: async () => ({}),
     }),
   } as unknown as SqlDatabase;
@@ -178,7 +209,7 @@ describe('simulation events API', () => {
     expect(body.status).toBe('success');
     expect(body.asset.symbol).toBe('BTC');
     expect(body.supportedDelays).toEqual(['same_day', 'one_week', 'one_month']);
-    expect(body.events).toHaveLength(1);
+    expect(body.events).toHaveLength(5);
     expect(body.events[0]).toEqual(
       expect.objectContaining({
         id: 'btc-2024-spot-etf-approval',
@@ -198,6 +229,29 @@ describe('simulation events API', () => {
     expect(response.status).toBe(400);
     expect(body.status).toBe('error');
     expect(body.code).toBe('unsupported_asset');
+  });
+
+  it('returns five fallback market events for a supported top-20 non-v1 asset', async () => {
+    const response = await app.request(
+      '/api/simulation/events?asset=BNB',
+      {},
+      { ...env, HISTORICAL_PRICES_DB: fakeDb({ events: [], sources: [], assetRows: [bnbAssetRow] }) }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.asset.symbol).toBe('BNB');
+    expect(body.events).toHaveLength(5);
+    expect(body.events[0]).toEqual(
+      expect.objectContaining({
+        id: 'bnb-2020-covid-liquidity-shock',
+        assetSymbol: 'BNB',
+      })
+    );
+    expect(body.events.every((event: { sources: unknown[] }) => event.sources.length >= 2)).toBe(
+      true
+    );
   });
 
   it('runs an event scenario with risk metrics and event metadata', async () => {
@@ -253,5 +307,62 @@ describe('simulation events API', () => {
     expect(response.status).toBe(400);
     expect(body.status).toBe('error');
     expect(body.code).toBe('missing_event');
+  });
+
+  it('runs a fallback market event scenario for a supported top-20 non-v1 asset', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        binancecoin: { usd: 500, last_updated_at: 1_780_000_000 },
+      }),
+    } as Response);
+
+    const bnbPrices = [
+      {
+        ...historicalRows[0],
+        asset_symbol: 'BNB',
+        asset_name: 'binancecoin',
+        date: '2022-11-18',
+        close_usd: 40,
+      },
+      {
+        ...historicalRows[1],
+        asset_symbol: 'BNB',
+        asset_name: 'binancecoin',
+        date: '2022-11-19',
+        close_usd: 35,
+      },
+      {
+        ...historicalRows[2],
+        asset_symbol: 'BNB',
+        asset_name: 'binancecoin',
+        date: '2022-12-18',
+        close_usd: 45,
+      },
+    ];
+
+    const response = await app.request(
+      '/api/simulation/event-scenarios?eventId=bnb-2022-ftx-bankruptcy&delay=one_week&amountUsd=100',
+      {},
+      {
+        ...env,
+        HISTORICAL_PRICES_DB: fakeDb({
+          events: [],
+          sources: [],
+          prices: bnbPrices,
+          assetRows: [bnbAssetRow],
+        }),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.asset.symbol).toBe('BNB');
+    expect(body.event.id).toBe('bnb-2022-ftx-bankruptcy');
+    expect(body.historical.resolvedDate).toBe('2022-11-18');
+    expect(body.current.priceUsd).toBe(500);
+    expect(body.result.currentValueUsd).toBe(1250);
+    expect(body.risk.maxDrawdownPercent).toBe(-12.5);
   });
 });

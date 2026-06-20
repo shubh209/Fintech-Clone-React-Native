@@ -8,11 +8,9 @@ import {
 import { ApiEnv } from '../../types';
 import { recordMetric } from '../../telemetry/metrics';
 import { findHistoricalPriceSeries, HistoricalPriceSeries } from './historicalPriceRepository';
+import { findSupportedSimulationAssetBySymbol } from './assets/simulationSupportedAssetService';
 import {
-  getSimulationAsset,
-  isSimulationAssetSymbol,
   simulationHistoricalDateRange,
-  SimulationAssetSymbol,
 } from './simulationAssets';
 
 interface ServiceResult {
@@ -42,13 +40,10 @@ function validateRequest({
 }: {
   asset?: string;
   year?: string;
-}): ServiceResult | { asset: SimulationAssetSymbol; year: number; startDate: string; endDate: string } {
+}): ServiceResult | { asset: string; year: number; startDate: string; endDate: string } {
   if (!asset) return validationError(400, 'missing_asset', 'Asset is required.');
 
   const normalizedAsset = asset.toUpperCase();
-  if (!isSimulationAssetSymbol(normalizedAsset)) {
-    return validationError(400, 'unsupported_asset', 'Simulation v1 supports BTC, ETH, and SOL.');
-  }
 
   const parsedYear = Number(year);
   if (!Number.isInteger(parsedYear)) {
@@ -104,9 +99,17 @@ export async function getSimulationHistory({
     });
   }
 
+  const supportedAsset = await findSupportedSimulationAssetBySymbol({
+    db: env.HISTORICAL_PRICES_DB,
+    symbol: validated.asset,
+  });
+  if (!supportedAsset) {
+    return validationError(400, 'unsupported_asset', 'Simulation supports the top 20 ready assets.');
+  }
+
   const series = await findHistoricalPriceSeries({
     db: env.HISTORICAL_PRICES_DB,
-    assetSymbol: validated.asset,
+    assetSymbol: supportedAsset.historicalSymbol,
     startDate: validated.startDate,
     endDate: validated.endDate,
   });
@@ -130,13 +133,12 @@ export async function getSimulationHistory({
     });
   }
 
-  const assetConfig = getSimulationAsset(validated.asset);
   const body: SimulationHistorySuccessResponse = {
     status: 'success',
     asset: {
-      symbol: assetConfig.symbol,
-      name: assetConfig.name,
-      coinGeckoId: assetConfig.coinGeckoId,
+      symbol: supportedAsset.symbol,
+      name: supportedAsset.name,
+      coinGeckoId: supportedAsset.coinGeckoId,
     },
     range: {
       year: validated.year,

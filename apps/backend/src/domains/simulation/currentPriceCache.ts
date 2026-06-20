@@ -1,11 +1,10 @@
 import { recordMetric } from '../../telemetry/metrics';
-import { CurrentPrice } from './coinGeckoCurrentPriceClient';
-import { SimulationAssetSymbol } from './simulationAssets';
+import { SimulationCurrentPrice } from './current-prices/coinGeckoSimplePriceClient';
 
 export const currentPriceCacheTtlMs = 60_000;
 
 export interface CurrentPriceCacheEntry {
-  prices: Record<SimulationAssetSymbol, CurrentPrice>;
+  prices: Record<string, SimulationCurrentPrice>;
   cachedAtMs: number;
 }
 
@@ -34,10 +33,10 @@ export async function getCachedCurrentPrices({
   refresh,
   nowMs = Date.now(),
 }: {
-  refresh: () => Promise<Record<SimulationAssetSymbol, CurrentPrice>>;
+  refresh: () => Promise<Record<string, SimulationCurrentPrice>>;
   nowMs?: number;
 }): Promise<{
-  prices: Record<SimulationAssetSymbol, CurrentPrice>;
+  prices: Record<string, SimulationCurrentPrice>;
   cacheStatus: 'fresh' | 'refreshed';
 }> {
   const fresh = getFreshCache(nowMs);

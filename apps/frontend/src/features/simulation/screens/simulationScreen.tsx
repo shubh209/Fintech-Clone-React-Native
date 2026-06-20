@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -22,6 +23,13 @@ import { getSimulationEvents } from '@/features/simulation/api/getSimulationEven
 import { getSimulationHistory } from '@/features/simulation/api/getSimulationHistory';
 import { getSimulationPrice } from '@/features/simulation/api/getSimulationPrice';
 import {
+  ASSET_FILTERS,
+  filterSimulationAssets,
+  SimulationAssetFilter,
+  sortCatalogAssets,
+} from '@/features/simulation/asset-picker/simulationAssetFilters';
+import { getSelectedAssetAvailability } from '@/features/simulation/asset-picker/simulationAssetSupport';
+import {
   listSavedSimulations,
   saveSimulation as saveSimulationSnapshot,
   SavedSimulation,
@@ -30,7 +38,6 @@ import Colors from '@/shared/theme/colors';
 import { defaultStyles } from '@/shared/theme/defaultStyles';
 import { recordMetric } from '@/shared/metrics/metrics';
 import {
-  SimulationAssetSymbol,
   SimulationEventDelay,
   SimulationEventScenarioResponse,
   SimulationEventScenarioSuccessResponse,
@@ -42,6 +49,7 @@ import {
   PurchasingPowerCityId,
   PurchasingPowerComparison,
 } from '@shared/purchasingPowerTypes';
+import { SimulationAssetCatalogItem } from '@shared/simulationAssetCatalogTypes';
 
 const MIN_SIMULATION_DATE = '2014-09-17';
 const MAX_SIMULATION_DATE = '2026-03-22';
@@ -52,16 +60,6 @@ const EVENT_DELAYS: Array<{ value: SimulationEventDelay; label: string }> = [
   { value: 'same_day', label: 'Same day' },
   { value: 'one_week', label: '1 week' },
   { value: 'one_month', label: '1 month' },
-];
-
-const SIMULATION_ASSETS: Array<{
-  symbol: SimulationAssetSymbol;
-  name: string;
-  firstDate: string;
-}> = [
-  { symbol: 'BTC', name: 'Bitcoin', firstDate: '2014-09-17' },
-  { symbol: 'ETH', name: 'Ethereum', firstDate: '2017-11-09' },
-  { symbol: 'SOL', name: 'Solana', firstDate: '2020-04-10' },
 ];
 
 const PURCHASING_POWER_CITIES: Array<{
@@ -86,6 +84,10 @@ function formatUsd(value: number) {
 
 function formatPercent(value: number) {
   return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+}
+
+function formatReturn(valueUsd: number, valuePercent: number) {
+  return `${formatUsd(valueUsd)} (${formatPercent(valuePercent)})`;
 }
 
 function formatCompactUsd(value: number) {
@@ -167,7 +169,7 @@ export default function SimulationScreen() {
     y: { price: 0 },
   }) as any;
   const { state: chartPressState, isActive: isChartPressActive } = chartPress;
-  const [asset, setAsset] = useState<SimulationAssetSymbol>('BTC');
+  const [asset, setAsset] = useState('BTC');
   const [mode, setMode] = useState<SimulationMode>('date');
   const [selectedYear, setSelectedYear] = useState(2014);
   const [date, setDate] = useState('2014-09-17');
@@ -180,43 +182,56 @@ export default function SimulationScreen() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedDelay, setSelectedDelay] = useState<SimulationEventDelay>('same_day');
   const [savedItems, setSavedItems] = useState<SavedSimulation[]>([]);
+  const [selectedSavedSimulation, setSelectedSavedSimulation] =
+    useState<SavedSimulation | null>(null);
+  const [isAssetPickerVisible, setIsAssetPickerVisible] = useState(false);
+  const [assetSearchQuery, setAssetSearchQuery] = useState('');
+  const [selectedAssetFilter, setSelectedAssetFilter] =
+    useState<SimulationAssetFilter>('recommended');
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedCity, setSelectedCity] = useState<PurchasingPowerCityId>('phoenix');
 
+  const assetCatalogQuery = useQuery({
+    queryKey: ['simulation-assets'],
+    queryFn: getSimulationAssets,
+  });
+  const assetCatalog =
+    assetCatalogQuery.data?.status === 'success' ? assetCatalogQuery.data : null;
+  const selectableAssets = useMemo(() => {
+    if (!assetCatalog) return [];
+
+    return [
+      ...assetCatalog.assets.ready,
+      ...assetCatalog.assets.unavailable,
+    ].sort(sortCatalogAssets);
+  }, [assetCatalog]);
   const selectedAsset = useMemo(
-    () => SIMULATION_ASSETS.find((item) => item.symbol === asset) ?? SIMULATION_ASSETS[0],
-    [asset]
+    () => selectableAssets.find((item) => item.symbol === asset) ?? selectableAssets[0] ?? null,
+    [asset, selectableAssets]
+  );
+  const selectedAssetStartDate = selectedAsset?.historical.firstDate ?? MIN_SIMULATION_DATE;
+  const selectedAssetAvailability = getSelectedAssetAvailability(selectedAsset);
+  const canSelectedAssetSimulate = selectedAssetAvailability.canSimulate;
+  const selectedAssetName = selectedAsset?.name ?? asset;
+  const pickerAssets = useMemo(
+    () => filterSimulationAssets(selectableAssets, assetSearchQuery, selectedAssetFilter),
+    [assetSearchQuery, selectableAssets, selectedAssetFilter]
   );
   const simulationYears = useMemo(
-    () => getYearRange(selectedAsset.firstDate, MAX_SIMULATION_DATE),
-    [selectedAsset.firstDate]
+    () => getYearRange(selectedAssetStartDate, MAX_SIMULATION_DATE),
+    [selectedAssetStartDate]
   );
 
   const historyQuery = useQuery({
     queryKey: ['simulation-history', asset, selectedYear],
     queryFn: () => getSimulationHistory({ asset, year: selectedYear }),
-  });
-  const assetCatalogQuery = useQuery({
-    queryKey: ['simulation-assets'],
-    queryFn: getSimulationAssets,
+    enabled: mode === 'date' && canSelectedAssetSimulate,
   });
   const eventsQuery = useQuery({
     queryKey: ['simulation-events', asset],
     queryFn: () => getSimulationEvents({ asset }),
-    enabled: mode === 'event',
+    enabled: mode === 'event' && canSelectedAssetSimulate,
   });
-  const assetCatalog =
-    assetCatalogQuery.data?.status === 'success' ? assetCatalogQuery.data : null;
-  const catalogReadyCount = assetCatalog?.assets.ready.length ?? 0;
-  const catalogUnavailableCount = assetCatalog?.assets.unavailable.length ?? 0;
-  const topCatalogAssets = useMemo(
-    () =>
-      [...(assetCatalog?.assets.ready ?? [])]
-        .sort((left, right) => (left.market.rank ?? 9999) - (right.market.rank ?? 9999))
-        .slice(0, 3),
-    [assetCatalog]
-  );
-  const firstUnavailableAsset = assetCatalog?.assets.unavailable[0] ?? null;
   const successfulResult = isSuccessfulResult(latestResult) ? latestResult : null;
   const eventList = eventsQuery.data?.status === 'success' ? eventsQuery.data.events : [];
   const selectedEvent =
@@ -286,6 +301,16 @@ export default function SimulationScreen() {
   );
 
   useEffect(() => {
+    if (selectableAssets.length === 0) return;
+    if (selectableAssets.some((item) => item.symbol === asset)) return;
+
+    const nextAsset = selectableAssets[0];
+    setAsset(nextAsset.symbol);
+    setSelectedYear(Number((nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE).slice(0, 4)));
+    setDate(nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE);
+  }, [asset, selectableAssets]);
+
+  useEffect(() => {
     if (!history || history.points.length === 0) return;
     const dateIsInLoadedRange = date >= history.range.startDate && date <= history.range.endDate;
     if (!dateIsInLoadedRange) {
@@ -295,18 +320,25 @@ export default function SimulationScreen() {
 
   const numericAmount = Number(amountUsd);
   const canRunSimulation =
+    canSelectedAssetSimulate &&
     Number.isFinite(numericAmount) &&
     numericAmount > 0 &&
     /^\d{4}-\d{2}-\d{2}$/.test(date) &&
     date >= MIN_SIMULATION_DATE &&
     date <= MAX_SIMULATION_DATE;
   const canRunEventSimulation =
-    Number.isFinite(numericAmount) && numericAmount > 0 && selectedEvent !== null;
+    canSelectedAssetSimulate &&
+    Number.isFinite(numericAmount) &&
+    numericAmount > 0 &&
+    selectedEvent !== null;
 
-  const selectAsset = (nextAsset: (typeof SIMULATION_ASSETS)[number]) => {
+  const selectAsset = (nextAsset: SimulationAssetCatalogItem) => {
     setAsset(nextAsset.symbol);
-    setSelectedYear(Number(nextAsset.firstDate.slice(0, 4)));
-    setDate(nextAsset.firstDate);
+    setSelectedYear(Number((nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE).slice(0, 4)));
+    setDate(nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE);
+    setIsAssetPickerVisible(false);
+    setAssetSearchQuery('');
+    setSelectedAssetFilter('recommended');
     setLatestResult(null);
     setLatestEventResult(null);
     setSelectedEventId(null);
@@ -425,7 +457,7 @@ export default function SimulationScreen() {
 
     const saved = await saveSimulationSnapshot({
       input: {
-        asset,
+        asset: successfulResult.asset.symbol,
         requestedDate: latestEventResult?.historical.resolvedDate ?? date,
         amountUsd: numericAmount,
         scenarioType: latestEventResult ? 'event' : 'date',
@@ -452,6 +484,7 @@ export default function SimulationScreen() {
   };
 
   return (
+    <>
     <ScrollView
       style={{ backgroundColor: Colors.background }}
       contentContainerStyle={[styles.content, { paddingTop: headerHeight + 16 }]}
@@ -461,9 +494,6 @@ export default function SimulationScreen() {
       <View style={styles.headerRow}>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>Simulation</Text>
-          <Text style={styles.subtitle}>
-            Hypothetical simulation using historical and current USD prices
-          </Text>
           <Text style={styles.trustText}>
             Historical dates: {MIN_SIMULATION_DATE} to {MAX_SIMULATION_DATE}
           </Text>
@@ -472,64 +502,9 @@ export default function SimulationScreen() {
 
       <View style={styles.panel}>
         <View style={styles.resultHeader}>
-          <View>
-            <Text style={styles.panelTitle}>Asset catalog</Text>
-            <Text style={styles.helperText}>
-              Not all catalog assets are enabled for Simulation v1.
-            </Text>
-          </View>
+          <Text style={styles.panelTitle}>Build a scenario</Text>
           {assetCatalogQuery.isLoading && <ActivityIndicator size="small" color={Colors.primary} />}
         </View>
-
-        {assetCatalogQuery.isError && (
-          <View style={styles.stateRow}>
-            <Ionicons name="cloud-offline-outline" size={20} color="#C24135" />
-            <Text style={styles.stateText}>Unable to load asset catalog.</Text>
-          </View>
-        )}
-
-        {assetCatalog && (
-          <>
-            <View style={styles.catalogStatsRow}>
-              <View style={styles.catalogStat}>
-                <Text style={styles.resultLabel}>Ready assets</Text>
-                <Text style={styles.resultValue}>{catalogReadyCount}</Text>
-              </View>
-              <View style={styles.catalogStat}>
-                <Text style={styles.resultLabel}>Unavailable assets</Text>
-                <Text style={styles.resultValue}>{catalogUnavailableCount}</Text>
-              </View>
-              <View style={styles.catalogStat}>
-                <Text style={styles.resultLabel}>Market cache</Text>
-                <Text style={styles.resultValue}>{assetCatalog.source.marketCacheStatus}</Text>
-              </View>
-            </View>
-
-            {topCatalogAssets.length > 0 && (
-              <View style={styles.catalogList}>
-                {topCatalogAssets.map((item) => (
-                  <View key={item.assetId} style={styles.catalogRow}>
-                    <Text style={styles.catalogSymbol}>{item.symbol}</Text>
-                    <Text style={styles.catalogName}>{item.name}</Text>
-                    <Text style={styles.catalogMeta}>
-                      {item.market.rank ? `#${item.market.rank}` : 'ready'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {firstUnavailableAsset && (
-              <Text style={styles.helperText}>
-                {firstUnavailableAsset.symbol}: {firstUnavailableAsset.availability.reason}
-              </Text>
-            )}
-          </>
-        )}
-      </View>
-
-      <View style={styles.panel}>
-        <Text style={styles.panelTitle}>Build a scenario</Text>
 
         <View style={styles.modeRow}>
           {(['date', 'event'] as const).map((item) => {
@@ -549,28 +524,49 @@ export default function SimulationScreen() {
           })}
         </View>
 
-        <View style={styles.assetRow}>
-          {SIMULATION_ASSETS.map((item) => {
-            const isSelected = item.symbol === asset;
-            return (
-              <TouchableOpacity
-                key={item.symbol}
-                style={[styles.assetButton, isSelected && styles.assetButtonSelected]}
-                onPress={() => selectAsset(item)}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.assetSymbol, isSelected && styles.assetTextSelected]}>
-                  {item.symbol}
-                </Text>
-                <Text style={[styles.assetName, isSelected && styles.assetTextSelected]}>
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        {assetCatalogQuery.isError && (
+          <View style={styles.stateRow}>
+            <Ionicons name="cloud-offline-outline" size={20} color="#C24135" />
+            <Text style={styles.stateText}>Unable to load coins.</Text>
+          </View>
+        )}
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Coin</Text>
+          <TouchableOpacity
+            style={styles.selectedAssetButton}
+            onPress={() => setIsAssetPickerVisible(true)}
+            activeOpacity={0.84}
+          >
+            <View style={styles.selectedAssetCopy}>
+              <Text style={styles.assetSymbol}>{selectedAsset?.symbol ?? asset}</Text>
+              <Text style={styles.assetName}>
+                {selectedAsset?.name ?? 'Select coin'}
+              </Text>
+            </View>
+            <View style={styles.changeButton}>
+              <Ionicons name="search-outline" size={16} color={Colors.primary} />
+              <Text style={styles.changeButtonText}>Change</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        {mode === 'event' && (
+        {selectedAssetAvailability && !canSelectedAssetSimulate && (
+          <View style={styles.unavailableNotice}>
+            <Ionicons name="alert-circle-outline" size={20} color="#C24135" />
+            <View style={styles.unavailableCopy}>
+              <Text style={styles.unavailableTitle}>Selected coin is unavailable</Text>
+              {!!selectedAssetAvailability.reason && (
+                <Text style={styles.stateText}>{selectedAssetAvailability.reason}</Text>
+              )}
+              {!!selectedAssetAvailability.detail && (
+                <Text style={styles.helperText}>{selectedAssetAvailability.detail}</Text>
+              )}
+            </View>
+          </View>
+        )}
+
+        {mode === 'event' && canSelectedAssetSimulate && (
           <View style={styles.eventExplorer}>
             <View style={styles.resultHeader}>
               <View>
@@ -614,11 +610,11 @@ export default function SimulationScreen() {
           </View>
         )}
 
-        {mode === 'date' && (
+        {mode === 'date' && canSelectedAssetSimulate && (
         <View style={styles.marketExplorer}>
           <View style={styles.marketSummaryHeader}>
             <View>
-              <Text style={styles.marketSummaryLabel}>Market Summary &gt; {selectedAsset.name}</Text>
+              <Text style={styles.marketSummaryLabel}>Market Summary &gt; {selectedAssetName}</Text>
               <Text style={styles.marketSummaryPrice}>
                 {selectedPoint ? formatUsd(selectedPoint.priceUsd) : 'Loading price'}
               </Text>
@@ -734,7 +730,7 @@ export default function SimulationScreen() {
         </View>
         )}
 
-        {mode === 'event' && (
+        {mode === 'event' && canSelectedAssetSimulate && (
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Reaction delay</Text>
             <View style={styles.delayRow}>
@@ -757,7 +753,7 @@ export default function SimulationScreen() {
           </View>
         )}
 
-        {mode === 'date' && (
+        {mode === 'date' && canSelectedAssetSimulate && (
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Buy date</Text>
           <TextInput
@@ -853,8 +849,8 @@ export default function SimulationScreen() {
               <Text style={styles.panelTitle}>Hypothetical simulation</Text>
               <Text style={styles.subtitle}>
                 {latestEventResult
-                  ? `${selectedAsset.name} after ${latestEventResult.event.headline}`
-                  : `${selectedAsset.name} from ${successfulResult.historical.resolvedDate}`}
+                  ? `${selectedAssetName} after ${latestEventResult.event.headline}`
+                  : `${selectedAssetName} from ${successfulResult.historical.resolvedDate}`}
               </Text>
             </View>
             <TouchableOpacity style={styles.saveButton} onPress={onSave} activeOpacity={0.82}>
@@ -1041,25 +1037,243 @@ export default function SimulationScreen() {
           <Text style={styles.stateText}>Saved simulations will appear here.</Text>
         ) : (
           savedItems.map((item) => (
-            <View key={item.id} style={styles.savedRow}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.savedRow}
+              onPress={() => setSelectedSavedSimulation(item)}
+              activeOpacity={0.84}
+            >
               <View>
-                <Text style={styles.savedTitle}>
-                  {item.input.asset} · {formatUsd(item.input.amountUsd)}
-                </Text>
-                <Text style={styles.savedMeta}>
-                  {item.input.scenarioType === 'event' && item.input.event
-                    ? `${item.hypotheticalLabel} · Event · ${item.input.event.headline}`
-                    : `${item.hypotheticalLabel} · ${item.input.requestedDate}`}
+                <Text style={styles.savedLabel}>Coin</Text>
+                <Text style={styles.savedTitle}>{item.input.asset}</Text>
+              </View>
+              <View style={styles.savedMetric}>
+                <Text style={styles.savedLabel}>Value invested</Text>
+                <Text style={styles.savedValue}>{formatUsd(item.input.amountUsd)}</Text>
+              </View>
+              <View style={styles.savedMetric}>
+                <Text style={styles.savedLabel}>Return</Text>
+                <Text
+                  style={[
+                    styles.savedValue,
+                    item.resultSnapshot.result.gainLossUsd >= 0
+                      ? styles.gainTextPositive
+                      : styles.gainTextNegative,
+                  ]}
+                >
+                  {formatUsd(item.resultSnapshot.result.gainLossUsd)}
                 </Text>
               </View>
-              <Text style={styles.savedValue}>
-                {formatUsd(item.resultSnapshot.result.currentValueUsd)}
-              </Text>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </View>
     </ScrollView>
+
+    <Modal
+      visible={isAssetPickerVisible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setIsAssetPickerVisible(false)}
+    >
+      <View style={styles.pickerBackdrop}>
+        <View style={styles.pickerDialog}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.panelTitle}>Select coin</Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setIsAssetPickerVisible(false)}
+              activeOpacity={0.82}
+            >
+              <Ionicons name="close-outline" size={22} color={Colors.dark} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.searchField}>
+            <Ionicons name="search-outline" size={18} color={Colors.gray} />
+            <TextInput
+              value={assetSearchQuery}
+              onChangeText={setAssetSearchQuery}
+              placeholder="Search coins"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.searchInput}
+            />
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.filterRow}>
+              {ASSET_FILTERS.map((filter) => {
+                const isSelected = selectedAssetFilter === filter.value;
+                return (
+                  <TouchableOpacity
+                    key={filter.value}
+                    style={[styles.filterChip, isSelected && styles.filterChipSelected]}
+                    onPress={() => setSelectedAssetFilter(filter.value)}
+                    activeOpacity={0.82}
+                  >
+                    <Text
+                      style={[styles.filterText, isSelected && styles.filterTextSelected]}
+                    >
+                      {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.pickerList}>
+            {pickerAssets.length === 0 ? (
+              <Text style={styles.stateText}>No coins match this search.</Text>
+            ) : (
+              pickerAssets.map((item) => {
+                const isSelected = item.symbol === asset;
+                const itemAvailability = getSelectedAssetAvailability(item);
+                const isUnavailable = !itemAvailability.canSimulate;
+                return (
+                  <TouchableOpacity
+                    key={item.assetId}
+                    style={[styles.pickerRow, isSelected && styles.pickerRowSelected]}
+                    onPress={() => selectAsset(item)}
+                    activeOpacity={0.84}
+                  >
+                    <View style={styles.pickerSymbolBlock}>
+                      <Text style={styles.assetSymbol}>{item.symbol}</Text>
+                      <Text style={styles.assetName}>{item.name}</Text>
+                    </View>
+                    <View style={styles.pickerMetaBlock}>
+                      <Text
+                        style={[
+                          styles.pickerStatus,
+                          isUnavailable ? styles.gainTextNegative : styles.gainTextPositive,
+                        ]}
+                      >
+                        {isUnavailable ? 'Unavailable' : 'Ready'}
+                      </Text>
+                      <Text style={styles.helperText}>
+                        {item.market.rank ? `#${item.market.rank}` : item.category}
+                        {item.market.currentPriceUsd
+                          ? ` · ${formatCompactUsd(item.market.currentPriceUsd)}`
+                          : ''}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+
+    <Modal
+      visible={selectedSavedSimulation !== null}
+      animationType="fade"
+      transparent
+      onRequestClose={() => setSelectedSavedSimulation(null)}
+    >
+      <View style={styles.modalBackdrop}>
+        <View style={styles.modalDialog}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.panelTitle}>Simulation details</Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setSelectedSavedSimulation(null)}
+              activeOpacity={0.82}
+            >
+              <Ionicons name="close-outline" size={22} color={Colors.dark} />
+            </TouchableOpacity>
+          </View>
+
+          {selectedSavedSimulation && (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalBody}>
+              <View style={styles.resultGrid}>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Coin</Text>
+                  <Text style={styles.resultValue}>{selectedSavedSimulation.input.asset}</Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Value invested</Text>
+                  <Text style={styles.resultValue}>
+                    {formatUsd(selectedSavedSimulation.input.amountUsd)}
+                  </Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Current value</Text>
+                  <Text style={styles.resultValue}>
+                    {formatUsd(selectedSavedSimulation.resultSnapshot.result.currentValueUsd)}
+                  </Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Return</Text>
+                  <Text
+                    style={[
+                      styles.resultValue,
+                      selectedSavedSimulation.resultSnapshot.result.gainLossUsd >= 0
+                        ? styles.gainTextPositive
+                        : styles.gainTextNegative,
+                    ]}
+                  >
+                    {formatReturn(
+                      selectedSavedSimulation.resultSnapshot.result.gainLossUsd,
+                      selectedSavedSimulation.resultSnapshot.result.gainLossPercent
+                    )}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.dialogSection}>
+                <Text style={styles.trustHeading}>Scenario</Text>
+                <Text style={styles.stateText}>
+                  Type: {selectedSavedSimulation.input.scenarioType === 'event' ? 'Event' : 'Date'}
+                </Text>
+                <Text style={styles.stateText}>
+                  Buy date: {selectedSavedSimulation.input.requestedDate}
+                </Text>
+                {selectedSavedSimulation.input.event && (
+                  <Text style={styles.stateText}>
+                    Event: {selectedSavedSimulation.input.event.headline}
+                  </Text>
+                )}
+              </View>
+
+              <View style={styles.dialogSection}>
+                <Text style={styles.trustHeading}>Prices</Text>
+                <Text style={styles.stateText}>
+                  Historical price:{' '}
+                  {formatUsd(selectedSavedSimulation.resultSnapshot.historical.priceUsd)}
+                </Text>
+                <Text style={styles.stateText}>
+                  Current price: {formatUsd(selectedSavedSimulation.resultSnapshot.current.priceUsd)}
+                </Text>
+                <Text style={styles.stateText}>
+                  Estimated quantity:{' '}
+                  {selectedSavedSimulation.resultSnapshot.result.impliedQuantity.toFixed(8)}
+                </Text>
+              </View>
+
+              <View style={styles.dialogSection}>
+                <Text style={styles.trustHeading}>Data source</Text>
+                <Text style={styles.trustText}>
+                  Historical: {selectedSavedSimulation.dataTrust.historicalProvider}
+                </Text>
+                <Text style={styles.trustText}>
+                  Date resolution: {selectedSavedSimulation.dataTrust.historicalDateResolution}
+                </Text>
+                <Text style={styles.trustText}>
+                  Current: {selectedSavedSimulation.dataTrust.currentProvider}
+                </Text>
+                <Text style={styles.trustText}>
+                  Current cache: {selectedSavedSimulation.dataTrust.currentCacheStatus}
+                </Text>
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -1131,6 +1345,7 @@ const styles = StyleSheet.create({
   assetRow: {
     flexDirection: 'row',
     gap: 8,
+    paddingBottom: 2,
   },
   eventExplorer: {
     borderWidth: 1,
@@ -1303,7 +1518,7 @@ const styles = StyleSheet.create({
     color: '#C24135',
   },
   assetButton: {
-    flex: 1,
+    width: 104,
     minHeight: 62,
     borderWidth: 1,
     borderColor: Colors.lightGray,
@@ -1315,6 +1530,9 @@ const styles = StyleSheet.create({
   assetButtonSelected: {
     borderColor: Colors.primary,
     backgroundColor: '#EEF2FF',
+  },
+  assetButtonUnavailable: {
+    opacity: 0.72,
   },
   assetSymbol: {
     color: Colors.dark,
@@ -1329,6 +1547,53 @@ const styles = StyleSheet.create({
   },
   assetTextSelected: {
     color: Colors.primary,
+  },
+  selectedAssetButton: {
+    minHeight: 64,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 14,
+    padding: 12,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  selectedAssetCopy: {
+    flex: 1,
+  },
+  changeButton: {
+    height: 36,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    backgroundColor: '#EEF2FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  changeButtonText: {
+    color: Colors.primary,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  unavailableNotice: {
+    borderWidth: 1,
+    borderColor: '#F3C8C3',
+    borderRadius: 12,
+    padding: 12,
+    backgroundColor: '#FFF7F6',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  unavailableCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  unavailableTitle: {
+    color: '#C24135',
+    fontSize: 13,
+    fontWeight: '900',
   },
   inputGroup: {
     gap: 7,
@@ -1427,48 +1692,6 @@ const styles = StyleSheet.create({
     color: Colors.dark,
     fontSize: 15,
     fontWeight: '900',
-  },
-  catalogStatsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  catalogStat: {
-    flex: 1,
-    minHeight: 66,
-    borderWidth: 1,
-    borderColor: '#E8ECF2',
-    borderRadius: 12,
-    padding: 9,
-    justifyContent: 'center',
-  },
-  catalogList: {
-    gap: 8,
-  },
-  catalogRow: {
-    minHeight: 42,
-    borderRadius: 10,
-    backgroundColor: '#FAFBFD',
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  catalogSymbol: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontWeight: '900',
-    width: 48,
-  },
-  catalogName: {
-    flex: 1,
-    color: Colors.dark,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  catalogMeta: {
-    color: Colors.gray,
-    fontSize: 12,
-    fontWeight: '800',
   },
   gainRow: {
     minHeight: 46,
@@ -1590,7 +1813,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   savedRow: {
-    minHeight: 58,
+    minHeight: 64,
     borderWidth: 1,
     borderColor: '#E8ECF2',
     borderRadius: 12,
@@ -1599,6 +1822,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
+    backgroundColor: '#fff',
   },
   savedTitle: {
     color: Colors.dark,
@@ -1611,9 +1835,148 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
+  savedMetric: {
+    alignItems: 'flex-end',
+    flex: 1,
+  },
+  savedLabel: {
+    color: Colors.gray,
+    fontSize: 10,
+    fontWeight: '900',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
   savedValue: {
     color: Colors.dark,
     fontSize: 14,
     fontWeight: '900',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 18, 32, 0.42)',
+    padding: 20,
+    justifyContent: 'center',
+  },
+  modalDialog: {
+    maxHeight: '86%',
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    padding: 16,
+    gap: 12,
+  },
+  modalHeader: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F2F4F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBody: {
+    gap: 12,
+    paddingBottom: 4,
+  },
+  dialogSection: {
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
+  },
+  pickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 18, 32, 0.42)',
+    justifyContent: 'flex-end',
+  },
+  pickerDialog: {
+    maxHeight: '88%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    backgroundColor: '#fff',
+    padding: 16,
+    gap: 12,
+  },
+  searchField: {
+    height: 46,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#FAFBFD',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: Colors.dark,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingBottom: 2,
+  },
+  filterChip: {
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    paddingHorizontal: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  filterChipSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEF2FF',
+  },
+  filterText: {
+    color: Colors.gray,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  filterTextSelected: {
+    color: Colors.primary,
+  },
+  pickerList: {
+    gap: 8,
+    paddingBottom: 20,
+  },
+  pickerRow: {
+    minHeight: 64,
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    backgroundColor: '#fff',
+  },
+  pickerRowSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEF2FF',
+  },
+  pickerSymbolBlock: {
+    flex: 1,
+  },
+  pickerMetaBlock: {
+    alignItems: 'flex-end',
+    flexShrink: 0,
+  },
+  pickerStatus: {
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 4,
   },
 });

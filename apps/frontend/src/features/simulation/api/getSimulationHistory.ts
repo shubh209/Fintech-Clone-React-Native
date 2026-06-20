@@ -1,10 +1,10 @@
 import { getCryptoApiUrl } from '@/features/crypto-market/api/getCryptoApiUrl';
 import { timeAsync } from '@/shared/metrics/metrics';
 import { isSimulationHistoryResponse } from '@/shared/api/simulationValidators';
-import { SimulationAssetSymbol, SimulationHistoryResponse } from '@shared/simulationTypes';
+import { SimulationHistoryResponse } from '@shared/simulationTypes';
 
 export interface GetSimulationHistoryParams {
-  asset: SimulationAssetSymbol;
+  asset: string;
   year: number;
 }
 

@@ -7,14 +7,41 @@ describe('Simulation screen product boundaries', () => {
       join(process.cwd(), 'apps/frontend/src/features/simulation/screens/simulationScreen.tsx'),
       'utf8'
     );
+  const assetPickerSource = () =>
+    [
+      'apps/frontend/src/features/simulation/asset-picker/simulationAssetFilters.ts',
+      'apps/frontend/src/features/simulation/asset-picker/simulationAssetSupport.ts',
+    ]
+      .map((path) => readFileSync(join(process.cwd(), path), 'utf8'))
+      .join('\n');
 
-  it('limits selectable assets to the Simulation v1 set', () => {
+  it('builds searchable selectable assets from the cloud asset catalog', () => {
     const source = screenSource();
 
-    expect(source).toContain("symbol: 'BTC'");
-    expect(source).toContain("symbol: 'ETH'");
-    expect(source).toContain("symbol: 'SOL'");
-    expect(source.includes("symbol: 'DOGE'")).toBe(false);
+    expect(source).toContain('getSimulationAssets');
+    expect(source).toContain('selectableAssets');
+    expect(source).toContain('assetCatalog.assets.ready');
+    expect(source).toContain('assetCatalog.assets.unavailable');
+    expect(assetPickerSource()).toContain('getRecommendedSimulationAssets');
+    expect(source).toContain('filterSimulationAssets');
+    expect(source.includes('const SIMULATION_ASSETS')).toBe(false);
+  });
+
+  it('opens a coin picker with search, recommendations, and filters instead of a long horizontal selector', () => {
+    const source = screenSource();
+    const pickerSource = assetPickerSource();
+
+    expect(source).toContain('isAssetPickerVisible');
+    expect(source).toContain('assetSearchQuery');
+    expect(source).toContain('selectedAssetFilter');
+    expect(source).toContain('Search coins');
+    expect(pickerSource).toContain('Recommended');
+    expect(pickerSource).toContain('Ready');
+    expect(pickerSource).toContain('Unavailable');
+    expect(pickerSource).toContain('Top 20');
+    expect(source).toContain('Change');
+    expect(source).toContain('Select coin');
+    expect(source.includes('selectableAssets.map((item)')).toBe(false);
   });
 
   it('labels the workflow as hypothetical simulation output', () => {
@@ -22,6 +49,7 @@ describe('Simulation screen product boundaries', () => {
 
     expect(source).toContain('Hypothetical simulation');
     expect(source).toContain('Data source');
+    expect(source.includes('Hypothetical simulation using historical and current USD prices')).toBe(false);
   });
 
   it('adds city-based purchasing power comparisons after a simulation result', () => {
@@ -40,15 +68,29 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('Data estimate');
   });
 
-  it('shows asset catalog scale without enabling unsupported simulation assets', () => {
+  it('does not show the asset catalog summary before coin selection', () => {
     const source = screenSource();
 
-    expect(source).toContain('getSimulationAssets');
-    expect(source).toContain('Asset catalog');
-    expect(source).toContain('Ready assets');
-    expect(source).toContain('Unavailable assets');
-    expect(source).toContain('Market cache');
-    expect(source).toContain('Not all catalog assets are enabled for Simulation v1.');
+    expect(source.includes('Asset catalog')).toBe(false);
+    expect(source.includes('Ready assets')).toBe(false);
+    expect(source.includes('Unavailable assets')).toBe(false);
+    expect(source.includes('Market cache')).toBe(false);
+    expect(source.includes('Not all catalog assets are enabled for Simulation v1.')).toBe(false);
+  });
+
+  it('shows an unavailable message only after selecting an unavailable coin', () => {
+    const source = screenSource();
+
+    const pickerSource = assetPickerSource();
+
+    expect(pickerSource).toContain('SUPPORTED_SIMULATION_SYMBOLS');
+    expect(source).toContain('getSelectedAssetAvailability');
+    expect(pickerSource).toContain('Simulation supports the top 20 ready coins.');
+    expect(source).toContain('selectedAssetAvailability');
+    expect(source).toContain('Selected coin is unavailable');
+    expect(source).toContain('selectedAssetAvailability.reason');
+    expect(source).toContain('selectedAssetAvailability.detail');
+    expect(source).toContain('canSelectedAssetSimulate');
   });
 
   it('uses a chart-inspired year explorer to guide date selection', () => {
@@ -61,12 +103,10 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('getSimulationHistory');
   });
 
-  it('starts the year explorer from each product asset full-history date', () => {
+  it('starts the year explorer from the selected catalog asset full-history date', () => {
     const source = screenSource();
 
-    expect(source).toContain("firstDate: '2014-09-17'");
-    expect(source).toContain("firstDate: '2017-11-09'");
-    expect(source).toContain("firstDate: '2020-04-10'");
+    expect(source).toContain('selectedAssetStartDate');
     expect(source).toContain('simulationYears');
     expect(source.includes('const SIMULATION_YEARS = [2021')).toBe(false);
   });
@@ -100,6 +140,20 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('1 month');
     expect(source).toContain('Risk journey');
     expect(source).toContain('Source');
+  });
+
+  it('renders compact saved simulation rows and opens details in a modal dialog', () => {
+    const source = screenSource();
+
+    expect(source).toContain('selectedSavedSimulation');
+    expect(source).toContain('Modal');
+    expect(source).toContain('onRequestClose');
+    expect(source).toContain('close-outline');
+    expect(source).toContain('Value invested');
+    expect(source).toContain('Return');
+    expect(source).toContain('Simulation details');
+    expect(source).toContain('scenarioType');
+    expect(source).toContain('dataTrust');
   });
 
   it('avoids trading product language', () => {

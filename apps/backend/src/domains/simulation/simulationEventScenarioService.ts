@@ -7,25 +7,27 @@ import {
   SimulationEventScenarioEvent,
   SimulationEventScenarioResponse,
   SimulationEventScenarioSuccessResponse,
+  SimulationEventSummary,
   SimulationPriceErrorResponse,
   SimulationPriceUnavailableResponse,
 } from '../../../../../packages/shared/src';
 import { ApiEnv } from '../../types';
 import { recordMetric } from '../../telemetry/metrics';
-import { fetchCoinGeckoCurrentPrices } from './coinGeckoCurrentPriceClient';
+import {
+  findSupportedSimulationAssetBySymbol,
+  listSupportedSimulationAssets,
+} from './assets/simulationSupportedAssetService';
+import { fetchCoinGeckoSimplePrices } from './current-prices/coinGeckoSimplePriceClient';
 import { getCachedCurrentPrices } from './currentPriceCache';
+import { findFallbackSimulationEventById } from './events/findFallbackSimulationEventById';
+import { mergeSimulationEvents } from './events/mergeSimulationEvents';
 import {
   findHistoricalPrice,
   findHistoricalPriceSeries,
   HistoricalPriceRecord,
   HistoricalPriceSeries,
 } from './historicalPriceRepository';
-import {
-  getSimulationAsset,
-  isSimulationAssetSymbol,
-  simulationHistoricalDateRange,
-  SimulationAssetSymbol,
-} from './simulationAssets';
+import { simulationHistoricalDateRange } from './simulationAssets';
 import { getSimulationEventById, listSimulationEvents } from './simulationEventRepository';
 import { calculateSimulationEventRiskMetrics } from './simulationEventRiskMetrics';
 
@@ -121,7 +123,7 @@ function createHistoricalDataQuality(historical: HistoricalPriceRecord) {
   };
 }
 
-function toScenarioEvent(event: Awaited<ReturnType<typeof getSimulationEventById>>): SimulationEventScenarioEvent {
+function toScenarioEvent(event: SimulationEventSummary | null): SimulationEventScenarioEvent {
   if (!event) throw new Error('Event is required.');
   return {
     id: event.id,
@@ -150,17 +152,9 @@ function createTakeaway({
   )}% drawdown and ${longestUnderwaterDays} days below the starting value before the final outcome.`;
 }
 
-function validateAsset(asset?: string):
-  | ValidationServiceResult
-  | { asset: SimulationAssetSymbol } {
+function validateAsset(asset?: string): ValidationServiceResult | { asset: string } {
   if (!asset) return validationError(400, 'missing_asset', 'Asset is required.');
-
-  const normalizedAsset = asset.toUpperCase();
-  if (!isSimulationAssetSymbol(normalizedAsset)) {
-    return validationError(400, 'unsupported_asset', 'Simulation v1 supports BTC, ETH, and SOL.');
-  }
-
-  return { asset: normalizedAsset };
+  return { asset: asset.toUpperCase() };
 }
 
 function validateScenarioRequest({
@@ -208,9 +202,21 @@ export async function getSimulationEvents({
     });
   }
 
-  const events = await listSimulationEvents({
+  const supportedAsset = await findSupportedSimulationAssetBySymbol({
     db: env.HISTORICAL_PRICES_DB,
-    assetSymbol: validated.asset,
+    symbol: validated.asset,
+  });
+  if (!supportedAsset) {
+    return validationError(400, 'unsupported_asset', 'Simulation supports the top 20 ready assets.');
+  }
+
+  const databaseEvents = await listSimulationEvents({
+    db: env.HISTORICAL_PRICES_DB,
+    assetSymbol: supportedAsset.symbol,
+  });
+  const events = mergeSimulationEvents({
+    assetSymbol: supportedAsset.symbol,
+    databaseEvents,
   });
 
   recordMetric({
@@ -218,18 +224,17 @@ export async function getSimulationEvents({
     durationMs: 0,
     status: 'success',
     metadata: {
-      asset: validated.asset,
+      asset: supportedAsset.symbol,
       events: events.length,
     },
   });
 
-  const assetConfig = getSimulationAsset(validated.asset);
   const body: SimulationEventListSuccessResponse = {
     status: 'success',
     asset: {
-      symbol: assetConfig.symbol,
-      name: assetConfig.name,
-      coinGeckoId: assetConfig.coinGeckoId,
+      symbol: supportedAsset.symbol,
+      name: supportedAsset.name,
+      coinGeckoId: supportedAsset.coinGeckoId,
     },
     supportedDelays: supportedEventDelays,
     events,
@@ -258,13 +263,22 @@ export async function getSimulationEventScenario({
     return unavailable('historical_price_unavailable', 'Historical price database is unavailable.');
   }
 
-  const event = await getSimulationEventById({
+  const databaseEvent = await getSimulationEventById({
     db: env.HISTORICAL_PRICES_DB,
     eventId: validated.eventId,
   });
+  const event = databaseEvent ?? findFallbackSimulationEventById(validated.eventId);
 
   if (!event) {
     return unavailable('simulation_price_unavailable', 'Simulation event is unavailable.');
+  }
+
+  const supportedAsset = await findSupportedSimulationAssetBySymbol({
+    db: env.HISTORICAL_PRICES_DB,
+    symbol: event.assetSymbol,
+  });
+  if (!supportedAsset) {
+    return validationError(400, 'unsupported_asset', 'Simulation supports the top 20 ready assets.');
   }
 
   const intendedBuyDate = addDelay(event.eventDate, validated.delay);
@@ -278,7 +292,7 @@ export async function getSimulationEventScenario({
 
   const historical = await findHistoricalPrice({
     db: env.HISTORICAL_PRICES_DB,
-    assetSymbol: event.assetSymbol,
+    assetSymbol: supportedAsset.historicalSymbol,
     requestedDate: intendedBuyDate,
     historicalMaxDate: simulationHistoricalDateRange.max,
   });
@@ -292,7 +306,7 @@ export async function getSimulationEventScenario({
 
   const series = await findHistoricalPriceSeries({
     db: env.HISTORICAL_PRICES_DB,
-    assetSymbol: event.assetSymbol,
+    assetSymbol: supportedAsset.historicalSymbol,
     startDate: historical.resolvedDate,
     endDate: simulationHistoricalDateRange.max,
   });
@@ -306,10 +320,15 @@ export async function getSimulationEventScenario({
 
   let current;
   try {
+    const supportedAssets = await listSupportedSimulationAssets({ db: env.HISTORICAL_PRICES_DB });
     current = await getCachedCurrentPrices({
       refresh: () =>
-        fetchCoinGeckoCurrentPrices({
+        fetchCoinGeckoSimplePrices({
           apiKey: env.COINGECKO_API_KEY,
+          assets: supportedAssets.map((assetConfig) => ({
+            symbol: assetConfig.symbol,
+            coinGeckoId: assetConfig.coinGeckoId,
+          })),
         }),
       nowMs: now.getTime(),
     });
@@ -320,14 +339,14 @@ export async function getSimulationEventScenario({
     });
   }
 
-  const currentPrice = current.prices[event.assetSymbol];
+  const currentPrice = current.prices[supportedAsset.symbol];
   if (
     !currentPrice ||
     !isPositiveFiniteNumber(currentPrice.priceUsd) ||
     !isPositiveFiniteNumber(historical.priceUsd)
   ) {
     return unavailable('simulation_price_unavailable', 'A required simulation price is invalid.', {
-      asset: event.assetSymbol,
+      asset: supportedAsset.symbol,
       requestedDate: historical.resolvedDate,
     });
   }
@@ -345,7 +364,7 @@ export async function getSimulationEventScenario({
     durationMs: Date.now() - startedAt,
     status: 'success',
     metadata: {
-      asset: event.assetSymbol,
+      asset: supportedAsset.symbol,
       eventId: event.id,
       delay: validated.delay,
       dateResolution: historical.dateResolution,
@@ -353,14 +372,13 @@ export async function getSimulationEventScenario({
     },
   });
 
-  const assetConfig = getSimulationAsset(event.assetSymbol);
   const body: SimulationEventScenarioSuccessResponse = {
     status: 'success',
     event: toScenarioEvent(event),
     asset: {
-      symbol: assetConfig.symbol,
-      name: assetConfig.name,
-      coinGeckoId: assetConfig.coinGeckoId,
+      symbol: supportedAsset.symbol,
+      name: supportedAsset.name,
+      coinGeckoId: supportedAsset.coinGeckoId,
     },
     input: {
       requestedDate: historical.requestedDate,

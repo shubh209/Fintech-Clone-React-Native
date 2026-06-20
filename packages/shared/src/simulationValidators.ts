@@ -41,7 +41,7 @@ function isString(value: unknown): value is string {
 }
 
 function isSimulationAssetSymbol(value: unknown): value is SimulationAssetSymbol {
-  return value === 'BTC' || value === 'ETH' || value === 'SOL';
+  return isString(value) && value.trim().length > 0;
 }
 
 function isDateResolution(value: unknown): value is SimulationDateResolution {

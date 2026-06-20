@@ -59,11 +59,11 @@ describe('simulation price validators', () => {
     expect(isSimulationPriceResponse(successResponse)).toBe(true);
   });
 
-  it('rejects unsupported product asset symbols', () => {
+  it('rejects malformed asset symbols', () => {
     expect(
       isSimulationPriceSuccessResponse({
         ...successResponse,
-        asset: { ...successResponse.asset, symbol: 'DOGE' },
+        asset: { ...successResponse.asset, symbol: '' },
       })
     ).toBe(false);
   });

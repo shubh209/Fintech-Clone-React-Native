@@ -1,6 +1,6 @@
 import { ApiResultMetadata } from './apiResult';
 
-export type SimulationAssetSymbol = 'BTC' | 'ETH' | 'SOL';
+export type SimulationAssetSymbol = string;
 export type SimulationDateResolution = 'exact' | 'next_available';
 export type SimulationCurrentCacheStatus = 'fresh' | 'refreshed';
 export type SimulationHistoricalDataQualityStatus = 'exact' | 'resolved_to_next_available';
