@@ -16,6 +16,13 @@ const readyAsset = {
     missingDateCount: 1,
     largestGapDays: 2,
   },
+  dataQuality: {
+    repairedRowCount: 1,
+    quarantinedRowCount: 2,
+    eligibleRowCount: 1908,
+    quarantineRate: 0.001,
+    status: 'repaired_and_quarantined',
+  },
   market: {
     coinGeckoId: 'bitcoin',
     rank: 1,
@@ -91,6 +98,22 @@ describe('simulation asset catalog validators', () => {
       isSimulationAssetCatalogItem({
         ...readyAsset,
         market: { ...readyAsset.market, currentPriceUsd: -1 },
+      })
+    ).toBe(false);
+  });
+
+  it('rejects invalid data-quality metadata', () => {
+    expect(
+      isSimulationAssetCatalogItem({
+        ...readyAsset,
+        dataQuality: { ...readyAsset.dataQuality, quarantineRate: 'bad' },
+      })
+    ).toBe(false);
+
+    expect(
+      isSimulationAssetCatalogItem({
+        ...readyAsset,
+        dataQuality: { ...readyAsset.dataQuality, status: 'unknown' },
       })
     ).toBe(false);
   });

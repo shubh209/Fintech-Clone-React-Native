@@ -25,20 +25,22 @@ If the crypto chart renders oddly:
 
 ## Simulation API Requests
 
-If `GET /api/simulation/prices` or `GET /api/simulation/history` fails:
+If `GET /api/simulation/prices`, `GET /api/simulation/history`, `GET /api/simulation/events`, or `GET /api/simulation/event-scenarios` fails:
 
 1. Verify `apps/backend/wrangler.jsonc` includes D1 binding `HISTORICAL_PRICES_DB` for database `fintech-historical-prices`.
 2. If `/api/simulation/prices` fails, confirm the Worker secret `COINGECKO_API_KEY` is configured for current USD prices.
 3. If `/api/simulation/history` returns `404`, deploy the Worker after backend route changes.
-4. Inspect `apps/backend/src/domains/simulation/simulationRoutes.ts`, `simulationPriceService.ts`, `simulationHistoryService.ts`, `historicalPriceRepository.ts`, and `coinGeckoCurrentPriceClient.ts`.
-5. Check that requested dates are from `2021-01-01` through `2026-03-22`, the latest verified common historical date for BTC, ETH, and SOL.
+4. Inspect `apps/backend/src/domains/simulation/simulationRoutes.ts`, `simulationPriceService.ts`, `simulationHistoryService.ts`, `simulationEventScenarioService.ts`, `simulationEventRepository.ts`, `simulationEventRiskMetrics.ts`, `simulationHistoryService.ts`, `historicalPriceRepository.ts`, and `coinGeckoCurrentPriceClient.ts`.
+5. Check that requested dates are from the product-supported full available range through `2026-03-22`; BTC starts `2014-09-17`, ETH starts `2017-11-09`, and SOL starts `2020-04-10`.
 6. Remember that Simulation v1 rejects unsupported product symbols even though D1 contains more imported assets.
 
 To verify deployed Simulation endpoints:
 
 ```bash
-curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/prices?asset=BTC&date=2021-01-01&amountUsd=100'
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/prices?asset=BTC&date=2014-09-17&amountUsd=100'
 curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/history?asset=BTC&year=2021'
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/events?asset=BTC'
+curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/simulation/event-scenarios?eventId=btc-2024-spot-etf-approval&delay=one_week&amountUsd=500'
 curl -i 'https://fintech-reliability-api.shubhkapadia2031.workers.dev/api/purchasing-power/comparisons?city=phoenix&amountUsd=2500'
 ```
 
@@ -46,21 +48,38 @@ Expected behavior:
 
 - `/api/simulation/prices` returns JSON with `status: "success"` or a structured `error`/`unavailable` response.
 - `/api/simulation/history` returns JSON with yearly `points` for the selected asset/year.
+- `/api/simulation/events` returns JSON with `status: "success"` and 5 sourced event cards for BTC, ETH, or SOL.
+- `/api/simulation/event-scenarios` returns JSON with `status: "success"`, event metadata, current value, max drawdown, longest underwater period, best/worst 30-day stretches, and a plain-English takeaway.
 - `/api/purchasing-power/comparisons` returns JSON with monthly essentials and big-purchase comparisons for the selected city.
+
+To run Wrangler locally when the system shell is on Node 20, use the bundled Codex Node runtime from `apps/backend`:
+
+```bash
+/Users/shubhkapadia/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node \
+  ../../node_modules/wrangler/bin/wrangler.js dev --port 8787
+```
+
+Local purchasing-power checks work without seeded D1 data. Local `/api/simulation/assets` and `/api/simulation/prices` require local D1 data or remote/deployed Worker verification.
 
 To verify historical D1 data:
 
 ```bash
 ./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT COUNT(*) AS row_count, COUNT(DISTINCT asset_symbol) AS asset_count, MIN(date) AS first_date, MAX(date) AS last_date FROM historical_crypto_prices;"
 ./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT asset_symbol, asset_name, date, close_usd FROM historical_crypto_prices WHERE asset_symbol IN ('BTC','ETH','SOL') AND date = '2026-03-22' ORDER BY asset_symbol;"
+./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT asset_symbol, COUNT(*) AS event_count FROM simulation_events WHERE status = 'active' GROUP BY asset_symbol ORDER BY asset_symbol;"
+./node_modules/.bin/wrangler d1 execute fintech-historical-prices --remote --command "SELECT COUNT(*) AS source_count FROM simulation_event_sources;"
 ```
 
 Expected current import:
 
-- `row_count`: `120740`
-- `asset_count`: `88`
-- `first_date`: `2021-01-01`
+- `row_count`: `176348`
+- `asset_count`: `98` imported assets in `historical_crypto_prices`
+- `ready asset catalog count`: `84`
+- `unavailable asset catalog count`: `16`
+- `first_date`: `2014-09-17`
 - `last_date`: `2026-03-22`
+- active event count: `5` each for BTC, ETH, and SOL after `0004_simulation_events.sql`
+- event source count: `30` after `0004_simulation_events.sql`
 
 To regenerate import SQL from the local CSV dataset:
 
@@ -137,7 +156,7 @@ For Simulation API/runtime changes:
 
 ```bash
 /Users/shubhkapadia/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -m unittest scripts/historical_prices/test_import_historical_prices.py
-./node_modules/.bin/jest --runTestsByPath apps/frontend/src/shared/api/simulationValidators.test.ts apps/backend/__tests__/simulation/historicalPriceRepository.test.ts apps/backend/__tests__/simulation/coinGeckoCurrentPriceClient.test.ts apps/backend/__tests__/simulation/currentPriceCache.test.ts apps/backend/__tests__/api/simulation-prices-api.test.ts apps/frontend/src/features/simulation/api/getSimulationHistory.test.ts apps/frontend/src/features/simulation/api/getSimulationPrice.test.ts apps/frontend/src/features/simulation/screens/simulationScreen.test.ts apps/frontend/src/features/simulation/storage/savedSimulationsStore.test.ts --runInBand --watchman=false
+./node_modules/.bin/jest --runTestsByPath apps/frontend/src/shared/api/simulationValidators.test.ts apps/backend/__tests__/simulation/historicalPriceRepository.test.ts apps/backend/__tests__/simulation/simulationEventRepository.test.ts apps/backend/__tests__/simulation/simulationEventRiskMetrics.test.ts apps/backend/__tests__/simulation/coinGeckoCurrentPriceClient.test.ts apps/backend/__tests__/simulation/currentPriceCache.test.ts apps/backend/__tests__/api/simulation-prices-api.test.ts apps/backend/__tests__/api/simulation-events-api.test.ts apps/frontend/src/features/simulation/api/getSimulationHistory.test.ts apps/frontend/src/features/simulation/api/getSimulationPrice.test.ts apps/frontend/src/features/simulation/api/getSimulationEvents.test.ts apps/frontend/src/features/simulation/api/getSimulationEventScenario.test.ts apps/frontend/src/features/simulation/screens/simulationScreen.test.ts apps/frontend/src/features/simulation/storage/savedSimulationsStore.test.ts --runInBand --watchman=false
 ./node_modules/.bin/tsc --noEmit
 ```
 
@@ -155,4 +174,7 @@ Use direct local binaries because the repo path contains `Web:Apps`, and `:` can
 8. Open multiple crypto detail screens and confirm each detail view requests `/api/tickers?id=<asset-id>` through the Worker.
 9. Watch logs for `[metric]` entries while using Crypto and auth flows.
 10. Open the Simulation tab, pick BTC/ETH/SOL, change years, press and drag across the chart, and confirm the Buy date updates.
-11. Run a simulation for `BTC`, `2021-01-01`, `$100`, then save it and confirm it appears under Saved simulations.
+11. Run a simulation for `BTC`, `2014-09-17`, `$100`, then save it and confirm it appears under Saved simulations.
+12. Switch Simulation from Date to Event, choose BTC, confirm 5 sourced event headlines appear, select `U.S. spot Bitcoin ETFs are approved`, choose `1 week`, enter `$500`, and run event simulation.
+13. Confirm the event result shows current value, gain/loss, Risk journey, max drawdown, longest below start, best/worst 30 days, Source metadata, and a plain-English takeaway.
+14. Save the event simulation and confirm Saved simulations labels it as `Event` with the event headline.

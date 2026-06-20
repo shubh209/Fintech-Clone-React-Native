@@ -46,12 +46,16 @@ Signed-in users are routed into the signed-in tab shell. The current product tab
 - Simulation v1 is signed-in only and product-limited to BTC, ETH, and SOL.
 - The mobile app must call `GET /api/simulation/prices` through `EXPO_PUBLIC_API_BASE_URL`; it must not call D1, CoinGecko, or raw CSV files directly.
 - The mobile app calls `GET /api/simulation/history` through `EXPO_PUBLIC_API_BASE_URL` for yearly historical chart points.
+- The mobile app calls `GET /api/simulation/events` for sourced BTC/ETH/SOL event cards and `GET /api/simulation/event-scenarios` for event-based scenarios. The Worker owns event date resolution, reaction-delay logic, current-value math, and risk metrics.
 - The Simulation screen shows a chart-inspired year explorer where users can press and drag across the chart to select the historical buy date. Month chips remain as shortcuts, and the date field remains editable for fine tuning.
+- The Simulation screen also has an Event mode with sourced headline cards, `same_day`, `one_week`, and `one_month` reaction delays, event result saving, and a risk journey panel for max drawdown, longest underwater period, best 30-day stretch, and worst 30-day stretch.
 - Historical prices are imported offline from `data/crypto_data/` using `scripts/historical_prices/import_historical_prices.py`.
 - Runtime historical lookup uses Cloudflare D1 binding `HISTORICAL_PRICES_DB`, backed by database `fintech-historical-prices` (`cce18a99-efa1-463a-9958-1926e1ed6ad2`).
-- The verified historical import contains 120,740 rows across 88 valid assets, with BTC/ETH/SOL coverage from `2021-01-01` through `2026-03-22`.
+- The verified historical import contains 176,348 rows across 84 ready assets and 16 unavailable assets, with BTC coverage from `2014-09-17`, ETH from `2017-11-09`, and SOL from `2020-04-10` through `2026-03-22`.
+- The importer preserves raw CSV files, applies an auditable data-quality manifest, repairs only deterministic same-row OHLC issues, quarantines unrecoverable rows, and exposes repaired/quarantined counts through `/api/simulation/assets`.
 - Current Simulation USD prices come from CoinGecko Simple Price through the Worker using `COINGECKO_API_KEY`, with a 60-second Worker cache.
 - The Worker owns simulation math and returns Data Trust metadata, including `requestedDate`, `resolvedDate`, `dateResolution`, historical source, current provider, and cache status.
+- Event simulation content is seeded in D1 through `apps/backend/migrations/0004_simulation_events.sql`: 15 active curated events across BTC, ETH, and SOL, each with 2 source rows. Event scenarios use static historical D1 rows for reproducible risk metrics and current CoinGecko prices for current value.
 - TypeScript runtime code must not take over offline CSV ingestion; Python remains the owner of historical dataset import and D1 SQL generation.
 
 ## Metrics
@@ -87,9 +91,14 @@ Signed-in users are routed into the signed-in tab shell. The current product tab
 - `apps/backend/__tests__/api/info-api.test.ts`
 - `apps/backend/__tests__/api/tickers-api.test.ts`
 - `apps/backend/__tests__/api/simulation-prices-api.test.ts`
+- `apps/backend/__tests__/api/simulation-events-api.test.ts`
 - `apps/backend/__tests__/simulation/historicalPriceRepository.test.ts`
+- `apps/backend/__tests__/simulation/simulationEventRepository.test.ts`
+- `apps/backend/__tests__/simulation/simulationEventRiskMetrics.test.ts`
 - `apps/backend/__tests__/simulation/coinGeckoCurrentPriceClient.test.ts`
 - `apps/backend/__tests__/simulation/currentPriceCache.test.ts`
+- `apps/frontend/src/features/simulation/api/getSimulationEvents.test.ts`
+- `apps/frontend/src/features/simulation/api/getSimulationEventScenario.test.ts`
 - `apps/frontend/src/features/simulation/api/getSimulationHistory.test.ts`
 - `apps/frontend/src/features/simulation/api/getSimulationPrice.test.ts`
 - `apps/frontend/src/features/simulation/screens/simulationScreen.test.ts`

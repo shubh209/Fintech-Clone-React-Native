@@ -4,6 +4,7 @@ import {
   SimulationAssetSymbol,
   SimulationCurrentCacheStatus,
   SimulationDateResolution,
+  SimulationEventDelay,
   SimulationPriceSuccessResponse,
 } from '@shared/simulationTypes';
 
@@ -13,6 +14,13 @@ export interface SavedSimulationInput {
   asset: SimulationAssetSymbol;
   requestedDate: string;
   amountUsd: number;
+  scenarioType?: 'date' | 'event';
+  event?: {
+    id: string;
+    headline: string;
+    eventDate: string;
+    delay: SimulationEventDelay;
+  };
 }
 
 export interface SavedSimulation {

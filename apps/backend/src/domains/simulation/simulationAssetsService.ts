@@ -116,6 +116,13 @@ function toCatalogItem({
       missingDateCount: asset.missingDateCount,
       largestGapDays: asset.largestGapDays,
     },
+    dataQuality: {
+      repairedRowCount: asset.repairedRowCount,
+      quarantinedRowCount: asset.quarantinedRowCount,
+      eligibleRowCount: asset.eligibleRowCount,
+      quarantineRate: asset.quarantineRate,
+      status: asset.dataQualityStatus,
+    },
     market,
     availability: getAvailability({ asset, market, marketStatus }),
   };

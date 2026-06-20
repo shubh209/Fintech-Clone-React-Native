@@ -61,6 +61,16 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('getSimulationHistory');
   });
 
+  it('starts the year explorer from each product asset full-history date', () => {
+    const source = screenSource();
+
+    expect(source).toContain("firstDate: '2014-09-17'");
+    expect(source).toContain("firstDate: '2017-11-09'");
+    expect(source).toContain("firstDate: '2020-04-10'");
+    expect(source).toContain('simulationYears');
+    expect(source.includes('const SIMULATION_YEARS = [2021')).toBe(false);
+  });
+
   it('lets users press and drag on the chart to select the buy date', () => {
     const source = screenSource();
 
@@ -76,6 +86,20 @@ describe('Simulation screen product boundaries', () => {
     expect(source).toContain('formatAxisUsdLabel');
     expect(source).toContain("return `${Math.round(value / 1000)}K`");
     expect(source).toContain('formatYLabel: (value) => formatAxisUsdLabel(Number(value))');
+  });
+
+  it('adds event-based simulation mode with sourced headlines and delay options', () => {
+    const source = screenSource();
+
+    expect(source).toContain('Date');
+    expect(source).toContain('Event');
+    expect(source).toContain('getSimulationEvents');
+    expect(source).toContain('getSimulationEventScenario');
+    expect(source).toContain('Same day');
+    expect(source).toContain('1 week');
+    expect(source).toContain('1 month');
+    expect(source).toContain('Risk journey');
+    expect(source).toContain('Source');
   });
 
   it('avoids trading product language', () => {

@@ -20,7 +20,7 @@ export const simulationAssets = {
 } as const;
 
 export const simulationHistoricalDateRange = {
-  min: '2021-01-01',
+  min: '2014-09-17',
   max: '2026-03-22',
 } as const;
 

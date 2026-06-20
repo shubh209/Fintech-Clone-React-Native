@@ -15,6 +15,13 @@ const validSimulationAssetsResponse = {
           missingDateCount: 0,
           largestGapDays: 1,
         },
+        dataQuality: {
+          repairedRowCount: 0,
+          quarantinedRowCount: 0,
+          eligibleRowCount: 1910,
+          quarantineRate: 0,
+          status: 'clean',
+        },
         market: {
           coinGeckoId: 'bitcoin',
           rank: 1,
@@ -44,6 +51,13 @@ const validSimulationAssetsResponse = {
           rowCount: 1910,
           missingDateCount: 0,
           largestGapDays: 1,
+        },
+        dataQuality: {
+          repairedRowCount: 0,
+          quarantinedRowCount: 0,
+          eligibleRowCount: 1910,
+          quarantineRate: 0,
+          status: 'clean',
         },
         market: {
           coinGeckoId: null,

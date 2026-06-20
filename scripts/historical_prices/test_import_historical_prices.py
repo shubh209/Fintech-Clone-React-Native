@@ -59,6 +59,7 @@ class HistoricalPriceImportTests(unittest.TestCase):
             imported_at="2026-05-22T01:00:00.000Z",
             end_date=end_date,
             now=datetime(2026, 5, 22, tzinfo=timezone.utc),
+            minimum_ready_rows=1,
         )
 
     def test_imports_every_valid_asset(self):
@@ -111,6 +112,7 @@ class HistoricalPriceImportTests(unittest.TestCase):
             now=datetime(2026, 5, 22, tzinfo=timezone.utc),
             category_map={"BTC": "Layer 1", "BAD": "Other"},
             required_product_symbols={"BTC"},
+            minimum_ready_rows=1,
         )
 
         report = json.loads(output_report.read_text(encoding="utf-8"))
@@ -141,6 +143,136 @@ class HistoricalPriceImportTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "BTC has a gap over 3 calendar days"):
             self.build(root, end_date=date(2021, 1, 5))
+
+    def test_applies_manifest_repair_and_quarantine_before_validation(self):
+        root = self.make_source(
+            directory_rows=[
+                [1, "bitcoin", "bitcoin_BTC.csv"],
+                [2, "ethereum", "ethereum_ETH.csv"],
+                [3, "solana", "solana_SOL.csv"],
+                [4, "repairable", "repairable_RPR.csv"],
+            ],
+            files={
+                "bitcoin_BTC.csv": csv_rows(["2020-12-31", "2021-01-01", "2021-01-02", "2021-01-03"]),
+                "ethereum_ETH.csv": csv_rows(["2020-12-31", "2021-01-01", "2021-01-02", "2021-01-03"]),
+                "solana_SOL.csv": csv_rows(["2020-12-31", "2021-01-01", "2021-01-02", "2021-01-03"]),
+                "repairable_RPR.csv": [
+                    HEADER,
+                    ["2020-01-01 00:00:00+00:00", 10, 12, 0, 11, 1000, "", 3, 10, 10],
+                    ["2020-01-02 00:00:00+00:00", 10, 12, 9, 11, 1000, "", 3, 10, 10],
+                    ["2020-01-03 00:00:00+00:00", "", "", "", 0, 1000, "", 3, 10, 10],
+                    ["2020-01-04 00:00:00+00:00", 10, 12, 9, 11, 1000, "", 3, 10, 10],
+                ],
+            },
+        )
+        manifest = root / "quality.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "version": "test",
+                    "repairs": [
+                        {
+                            "symbol": "RPR",
+                            "date": "2020-01-01",
+                            "method": "same_row_ohlc_range",
+                            "reason": "Low was zero while Open/High/Close were positive.",
+                            "set": {"Low": 10},
+                        }
+                    ],
+                    "quarantines": [
+                        {
+                            "symbol": "RPR",
+                            "date": "2020-01-03",
+                            "reason": "Missing OHLC values cannot be repaired from same row.",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = build_import(
+            source_root=root,
+            source_name="Test source",
+            source_url="https://example.test/dataset",
+            source_version="test",
+            downloaded_at="2026-05-22T00:00:00.000Z",
+            output_sql=None,
+            output_report=None,
+            imported_at="2026-05-22T01:00:00.000Z",
+            end_date=date(2021, 1, 3),
+            now=datetime(2026, 5, 22, tzinfo=timezone.utc),
+            required_product_symbols={"BTC", "ETH", "SOL"},
+            data_quality_manifest_path=manifest,
+            minimum_ready_rows=1,
+            maximum_quarantine_rate=0.5,
+        )
+
+        repairable = next(asset for asset in result.simulation_assets if asset.symbol == "RPR")
+        self.assertEqual(repairable.status, "ready")
+        self.assertEqual(repairable.imported_row_count, 3)
+        self.assertEqual(repairable.repaired_row_count, 1)
+        self.assertEqual(repairable.quarantined_row_count, 1)
+        self.assertEqual(repairable.data_quality_status, "repaired_and_quarantined")
+
+    def test_import_uses_earliest_available_csv_date(self):
+        root = self.make_source(
+            files={
+                "bitcoin_BTC.csv": csv_rows(["2020-12-30", "2020-12-31", "2021-01-01", "2021-01-02"]),
+                "ethereum_ETH.csv": csv_rows(["2020-12-30", "2020-12-31", "2021-01-01", "2021-01-02"]),
+                "solana_SOL.csv": csv_rows(["2020-12-30", "2020-12-31", "2021-01-01", "2021-01-02"]),
+                "dogecoin_DOGE.csv": csv_rows(["2020-12-30", "2020-12-31", "2021-01-01", "2021-01-02"]),
+            }
+        )
+        result = build_import(
+            source_root=root,
+            source_name="Test source",
+            source_url="https://example.test/dataset",
+            source_version="test",
+            downloaded_at="2026-05-22T00:00:00.000Z",
+            output_sql=None,
+            output_report=None,
+            imported_at="2026-05-22T01:00:00.000Z",
+            end_date=date(2021, 1, 2),
+            now=datetime(2026, 5, 22, tzinfo=timezone.utc),
+            minimum_ready_rows=1,
+        )
+        btc = next(item for item in result.coverage_report if item.asset_symbol == "BTC")
+        self.assertEqual(btc.first_imported_date, "2020-12-30")
+
+    def test_readiness_requires_minimum_valid_rows_and_quarantine_cap(self):
+        dates = [f"2020-01-{day:02d}" for day in range(1, 11)]
+        root = self.make_source(
+            directory_rows=[
+                [1, "bitcoin", "bitcoin_BTC.csv"],
+                [2, "ethereum", "ethereum_ETH.csv"],
+                [3, "solana", "solana_SOL.csv"],
+                [4, "short", "short_SRT.csv"],
+            ],
+            files={
+                "bitcoin_BTC.csv": csv_rows(dates),
+                "ethereum_ETH.csv": csv_rows(dates),
+                "solana_SOL.csv": csv_rows(dates),
+                "short_SRT.csv": csv_rows(dates),
+            },
+        )
+        result = build_import(
+            source_root=root,
+            source_name="Test source",
+            source_url="https://example.test/dataset",
+            source_version="test",
+            downloaded_at="2026-05-22T00:00:00.000Z",
+            output_sql=None,
+            output_report=None,
+            imported_at="2026-05-22T01:00:00.000Z",
+            end_date=date(2020, 1, 10),
+            now=datetime(2026, 5, 22, tzinfo=timezone.utc),
+            required_product_symbols={"BTC", "ETH", "SOL"},
+            minimum_ready_rows=365,
+        )
+        short = next(asset for asset in result.simulation_assets if asset.symbol == "SRT")
+        self.assertEqual(short.status, "historical_invalid")
+        self.assertEqual(short.unavailable_reason, "Historical data does not meet readiness threshold.")
 
 
 if __name__ == "__main__":

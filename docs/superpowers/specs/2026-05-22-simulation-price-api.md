@@ -13,7 +13,7 @@ The mobile app must call this Worker endpoint instead of calling D1, CoinGecko, 
 ## Endpoint
 
 ```text
-GET /api/simulation/prices?asset=BTC&date=2021-01-01&amountUsd=100
+GET /api/simulation/prices?asset=BTC&date=2014-09-17&amountUsd=100
 ```
 
 ## Request Parameters
@@ -21,12 +21,12 @@ GET /api/simulation/prices?asset=BTC&date=2021-01-01&amountUsd=100
 | Parameter | Required | Format | Rules |
 | --- | --- | --- | --- |
 | `asset` | yes | symbol | Must be one of v1 product-supported symbols: `BTC`, `ETH`, `SOL`. |
-| `date` | yes | `YYYY-MM-DD` | Must be from `2021-01-01` through the latest common imported historical date for BTC, ETH, and SOL. The current dataset supports `2026-03-22`. |
+| `date` | yes | `YYYY-MM-DD` | Must be inside the product-supported full available CSV range. BTC starts `2014-09-17`, ETH starts `2017-11-09`, SOL starts `2020-04-10`, and the current dataset supports `2026-03-22`. |
 | `amountUsd` | yes | decimal string | Must parse to a positive USD amount greater than `0`. |
 
 The API intentionally accepts product-facing symbols, not provider-specific IDs. The Worker owns provider mapping.
 
-Runtime historical date max is currently `2026-03-22`, matching the latest common imported historical date for BTC, ETH, and SOL in the verified D1 import.
+Runtime historical date max is currently `2026-03-22`, matching the latest verified D1 import.
 
 ## Asset Identifiers
 
@@ -49,14 +49,14 @@ The D1 historical price store may contain more assets than Simulation v1 exposes
     "coinGeckoId": "bitcoin"
   },
   "input": {
-    "requestedDate": "2021-01-01",
+    "requestedDate": "2014-09-17",
     "amountUsd": 100
   },
   "historical": {
-    "requestedDate": "2021-01-01",
-    "resolvedDate": "2021-01-01",
+    "requestedDate": "2014-09-17",
+    "resolvedDate": "2014-09-17",
     "dateResolution": "exact",
-    "priceUsd": 29374.15,
+    "priceUsd": 457.334,
     "source": {
       "source": "fallback",
       "provider": "historical_csv",

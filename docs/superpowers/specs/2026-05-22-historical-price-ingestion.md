@@ -62,9 +62,9 @@ V1 stores all required columns. Simulation v1 uses `Close` as the historical pri
 
 ## Date Range
 
-The import targets rows from `2021-01-01` through the latest common imported historical date for BTC, ETH, and SOL, stored as UTC calendar dates. The current dataset supports `2026-03-22`.
+The import targets the full available date range already present in each static CSV through the latest configured historical date, stored as UTC calendar dates. The current dataset supports `2026-03-22`.
 
-Rows before `2021-01-01` may be read for validation context, but they are not required in the runtime table. Rows after the latest common imported historical date for BTC, ETH, and SOL are not required for Simulation v1.
+Rows before the prior `2021-01-01` floor are now imported when they pass data-quality checks. The importer preserves raw CSV files, applies an auditable data-quality manifest, uses deterministic same-row OHLC repairs only, quarantines unrecoverable rows, and marks assets ready only when they have at least 365 valid daily rows and no more than 10% quarantined rows.
 
 ## Asset Identity Validation
 
@@ -159,7 +159,7 @@ provenance, or the runtime table as a whole:
 - `Close` is outside the inclusive `Low` to `High` range.
 - `Volume` is negative.
 - duplicate rows exist for the same asset/date.
-- a required asset has no row on or before `2021-01-01`.
+- a required product asset has no valid imported rows.
 - a required asset does not have coverage through the configured import end date.
 - any missing-date gap inside the import range is more than 3 calendar days.
 
@@ -263,7 +263,7 @@ Verify point lookup:
 SELECT asset_symbol, date, close_usd
 FROM historical_crypto_prices
 WHERE asset_symbol = 'BTC'
-  AND date >= '2021-01-01'
+  AND date >= '2014-09-17'
   AND date <= '<historical-max-date>'
 ORDER BY date ASC
 LIMIT 1;
@@ -280,14 +280,18 @@ LIMIT 1;
 
 ## Verified Import Result
 
-The 2026-05-22 import was applied to remote D1 and verified with Wrangler.
+The 2026-06-09 full-available-history import was applied to remote D1 and verified with Wrangler.
 
 | Check | Result |
 | --- | --- |
-| Historical rows | `120740` |
-| Imported assets | `88` |
-| Rejected non-product assets | `12` |
-| First imported date | `2021-01-01` |
+| Historical rows | `176348` |
+| Imported historical assets | `98` |
+| Ready asset catalog entries | `84` |
+| Unavailable asset catalog entries | `16` |
+| Repaired source rows | `6` |
+| Quarantined source rows | `789` |
+| Rejected assets | `0` |
+| First imported date | `2014-09-17` |
 | Last imported date | `2026-03-22` |
 | Required product assets | BTC, ETH, SOL present |
 
@@ -301,16 +305,16 @@ Verified product rows for `2026-03-22`:
 
 ## Incomplete Coverage Behavior
 
-If the dataset does not cover BTC, ETH, or SOL from `2021-01-01` through the configured import end date:
+If the dataset has missing or invalid rows inside the configured import range:
 
-- fail import when coverage starts after `2021-01-01`.
-- fail import when coverage ends before the configured import end date.
-- fail import when any gap exceeds 3 calendar days.
-- allow import only when gaps are 3 days or less and reported.
+- apply deterministic same-row OHLC repairs only when the manifest documents the exact row, reason, method, and replacement values.
+- quarantine unrecoverable rows instead of interpolating or fabricating market prices.
+- mark an asset ready only when it has at least 365 valid imported rows and no more than 10% quarantined rows.
+- expose repaired and quarantined counts in generated metadata and `/api/simulation/assets`.
 
-For non-product assets, malformed files or coverage gaps should be reported per asset. The import
-may skip an invalid non-product asset, but it must include that skip in provenance. A skipped
-non-product asset must not block the v1 launch.
+For non-product assets, malformed files or coverage gaps should be reported per asset. Assets that
+do not meet the readiness threshold remain in the unavailable catalog with a recruiter/user-readable
+reason rather than being silently dropped.
 
 Allowed gaps do not change Simulation semantics. The Worker must still return the requested date and resolved date whenever next-available resolution is used.
 

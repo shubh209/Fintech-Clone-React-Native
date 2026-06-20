@@ -17,6 +17,8 @@ import { runOnJS, SharedValue, useAnimatedReaction } from 'react-native-reanimat
 
 import { getPurchasingPowerComparisons } from '@/features/simulation/api/getPurchasingPowerComparisons';
 import { getSimulationAssets } from '@/features/simulation/api/getSimulationAssets';
+import { getSimulationEventScenario } from '@/features/simulation/api/getSimulationEventScenario';
+import { getSimulationEvents } from '@/features/simulation/api/getSimulationEvents';
 import { getSimulationHistory } from '@/features/simulation/api/getSimulationHistory';
 import { getSimulationPrice } from '@/features/simulation/api/getSimulationPrice';
 import {
@@ -29,6 +31,9 @@ import { defaultStyles } from '@/shared/theme/defaultStyles';
 import { recordMetric } from '@/shared/metrics/metrics';
 import {
   SimulationAssetSymbol,
+  SimulationEventDelay,
+  SimulationEventScenarioResponse,
+  SimulationEventScenarioSuccessResponse,
   SimulationHistoryPoint,
   SimulationPriceResponse,
   SimulationPriceSuccessResponse,
@@ -38,16 +43,26 @@ import {
   PurchasingPowerComparison,
 } from '@shared/purchasingPowerTypes';
 
-const MIN_SIMULATION_DATE = '2021-01-01';
+const MIN_SIMULATION_DATE = '2014-09-17';
 const MAX_SIMULATION_DATE = '2026-03-22';
 
-const SIMULATION_ASSETS: Array<{ symbol: SimulationAssetSymbol; name: string }> = [
-  { symbol: 'BTC', name: 'Bitcoin' },
-  { symbol: 'ETH', name: 'Ethereum' },
-  { symbol: 'SOL', name: 'Solana' },
+type SimulationMode = 'date' | 'event';
+
+const EVENT_DELAYS: Array<{ value: SimulationEventDelay; label: string }> = [
+  { value: 'same_day', label: 'Same day' },
+  { value: 'one_week', label: '1 week' },
+  { value: 'one_month', label: '1 month' },
 ];
 
-const SIMULATION_YEARS = [2021, 2022, 2023, 2024, 2025, 2026];
+const SIMULATION_ASSETS: Array<{
+  symbol: SimulationAssetSymbol;
+  name: string;
+  firstDate: string;
+}> = [
+  { symbol: 'BTC', name: 'Bitcoin', firstDate: '2014-09-17' },
+  { symbol: 'ETH', name: 'Ethereum', firstDate: '2017-11-09' },
+  { symbol: 'SOL', name: 'Solana', firstDate: '2020-04-10' },
+];
 
 const PURCHASING_POWER_CITIES: Array<{
   id: PurchasingPowerCityId;
@@ -105,8 +120,15 @@ function getMonthPoints(points: SimulationHistoryPoint[]) {
   return [...byMonth.values()];
 }
 
+function getYearRange(startDate: string, endDate: string) {
+  const startYear = Number(startDate.slice(0, 4));
+  const endYear = Number(endDate.slice(0, 4));
+
+  return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
+}
+
 function isSuccessfulResult(
-  result: SimulationPriceResponse | null
+  result: SimulationPriceResponse | SimulationEventScenarioResponse | null
 ): result is SimulationPriceSuccessResponse {
   return result?.status === 'success';
 }
@@ -146,10 +168,17 @@ export default function SimulationScreen() {
   }) as any;
   const { state: chartPressState, isActive: isChartPressActive } = chartPress;
   const [asset, setAsset] = useState<SimulationAssetSymbol>('BTC');
-  const [selectedYear, setSelectedYear] = useState(2021);
-  const [date, setDate] = useState('2021-01-01');
+  const [mode, setMode] = useState<SimulationMode>('date');
+  const [selectedYear, setSelectedYear] = useState(2014);
+  const [date, setDate] = useState('2014-09-17');
   const [amountUsd, setAmountUsd] = useState('100');
-  const [latestResult, setLatestResult] = useState<SimulationPriceResponse | null>(null);
+  const [latestResult, setLatestResult] = useState<
+    SimulationPriceResponse | SimulationEventScenarioResponse | null
+  >(null);
+  const [latestEventResult, setLatestEventResult] =
+    useState<SimulationEventScenarioSuccessResponse | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedDelay, setSelectedDelay] = useState<SimulationEventDelay>('same_day');
   const [savedItems, setSavedItems] = useState<SavedSimulation[]>([]);
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedCity, setSelectedCity] = useState<PurchasingPowerCityId>('phoenix');
@@ -157,6 +186,10 @@ export default function SimulationScreen() {
   const selectedAsset = useMemo(
     () => SIMULATION_ASSETS.find((item) => item.symbol === asset) ?? SIMULATION_ASSETS[0],
     [asset]
+  );
+  const simulationYears = useMemo(
+    () => getYearRange(selectedAsset.firstDate, MAX_SIMULATION_DATE),
+    [selectedAsset.firstDate]
   );
 
   const historyQuery = useQuery({
@@ -166,6 +199,11 @@ export default function SimulationScreen() {
   const assetCatalogQuery = useQuery({
     queryKey: ['simulation-assets'],
     queryFn: getSimulationAssets,
+  });
+  const eventsQuery = useQuery({
+    queryKey: ['simulation-events', asset],
+    queryFn: () => getSimulationEvents({ asset }),
+    enabled: mode === 'event',
   });
   const assetCatalog =
     assetCatalogQuery.data?.status === 'success' ? assetCatalogQuery.data : null;
@@ -180,6 +218,9 @@ export default function SimulationScreen() {
   );
   const firstUnavailableAsset = assetCatalog?.assets.unavailable[0] ?? null;
   const successfulResult = isSuccessfulResult(latestResult) ? latestResult : null;
+  const eventList = eventsQuery.data?.status === 'success' ? eventsQuery.data.events : [];
+  const selectedEvent =
+    eventList.find((event) => event.id === selectedEventId) ?? eventList[0] ?? null;
   const purchasingPowerQuery = useQuery({
     queryKey: [
       'purchasing-power',
@@ -259,6 +300,25 @@ export default function SimulationScreen() {
     /^\d{4}-\d{2}-\d{2}$/.test(date) &&
     date >= MIN_SIMULATION_DATE &&
     date <= MAX_SIMULATION_DATE;
+  const canRunEventSimulation =
+    Number.isFinite(numericAmount) && numericAmount > 0 && selectedEvent !== null;
+
+  const selectAsset = (nextAsset: (typeof SIMULATION_ASSETS)[number]) => {
+    setAsset(nextAsset.symbol);
+    setSelectedYear(Number(nextAsset.firstDate.slice(0, 4)));
+    setDate(nextAsset.firstDate);
+    setLatestResult(null);
+    setLatestEventResult(null);
+    setSelectedEventId(null);
+    setSaveMessage('');
+  };
+
+  const selectMode = (nextMode: SimulationMode) => {
+    setMode(nextMode);
+    setLatestResult(null);
+    setLatestEventResult(null);
+    setSaveMessage('');
+  };
 
   const refreshSavedItems = async () => {
     setSavedItems(await listSavedSimulations());
@@ -286,6 +346,7 @@ export default function SimulationScreen() {
     },
     onSuccess: (result) => {
       setLatestResult(result);
+      setLatestEventResult(null);
       recordMetric({
         name:
           result.status === 'success'
@@ -306,14 +367,76 @@ export default function SimulationScreen() {
     },
   });
 
+  const eventScenarioMutation = useMutation({
+    mutationFn: () => {
+      if (!selectedEvent) throw new Error('Select an event before running a simulation.');
+      return getSimulationEventScenario({
+        eventId: selectedEvent.id,
+        delay: selectedDelay,
+        amountUsd: numericAmount,
+      });
+    },
+    onMutate: () => {
+      setSaveMessage('');
+      recordMetric({
+        name: 'crypto.simulation.started',
+        durationMs: 0,
+        status: 'success',
+        metadata: { asset, mode: 'event', eventId: selectedEvent?.id ?? null, delay: selectedDelay },
+      });
+    },
+    onSuccess: (result) => {
+      setLatestResult(result);
+      setLatestEventResult(result.status === 'success' ? result : null);
+      recordMetric({
+        name:
+          result.status === 'success'
+            ? 'crypto.simulation.completed'
+            : 'crypto.simulation.failed',
+        durationMs: 0,
+        status: result.status === 'success' ? 'success' : 'error',
+        metadata: {
+          asset,
+          mode: 'event',
+          eventId: selectedEvent?.id ?? null,
+          delay: selectedDelay,
+          resultStatus: result.status,
+        },
+      });
+    },
+    onError: () => {
+      recordMetric({
+        name: 'crypto.simulation.failed',
+        durationMs: 0,
+        status: 'error',
+        metadata: {
+          asset,
+          mode: 'event',
+          eventId: selectedEvent?.id ?? null,
+          delay: selectedDelay,
+          resultStatus: 'request_error',
+        },
+      });
+    },
+  });
+
   const onSave = async () => {
     if (!isSuccessfulResult(latestResult)) return;
 
     const saved = await saveSimulationSnapshot({
       input: {
         asset,
-        requestedDate: date,
+        requestedDate: latestEventResult?.historical.resolvedDate ?? date,
         amountUsd: numericAmount,
+        scenarioType: latestEventResult ? 'event' : 'date',
+        event: latestEventResult
+          ? {
+              id: latestEventResult.event.id,
+              headline: latestEventResult.event.headline,
+              eventDate: latestEventResult.event.eventDate,
+              delay: latestEventResult.input.delay,
+            }
+          : undefined,
       },
       result: latestResult,
     });
@@ -408,6 +531,24 @@ export default function SimulationScreen() {
       <View style={styles.panel}>
         <Text style={styles.panelTitle}>Build a scenario</Text>
 
+        <View style={styles.modeRow}>
+          {(['date', 'event'] as const).map((item) => {
+            const isSelected = mode === item;
+            return (
+              <TouchableOpacity
+                key={item}
+                style={[styles.modeButton, isSelected && styles.modeButtonSelected]}
+                onPress={() => selectMode(item)}
+                activeOpacity={0.82}
+              >
+                <Text style={[styles.modeText, isSelected && styles.modeTextSelected]}>
+                  {item === 'date' ? 'Date' : 'Event'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <View style={styles.assetRow}>
           {SIMULATION_ASSETS.map((item) => {
             const isSelected = item.symbol === asset;
@@ -415,7 +556,7 @@ export default function SimulationScreen() {
               <TouchableOpacity
                 key={item.symbol}
                 style={[styles.assetButton, isSelected && styles.assetButtonSelected]}
-                onPress={() => setAsset(item.symbol)}
+                onPress={() => selectAsset(item)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.assetSymbol, isSelected && styles.assetTextSelected]}>
@@ -429,6 +570,51 @@ export default function SimulationScreen() {
           })}
         </View>
 
+        {mode === 'event' && (
+          <View style={styles.eventExplorer}>
+            <View style={styles.resultHeader}>
+              <View>
+                <Text style={styles.trustHeading}>Market events</Text>
+                <Text style={styles.helperText}>
+                  Sourced headlines for normal users reacting after public news.
+                </Text>
+              </View>
+              {eventsQuery.isLoading && <ActivityIndicator size="small" color={Colors.primary} />}
+            </View>
+
+            {eventsQuery.isError && (
+              <View style={styles.stateRow}>
+                <Ionicons name="refresh-outline" size={20} color="#C24135" />
+                <Text style={styles.stateText}>Unable to load event headlines.</Text>
+              </View>
+            )}
+
+            {eventsQuery.data?.status !== 'success' && eventsQuery.data && (
+              <Text style={styles.stateText}>{eventsQuery.data.message}</Text>
+            )}
+
+            {eventList.map((event) => {
+              const isSelected = event.id === selectedEvent?.id;
+              return (
+                <TouchableOpacity
+                  key={event.id}
+                  style={[styles.eventCard, isSelected && styles.eventCardSelected]}
+                  onPress={() => setSelectedEventId(event.id)}
+                  activeOpacity={0.84}
+                >
+                  <Text style={styles.eventHeadline}>{event.headline}</Text>
+                  <Text style={styles.eventMeta}>
+                    {event.eventDate} · {event.category.replace('_', ' ')}
+                  </Text>
+                  <Text style={styles.stateText}>{event.summary}</Text>
+                  <Text style={styles.resultLabel}>Source: {event.sources.length} verified sources</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {mode === 'date' && (
         <View style={styles.marketExplorer}>
           <View style={styles.marketSummaryHeader}>
             <View>
@@ -449,7 +635,7 @@ export default function SimulationScreen() {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.yearRow}>
-              {SIMULATION_YEARS.map((year) => {
+              {simulationYears.map((year) => {
                 const isSelected = selectedYear === year;
                 return (
                   <TouchableOpacity
@@ -546,7 +732,32 @@ export default function SimulationScreen() {
             </View>
           </ScrollView>
         </View>
+        )}
 
+        {mode === 'event' && (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Reaction delay</Text>
+            <View style={styles.delayRow}>
+              {EVENT_DELAYS.map((delay) => {
+                const isSelected = selectedDelay === delay.value;
+                return (
+                  <TouchableOpacity
+                    key={delay.value}
+                    style={[styles.delayButton, isSelected && styles.delayButtonSelected]}
+                    onPress={() => setSelectedDelay(delay.value)}
+                    activeOpacity={0.82}
+                  >
+                    <Text style={[styles.delayText, isSelected && styles.delayTextSelected]}>
+                      {delay.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {mode === 'date' && (
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Buy date</Text>
           <TextInput
@@ -561,6 +772,7 @@ export default function SimulationScreen() {
             Use a date from {MIN_SIMULATION_DATE} through {MAX_SIMULATION_DATE}.
           </Text>
         </View>
+        )}
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Amount (USD)</Text>
@@ -574,17 +786,29 @@ export default function SimulationScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.primaryButton, !canRunSimulation && styles.primaryButtonDisabled]}
-          onPress={() => simulationMutation.mutate()}
-          disabled={!canRunSimulation || simulationMutation.isPending}
+          style={[
+            styles.primaryButton,
+            !(mode === 'date' ? canRunSimulation : canRunEventSimulation) &&
+              styles.primaryButtonDisabled,
+          ]}
+          onPress={() =>
+            mode === 'date' ? simulationMutation.mutate() : eventScenarioMutation.mutate()
+          }
+          disabled={
+            mode === 'date'
+              ? !canRunSimulation || simulationMutation.isPending
+              : !canRunEventSimulation || eventScenarioMutation.isPending
+          }
           activeOpacity={0.82}
         >
-          {simulationMutation.isPending ? (
+          {simulationMutation.isPending || eventScenarioMutation.isPending ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <>
               <Ionicons name="calculator-outline" size={18} color="#fff" />
-              <Text style={styles.primaryButtonText}>Run simulation</Text>
+              <Text style={styles.primaryButtonText}>
+                {mode === 'date' ? 'Run simulation' : 'Run event simulation'}
+              </Text>
             </>
           )}
         </TouchableOpacity>
@@ -595,6 +819,15 @@ export default function SimulationScreen() {
           <View style={styles.stateRow}>
             <Ionicons name="cloud-offline-outline" size={22} color="#C24135" />
             <Text style={styles.stateText}>Unable to reach the simulation API.</Text>
+          </View>
+        </View>
+      )}
+
+      {eventScenarioMutation.isError && (
+        <View style={styles.panel}>
+          <View style={styles.stateRow}>
+            <Ionicons name="cloud-offline-outline" size={22} color="#C24135" />
+            <Text style={styles.stateText}>Unable to reach the event simulation API.</Text>
           </View>
         </View>
       )}
@@ -619,7 +852,9 @@ export default function SimulationScreen() {
             <View>
               <Text style={styles.panelTitle}>Hypothetical simulation</Text>
               <Text style={styles.subtitle}>
-                {selectedAsset.name} from {successfulResult.historical.resolvedDate}
+                {latestEventResult
+                  ? `${selectedAsset.name} after ${latestEventResult.event.headline}`
+                  : `${selectedAsset.name} from ${successfulResult.historical.resolvedDate}`}
               </Text>
             </View>
             <TouchableOpacity style={styles.saveButton} onPress={onSave} activeOpacity={0.82}>
@@ -681,6 +916,45 @@ export default function SimulationScreen() {
               Requested {successfulResult.historical.requestedDate}; using next available date{' '}
               {successfulResult.historical.resolvedDate}.
             </Text>
+          )}
+
+          {latestEventResult && (
+            <View style={styles.riskBlock}>
+              <View>
+                <Text style={styles.trustHeading}>Risk journey</Text>
+                <Text style={styles.helperText}>{latestEventResult.takeaway}</Text>
+              </View>
+              <View style={styles.resultGrid}>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Max drawdown</Text>
+                  <Text style={styles.resultValue}>
+                    {formatPercent(latestEventResult.risk.maxDrawdownPercent)}
+                  </Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Longest below start</Text>
+                  <Text style={styles.resultValue}>
+                    {latestEventResult.risk.longestUnderwaterDays} days
+                  </Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Best 30 days</Text>
+                  <Text style={styles.resultValue}>
+                    {formatPercent(latestEventResult.risk.bestThirtyDayReturnPercent)}
+                  </Text>
+                </View>
+                <View style={styles.resultCell}>
+                  <Text style={styles.resultLabel}>Worst 30 days</Text>
+                  <Text style={styles.resultValue}>
+                    {formatPercent(latestEventResult.risk.worstThirtyDayReturnPercent)}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.trustText}>
+                Source: {latestEventResult.event.sources.length} verified event sources · Reaction:{' '}
+                {EVENT_DELAYS.find((delay) => delay.value === latestEventResult.input.delay)?.label}
+              </Text>
+            </View>
           )}
 
           <View style={styles.comparisonBlock}>
@@ -773,7 +1047,9 @@ export default function SimulationScreen() {
                   {item.input.asset} · {formatUsd(item.input.amountUsd)}
                 </Text>
                 <Text style={styles.savedMeta}>
-                  {item.hypotheticalLabel} · {item.input.requestedDate}
+                  {item.input.scenarioType === 'event' && item.input.event
+                    ? `${item.hypotheticalLabel} · Event · ${item.input.event.headline}`
+                    : `${item.hypotheticalLabel} · ${item.input.requestedDate}`}
                 </Text>
               </View>
               <Text style={styles.savedValue}>
@@ -826,9 +1102,93 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
   },
+  modeRow: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 12,
+    padding: 3,
+    backgroundColor: '#FAFBFD',
+  },
+  modeButton: {
+    flex: 1,
+    height: 34,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeButtonSelected: {
+    backgroundColor: Colors.primary,
+  },
+  modeText: {
+    color: Colors.gray,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  modeTextSelected: {
+    color: '#fff',
+  },
   assetRow: {
     flexDirection: 'row',
     gap: 8,
+  },
+  eventExplorer: {
+    borderWidth: 1,
+    borderColor: '#E2E6EE',
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    backgroundColor: '#FAFBFD',
+  },
+  eventCard: {
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
+    backgroundColor: '#fff',
+  },
+  eventCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEF2FF',
+  },
+  eventHeadline: {
+    color: Colors.dark,
+    fontSize: 15,
+    fontWeight: '900',
+    lineHeight: 20,
+  },
+  eventMeta: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '900',
+    textTransform: 'capitalize',
+  },
+  delayRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  delayButton: {
+    flex: 1,
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  delayButtonSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEF2FF',
+  },
+  delayText: {
+    color: Colors.gray,
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  delayTextSelected: {
+    color: Colors.primary,
   },
   marketExplorer: {
     borderWidth: 1,
@@ -1148,6 +1508,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     gap: 12,
+  },
+  riskBlock: {
+    borderWidth: 1,
+    borderColor: '#E8ECF2',
+    borderRadius: 12,
+    padding: 12,
+    gap: 12,
+    backgroundColor: '#FAFBFD',
   },
   cityRow: {
     flexDirection: 'row',

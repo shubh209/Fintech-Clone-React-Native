@@ -108,6 +108,7 @@ describe('simulation prices API', () => {
     expect(body.historical.requestedDate).toBe('2021-01-01');
     expect(body.historical.resolvedDate).toBe('2021-01-01');
     expect(body.historical.dateResolution).toBe('exact');
+    expect(body.historical.dataQuality).toBe(undefined);
     expect(body.historical.priceUsd).toBe(100);
     expect(body.current.priceUsd).toBe(250);
     expect(body.current.cache.status).toBe('refreshed');
@@ -130,6 +131,40 @@ describe('simulation prices API', () => {
         }),
       })
     );
+  });
+
+  it('explains when a missing or quarantined source date resolves to the next available row', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        bitcoin: { usd: 250, last_updated_at: 1_780_000_000 },
+        ethereum: { usd: 200, last_updated_at: 1_780_000_000 },
+        solana: { usd: 50, last_updated_at: 1_780_000_000 },
+      }),
+    } as Response);
+
+    const response = await app.request(
+      '/api/simulation/prices?asset=BTC&date=2021-01-02&amountUsd=100',
+      {},
+      {
+        ...env,
+        HISTORICAL_PRICES_DB: fakeHistoricalDb([
+          { ...historicalRow, date: '2021-01-04', close_usd: 125 },
+        ]),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.historical.requestedDate).toBe('2021-01-02');
+    expect(body.historical.resolvedDate).toBe('2021-01-04');
+    expect(body.historical.dateResolution).toBe('next_available');
+    expect(body.historical.dataQuality).toEqual({
+      status: 'resolved_to_next_available',
+      message:
+        'Requested date 2021-01-02 did not have a valid imported source row, so the simulator used 2021-01-04.',
+    });
   });
 
   it('returns current unavailable when CoinGecko fails and cache is empty', async () => {
@@ -192,7 +227,7 @@ describe('simulation prices API', () => {
 
   it('returns validation errors for unsupported historical chart years', async () => {
     const response = await app.request(
-      '/api/simulation/history?asset=BTC&year=2020',
+      '/api/simulation/history?asset=BTC&year=2013',
       {},
       env
     );

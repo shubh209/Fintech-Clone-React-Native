@@ -35,9 +35,11 @@ Each event has:
   - Metadata should include selected asset and simulation inputs once implemented.
 - `crypto.simulation.started`
   - Records when a signed-in user begins the create-simulation flow.
+  - Event mode metadata includes selected asset, event id, and reaction delay.
 - `crypto.simulation.completed`
   - Records when a completed simulation result renders.
   - Metadata should include selected asset, historical date resolution, and current price cache status.
+  - Event mode metadata includes selected asset, event id, reaction delay, and result status.
 - `crypto.simulation.failed`
   - Records validation or unavailable outcomes in the simulation flow.
   - Metadata should include selected asset when known and the error/unavailable code.
@@ -62,6 +64,12 @@ Each event has:
   - Measures the mobile request to the cloud `/api/simulation/prices` endpoint.
 - `crypto.client.simulation_history.fetch`
   - Measures the mobile request to the cloud `/api/simulation/history` endpoint that powers the year chart explorer.
+- `crypto.client.simulation_events.fetch`
+  - Measures the mobile request to the cloud `/api/simulation/events` endpoint that powers sourced event cards.
+  - Metadata includes selected asset.
+- `crypto.client.simulation_event_scenarios.fetch`
+  - Measures the mobile request to the cloud `/api/simulation/event-scenarios` endpoint that powers event-based outcomes and risk journeys.
+  - Metadata includes event id and selected reaction delay.
 - `crypto.client.listings.fetch`
   - Measures the Crypto tab request to the cloud `/api/listings` endpoint.
 - `crypto.client.info.fetch`
@@ -83,6 +91,12 @@ Each event has:
   - Records current-price cache use for Simulation.
 - `crypto.api.simulation_prices.compute`
   - Measures Worker-side Simulation result calculation.
+- `crypto.api.simulation_events.list`
+  - Records Worker-side event catalog reads from D1.
+  - Metadata includes selected asset and active event count.
+- `crypto.api.simulation_event_scenarios.compute`
+  - Measures Worker-side event scenario calculation.
+  - Metadata includes selected asset, event id, reaction delay, date resolution, and historical point count.
 - `crypto.api.listings.upstream`
   - Measures the server route call to CoinMarketCap listings.
 - `crypto.api.listings.fallback`

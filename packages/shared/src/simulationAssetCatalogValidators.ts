@@ -3,6 +3,7 @@ import {
   SimulationAssetCatalogItem,
   SimulationAssetCatalogResponse,
   SimulationAssetCatalogStatus,
+  SimulationAssetDataQualityStatus,
   SimulationAssetCatalogSuccessResponse,
   SimulationAssetMarketCacheStatus,
   SimulationAssetMarketStatus,
@@ -52,6 +53,15 @@ function isMarketCacheStatus(value: unknown): value is SimulationAssetMarketCach
   return value === 'fresh' || value === 'stale' || value === 'unavailable';
 }
 
+function isDataQualityStatus(value: unknown): value is SimulationAssetDataQualityStatus {
+  return (
+    value === 'clean' ||
+    value === 'repaired' ||
+    value === 'quarantined' ||
+    value === 'repaired_and_quarantined'
+  );
+}
+
 function isHistoricalMetadata(value: unknown) {
   if (!isRecord(value)) return false;
 
@@ -61,6 +71,20 @@ function isHistoricalMetadata(value: unknown) {
     isNonNegativeInteger(value.rowCount) &&
     isNonNegativeInteger(value.missingDateCount) &&
     isNonNegativeInteger(value.largestGapDays)
+  );
+}
+
+function isDataQualityMetadata(value: unknown) {
+  if (!isRecord(value)) return false;
+
+  return (
+    isNonNegativeInteger(value.repairedRowCount) &&
+    isNonNegativeInteger(value.quarantinedRowCount) &&
+    isNonNegativeInteger(value.eligibleRowCount) &&
+    isFiniteNumber(value.quarantineRate) &&
+    value.quarantineRate >= 0 &&
+    value.quarantineRate <= 1 &&
+    isDataQualityStatus(value.status)
   );
 }
 
@@ -100,6 +124,7 @@ export function isSimulationAssetCatalogItem(
     isString(value.category) &&
     isCatalogStatus(value.status) &&
     isHistoricalMetadata(value.historical) &&
+    isDataQualityMetadata(value.dataQuality) &&
     isMarketMetadata(value.market) &&
     isAvailabilityMetadata(value.availability)
   );

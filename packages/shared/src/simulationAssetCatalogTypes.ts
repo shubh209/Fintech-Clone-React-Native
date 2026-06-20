@@ -5,6 +5,11 @@ export type SimulationAssetCatalogStatus =
 
 export type SimulationAssetMarketStatus = 'fresh' | 'stale' | 'unavailable';
 export type SimulationAssetMarketCacheStatus = 'fresh' | 'stale' | 'unavailable';
+export type SimulationAssetDataQualityStatus =
+  | 'clean'
+  | 'repaired'
+  | 'quarantined'
+  | 'repaired_and_quarantined';
 
 export interface SimulationAssetCatalogItem {
   assetId: string;
@@ -18,6 +23,13 @@ export interface SimulationAssetCatalogItem {
     rowCount: number;
     missingDateCount: number;
     largestGapDays: number;
+  };
+  dataQuality: {
+    repairedRowCount: number;
+    quarantinedRowCount: number;
+    eligibleRowCount: number;
+    quarantineRate: number;
+    status: SimulationAssetDataQualityStatus;
   };
   market: {
     coinGeckoId: string | null;

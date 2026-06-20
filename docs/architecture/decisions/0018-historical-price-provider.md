@@ -113,15 +113,19 @@ Rejected for v1. The product needs deterministic daily point lookup for three as
 
 ## Implementation Notes
 
-As of 2026-05-22:
+As of 2026-06-09:
 
 - D1 database: `fintech-historical-prices`
 - D1 database id: `cce18a99-efa1-463a-9958-1926e1ed6ad2`
 - Worker binding: `HISTORICAL_PRICES_DB`
 - Importer: `scripts/historical_prices/import_historical_prices.py`
 - Import test: `scripts/historical_prices/test_import_historical_prices.py`
-- Imported historical rows: `120740`
-- Imported assets: `88`
-- Rejected malformed non-product assets: `12`
-- Imported date range: `2021-01-01` through `2026-03-22`
+- Imported historical rows: `176348`
+- Imported historical assets: `98`
+- Ready asset catalog entries: `84`
+- Unavailable asset catalog entries: `16`
+- Repaired source rows: `6`
+- Quarantined source rows: `789`
+- Rejected assets: `0`
+- Imported date range: `2014-09-17` through `2026-03-22`
 - Required product assets verified in D1: BTC, ETH, SOL

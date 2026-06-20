@@ -14,6 +14,11 @@ export interface SimulationAssetMetadataRecord {
   importedRowCount: number;
   missingDateCount: number;
   largestGapDays: number;
+  repairedRowCount: number;
+  quarantinedRowCount: number;
+  eligibleRowCount: number;
+  quarantineRate: number;
+  dataQualityStatus: 'clean' | 'repaired' | 'quarantined' | 'repaired_and_quarantined';
   unavailableReason: string | null;
   unavailableDetail: string | null;
   coinGeckoId: string | null;
@@ -34,6 +39,11 @@ interface SimulationAssetRow {
   imported_row_count: number;
   missing_date_count: number;
   largest_gap_days: number;
+  repaired_row_count: number;
+  quarantined_row_count: number;
+  eligible_row_count: number;
+  quarantine_rate: number;
+  data_quality_status: 'clean' | 'repaired' | 'quarantined' | 'repaired_and_quarantined';
   unavailable_reason: string | null;
   unavailable_detail: string | null;
   coin_gecko_id: string | null;
@@ -54,6 +64,11 @@ const selectSimulationAssetColumns = `
   imported_row_count,
   missing_date_count,
   largest_gap_days,
+  repaired_row_count,
+  quarantined_row_count,
+  eligible_row_count,
+  quarantine_rate,
+  data_quality_status,
   unavailable_reason,
   unavailable_detail,
   coin_gecko_id,
@@ -75,6 +90,11 @@ function mapRow(row: SimulationAssetRow): SimulationAssetMetadataRecord {
     importedRowCount: row.imported_row_count,
     missingDateCount: row.missing_date_count,
     largestGapDays: row.largest_gap_days,
+    repairedRowCount: row.repaired_row_count,
+    quarantinedRowCount: row.quarantined_row_count,
+    eligibleRowCount: row.eligible_row_count,
+    quarantineRate: row.quarantine_rate,
+    dataQualityStatus: row.data_quality_status,
     unavailableReason: row.unavailable_reason,
     unavailableDetail: row.unavailable_detail,
     coinGeckoId: row.coin_gecko_id,

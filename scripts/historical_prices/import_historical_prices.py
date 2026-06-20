@@ -46,6 +46,31 @@ class SkippedAsset:
 
 
 @dataclass(frozen=True)
+class DataQualityRepair:
+    symbol: str
+    date: str
+    method: str
+    reason: str
+    set: dict[str, float]
+
+
+@dataclass(frozen=True)
+class DataQualityQuarantine:
+    symbol: str
+    reason: str
+    date: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+@dataclass(frozen=True)
+class DataQualityManifest:
+    version: str
+    repairs: list[DataQualityRepair]
+    quarantines: list[DataQualityQuarantine]
+
+
+@dataclass(frozen=True)
 class CoverageReport:
     asset_symbol: str
     first_imported_date: str | None
@@ -54,6 +79,11 @@ class CoverageReport:
     missing_date_count: int
     largest_gap_days: int
     next_available_resolution_can_be_needed: bool
+    repaired_row_count: int
+    quarantined_row_count: int
+    eligible_row_count: int
+    quarantine_rate: float
+    data_quality_status: str
 
 
 @dataclass(frozen=True)
@@ -70,6 +100,11 @@ class SimulationAssetMetadata:
     imported_row_count: int
     missing_date_count: int
     largest_gap_days: int
+    repaired_row_count: int
+    quarantined_row_count: int
+    eligible_row_count: int
+    quarantine_rate: float
+    data_quality_status: str
     unavailable_reason: str | None
     unavailable_detail: str | None
     coin_gecko_id: str | None
@@ -161,6 +196,17 @@ def read_category_map(path: Path) -> dict[str, str]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def read_data_quality_manifest(path: Path | None) -> DataQualityManifest:
+    if path is None or not path.exists():
+        return DataQualityManifest(version="none", repairs=[], quarantines=[])
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return DataQualityManifest(
+        version=data["version"],
+        repairs=[DataQualityRepair(**item) for item in data.get("repairs", [])],
+        quarantines=[DataQualityQuarantine(**item) for item in data.get("quarantines", [])],
+    )
+
+
 def assert_product_assets(entries: Iterable[DirectoryEntry], required_product_symbols: set[str]) -> None:
     symbols = {entry.symbol for entry in entries}
     missing = sorted(required_product_symbols - symbols)
@@ -168,7 +214,48 @@ def assert_product_assets(entries: Iterable[DirectoryEntry], required_product_sy
         raise ValueError(f"Missing required product asset(s): {', '.join(missing)}")
 
 
-def _coverage_for(symbol: str, dates: list[str]) -> CoverageReport:
+def _data_quality_status(repaired_row_count: int, quarantined_row_count: int) -> str:
+    if repaired_row_count > 0 and quarantined_row_count > 0:
+        return "repaired_and_quarantined"
+    if repaired_row_count > 0:
+        return "repaired"
+    if quarantined_row_count > 0:
+        return "quarantined"
+    return "clean"
+
+
+def _manifest_key(symbol: str, row_date: date) -> tuple[str, str]:
+    return symbol, row_date.isoformat()
+
+
+def _quarantine_dates_for(symbol: str, quarantines: list[DataQualityQuarantine]) -> set[str]:
+    dates: set[str] = set()
+    for item in quarantines:
+        if item.symbol != symbol:
+            continue
+        if item.date:
+            dates.add(item.date)
+            continue
+        if not item.start_date or not item.end_date:
+            raise ValueError(f"{symbol} quarantine must include date or start_date/end_date")
+        current = date.fromisoformat(item.start_date)
+        end = date.fromisoformat(item.end_date)
+        if current > end:
+            raise ValueError(f"{symbol} quarantine start_date must be before end_date")
+        while current <= end:
+            dates.add(current.isoformat())
+            current += timedelta(days=1)
+    return dates
+
+
+def _coverage_for(
+    symbol: str,
+    dates: list[str],
+    *,
+    repaired_row_count: int,
+    quarantined_row_count: int,
+    eligible_row_count: int,
+) -> CoverageReport:
     dates = sorted(dates)
     missing_date_count = 0
     largest_gap_days = 0
@@ -185,12 +272,15 @@ def _coverage_for(symbol: str, dates: list[str]) -> CoverageReport:
         missing_date_count=missing_date_count,
         largest_gap_days=largest_gap_days,
         next_available_resolution_can_be_needed=missing_date_count > 0,
+        repaired_row_count=repaired_row_count,
+        quarantined_row_count=quarantined_row_count,
+        eligible_row_count=eligible_row_count,
+        quarantine_rate=(quarantined_row_count / eligible_row_count) if eligible_row_count else 0,
+        data_quality_status=_data_quality_status(repaired_row_count, quarantined_row_count),
     )
 
 
 def _assert_product_coverage(report: CoverageReport, start_date: date, end_date: date) -> None:
-    if report.first_imported_date != start_date.isoformat():
-        raise ValueError(f"{report.asset_symbol} coverage must start on {start_date.isoformat()}")
     if report.last_imported_date != end_date.isoformat():
         raise ValueError(f"{report.asset_symbol} coverage must end on {end_date.isoformat()}")
     if report.largest_gap_days > 3:
@@ -206,6 +296,7 @@ def _normalize_asset(
     source_version: str,
     downloaded_at: str,
     imported_at: str,
+    manifest: DataQualityManifest,
 ) -> tuple[pd.DataFrame, CoverageReport]:
     source_path = Path("crypto_top100") / entry.file_name
     df = pd.read_csv(source_root / source_path)
@@ -217,6 +308,28 @@ def _normalize_asset(
     normalized_dates = df["Date"].map(_normalize_date)
     df = df.assign(_normalized_date=normalized_dates)
     df = df[(df["_normalized_date"] >= start_date) & (df["_normalized_date"] <= end_date)].copy()
+    eligible_row_count = int(len(df))
+
+    repairs_by_key = {_manifest_key(item.symbol, date.fromisoformat(item.date)): item for item in manifest.repairs}
+    repaired_dates: set[str] = set()
+    for index, row in df.iterrows():
+        row_date = row["_normalized_date"]
+        repair = repairs_by_key.get(_manifest_key(entry.symbol, row_date))
+        if repair is None:
+            continue
+        if repair.method != "same_row_ohlc_range":
+            raise ValueError(f"{entry.symbol} {repair.date} uses unsupported repair method {repair.method}")
+        for column, value in repair.set.items():
+            if column not in REQUIRED_COLUMNS:
+                raise ValueError(f"{entry.symbol} {repair.date} repair column {column} is not supported")
+            df.at[index, column] = value
+        repaired_dates.add(repair.date)
+
+    row_dates = set(df["_normalized_date"].map(lambda value: value.isoformat()))
+    quarantined_dates = _quarantine_dates_for(entry.symbol, manifest.quarantines) & row_dates
+    if quarantined_dates:
+        df = df[~df["_normalized_date"].map(lambda value: value.isoformat()).isin(quarantined_dates)].copy()
+
     df["date"] = df["_normalized_date"].map(lambda value: value.isoformat())
 
     if df["date"].duplicated().any():
@@ -251,7 +364,13 @@ def _normalize_asset(
     if (normalized["volume_usd"] < 0).any():
         raise ValueError(f"{entry.symbol} has negative Volume")
 
-    return normalized, _coverage_for(entry.symbol, normalized["date"].tolist())
+    return normalized, _coverage_for(
+        entry.symbol,
+        normalized["date"].tolist(),
+        repaired_row_count=len(repaired_dates),
+        quarantined_row_count=len(quarantined_dates),
+        eligible_row_count=eligible_row_count,
+    )
 
 
 def _build_simulation_asset_metadata(
@@ -260,6 +379,8 @@ def _build_simulation_asset_metadata(
     skipped_assets: list[SkippedAsset],
     category_map: dict[str, str],
     imported_at: str,
+    minimum_ready_rows: int,
+    maximum_quarantine_rate: float,
 ) -> list[SimulationAssetMetadata]:
     coverage_by_symbol = {item.asset_symbol: item for item in coverage}
     skipped_by_symbol = {item.asset_symbol: item for item in skipped_assets}
@@ -269,7 +390,28 @@ def _build_simulation_asset_metadata(
         asset_id = _asset_id_from_file_name(entry.file_name)
         asset_coverage = coverage_by_symbol.get(entry.symbol)
         skipped = skipped_by_symbol.get(entry.symbol)
-        status = "ready" if asset_coverage else "historical_invalid"
+        is_ready = (
+            asset_coverage is not None
+            and asset_coverage.imported_row_count >= minimum_ready_rows
+            and asset_coverage.quarantine_rate <= maximum_quarantine_rate
+        )
+        status = "ready" if is_ready else "historical_invalid"
+        if is_ready:
+            unavailable_reason = None
+            unavailable_detail = None
+            coin_gecko_id = asset_id
+        elif asset_coverage:
+            unavailable_reason = "Historical data does not meet readiness threshold."
+            unavailable_detail = (
+                f"{entry.symbol} has {asset_coverage.imported_row_count} valid rows, "
+                f"{asset_coverage.quarantined_row_count} quarantined rows, and "
+                f"{asset_coverage.quarantine_rate:.2%} quarantined source rows."
+            )
+            coin_gecko_id = None
+        else:
+            unavailable_reason = "Historical data needs validation."
+            unavailable_detail = skipped.reason if skipped else None
+            coin_gecko_id = None
         metadata.append(
             SimulationAssetMetadata(
                 asset_id=asset_id,
@@ -284,9 +426,14 @@ def _build_simulation_asset_metadata(
                 imported_row_count=asset_coverage.imported_row_count if asset_coverage else 0,
                 missing_date_count=asset_coverage.missing_date_count if asset_coverage else 0,
                 largest_gap_days=asset_coverage.largest_gap_days if asset_coverage else 0,
-                unavailable_reason=None if asset_coverage else "Historical data needs validation.",
-                unavailable_detail=skipped.reason if skipped else None,
-                coin_gecko_id=asset_id if asset_coverage else None,
+                repaired_row_count=asset_coverage.repaired_row_count if asset_coverage else 0,
+                quarantined_row_count=asset_coverage.quarantined_row_count if asset_coverage else 0,
+                eligible_row_count=asset_coverage.eligible_row_count if asset_coverage else 0,
+                quarantine_rate=asset_coverage.quarantine_rate if asset_coverage else 0,
+                data_quality_status=asset_coverage.data_quality_status if asset_coverage else "clean",
+                unavailable_reason=unavailable_reason,
+                unavailable_detail=unavailable_detail,
+                coin_gecko_id=coin_gecko_id,
                 imported_at=imported_at,
                 updated_at=imported_at,
             )
@@ -330,6 +477,11 @@ def _write_sql(rows: pd.DataFrame, report: dict, output_sql: Path) -> None:
             "imported_row_count",
             "missing_date_count",
             "largest_gap_days",
+            "repaired_row_count",
+            "quarantined_row_count",
+            "eligible_row_count",
+            "quarantine_rate",
+            "data_quality_status",
             "unavailable_reason",
             "unavailable_detail",
             "coin_gecko_id",
@@ -395,12 +547,16 @@ def build_import(
     now: datetime | None = None,
     category_map: dict[str, str] | None = None,
     required_product_symbols: set[str] | None = None,
+    data_quality_manifest_path: Path | None = None,
+    minimum_ready_rows: int = 365,
+    maximum_quarantine_rate: float = 0.10,
 ) -> ImportResult:
     now = now or datetime.now(timezone.utc)
     imported_at = imported_at or now.isoformat()
-    start_date = date(2021, 1, 1)
+    start_date = date.min
     end_date = end_date or _utc_yesterday(now)
     category_map = category_map or {}
+    manifest = read_data_quality_manifest(data_quality_manifest_path)
     if required_product_symbols is None:
         required_product_symbols = PRODUCT_SUPPORTED_SYMBOLS
     entries = read_directory_entries(source_root)
@@ -421,6 +577,7 @@ def build_import(
                 source_version=source_version,
                 downloaded_at=downloaded_at,
                 imported_at=imported_at,
+                manifest=manifest,
             )
             if entry.symbol in required_product_symbols:
                 _assert_product_coverage(asset_coverage, start_date, end_date)
@@ -439,6 +596,8 @@ def build_import(
         skipped_assets=skipped_assets,
         category_map=category_map,
         imported_at=imported_at,
+        minimum_ready_rows=minimum_ready_rows,
+        maximum_quarantine_rate=maximum_quarantine_rate,
     )
     report = {
         "imported_assets": imported_assets,
@@ -489,6 +648,11 @@ def main() -> None:
     parser.add_argument("--output-sql", type=Path)
     parser.add_argument("--output-report", type=Path)
     parser.add_argument("--end-date")
+    parser.add_argument(
+        "--data-quality-manifest",
+        type=Path,
+        default=Path(__file__).with_name("data_quality_manifest.json"),
+    )
     args = parser.parse_args()
 
     result = build_import(
@@ -501,6 +665,7 @@ def main() -> None:
         output_report=args.output_report,
         end_date=date.fromisoformat(args.end_date) if args.end_date else None,
         category_map=read_category_map(Path(__file__).with_name("asset_categories.json")),
+        data_quality_manifest_path=args.data_quality_manifest,
     )
     print(json.dumps(asdict(result), indent=2))
 

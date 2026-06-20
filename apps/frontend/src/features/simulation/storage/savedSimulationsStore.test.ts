@@ -123,6 +123,40 @@ describe('savedSimulationsStore', () => {
     expect(await secondStore.listSavedSimulations()).toEqual([saved]);
   });
 
+  it('saves event metadata for event-based simulations', async () => {
+    const { createSavedSimulationsStore } = require('./savedSimulationsStore');
+    const memory = createMemoryAdapter();
+    const store = createSavedSimulationsStore({
+      storage: memory.adapter,
+      createId: () => 'sim_event_1',
+      now: () => new Date('2026-05-23T12:00:00.000Z'),
+    });
+
+    const saved = await store.saveSimulation({
+      input: {
+        asset: 'BTC',
+        requestedDate: '2024-01-17',
+        amountUsd: 100,
+        scenarioType: 'event',
+        event: {
+          id: 'btc-2024-spot-etf-approval',
+          headline: 'U.S. spot Bitcoin ETFs are approved',
+          eventDate: '2024-01-10',
+          delay: 'one_week',
+        },
+      },
+      result,
+    });
+
+    expect(saved.input.scenarioType).toBe('event');
+    expect(saved.input.event).toEqual({
+      id: 'btc-2024-spot-etf-approval',
+      headline: 'U.S. spot Bitcoin ETFs are approved',
+      eventDate: '2024-01-10',
+      delay: 'one_week',
+    });
+  });
+
   it('keeps saved simulation storage language away from trading products', () => {
     const source = readFileSync(
       join(

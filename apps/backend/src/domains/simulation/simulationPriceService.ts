@@ -121,6 +121,15 @@ function createHistoricalSource(historical: HistoricalPriceRecord) {
   };
 }
 
+function createHistoricalDataQuality(historical: HistoricalPriceRecord) {
+  if (historical.dateResolution === 'exact') return undefined;
+
+  return {
+    status: 'resolved_to_next_available' as const,
+    message: `Requested date ${historical.requestedDate} did not have a valid imported source row, so the simulator used ${historical.resolvedDate}.`,
+  };
+}
+
 export async function getSimulationPrice({
   env,
   asset,
@@ -234,6 +243,7 @@ export async function getSimulationPrice({
       dateResolution: historical.dateResolution,
       priceUsd: historical.priceUsd,
       source: createHistoricalSource(historical),
+      dataQuality: createHistoricalDataQuality(historical),
     },
     current: {
       priceUsd: currentPrice.priceUsd,
