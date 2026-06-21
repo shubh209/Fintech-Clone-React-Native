@@ -1,6 +1,5 @@
 import { SqlDatabase } from '../../../types';
 import { SimulationSupportedAssetCandidate } from './simulationSupportedAssetTypes';
-import { getTopSimulationAssetRankSql } from './topSimulationAssetScope';
 
 interface SupportedSimulationAssetRow {
   asset_id: string;
@@ -35,7 +34,6 @@ export async function listSupportedSimulationAssetCandidates({
 }: {
   db: SqlDatabase;
 }): Promise<SimulationSupportedAssetCandidate[]> {
-  const rankSql = getTopSimulationAssetRankSql();
   const rows = await db
     .prepare(
       `SELECT
@@ -48,9 +46,9 @@ export async function listSupportedSimulationAssetCandidates({
          first_imported_date,
          last_imported_date,
          imported_row_count,
-         CASE symbol ${rankSql} ELSE NULL END AS market_rank
+         NULL AS market_rank
        FROM simulation_assets
-       ORDER BY symbol ASC`
+       ORDER BY status ASC, symbol ASC`
     )
     .all<SupportedSimulationAssetRow>();
 

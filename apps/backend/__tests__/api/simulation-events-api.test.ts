@@ -20,6 +20,7 @@ function supportedAssetRow(symbol: string, coinGeckoId: string, marketRank: numb
 
 const btcAssetRow = supportedAssetRow('BTC', 'bitcoin', 1);
 const bnbAssetRow = supportedAssetRow('BNB', 'binancecoin', 4);
+const aaveAssetRow = supportedAssetRow('AAVE', 'aave', 64);
 
 const eventRow = {
   id: 'btc-2024-spot-etf-approval',
@@ -231,7 +232,7 @@ describe('simulation events API', () => {
     expect(body.code).toBe('unsupported_asset');
   });
 
-  it('returns five fallback market events for a supported top-20 non-v1 asset', async () => {
+  it('returns five fallback market events for a supported non-v1 asset', async () => {
     const response = await app.request(
       '/api/simulation/events?asset=BNB',
       {},
@@ -251,6 +252,26 @@ describe('simulation events API', () => {
     );
     expect(body.events.every((event: { sources: unknown[] }) => event.sources.length >= 2)).toBe(
       true
+    );
+  });
+
+  it('returns five fallback market events for a ready asset outside the former top-20 scope', async () => {
+    const response = await app.request(
+      '/api/simulation/events?asset=AAVE',
+      {},
+      { ...env, HISTORICAL_PRICES_DB: fakeDb({ events: [], sources: [], assetRows: [aaveAssetRow] }) }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.asset.symbol).toBe('AAVE');
+    expect(body.events).toHaveLength(5);
+    expect(body.events[0]).toEqual(
+      expect.objectContaining({
+        id: 'aave-2020-covid-liquidity-shock',
+        assetSymbol: 'AAVE',
+      })
     );
   });
 
@@ -309,7 +330,7 @@ describe('simulation events API', () => {
     expect(body.code).toBe('missing_event');
   });
 
-  it('runs a fallback market event scenario for a supported top-20 non-v1 asset', async () => {
+  it('runs a fallback market event scenario for a supported non-v1 asset', async () => {
     jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -364,5 +385,60 @@ describe('simulation events API', () => {
     expect(body.current.priceUsd).toBe(500);
     expect(body.result.currentValueUsd).toBe(1250);
     expect(body.risk.maxDrawdownPercent).toBe(-12.5);
+  });
+
+  it('runs a fallback market event scenario for a ready asset outside the former top-20 scope', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        aave: { usd: 300, last_updated_at: 1_780_000_000 },
+      }),
+    } as Response);
+
+    const aavePrices = [
+      {
+        ...historicalRows[0],
+        asset_symbol: 'AAVE',
+        asset_name: 'aave',
+        date: '2022-11-18',
+        close_usd: 50,
+      },
+      {
+        ...historicalRows[1],
+        asset_symbol: 'AAVE',
+        asset_name: 'aave',
+        date: '2022-11-19',
+        close_usd: 40,
+      },
+      {
+        ...historicalRows[2],
+        asset_symbol: 'AAVE',
+        asset_name: 'aave',
+        date: '2022-12-18',
+        close_usd: 55,
+      },
+    ];
+
+    const response = await app.request(
+      '/api/simulation/event-scenarios?eventId=aave-2022-ftx-bankruptcy&delay=one_week&amountUsd=100',
+      {},
+      {
+        ...env,
+        HISTORICAL_PRICES_DB: fakeDb({
+          events: [],
+          sources: [],
+          prices: aavePrices,
+          assetRows: [aaveAssetRow],
+        }),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.asset.symbol).toBe('AAVE');
+    expect(body.event.id).toBe('aave-2022-ftx-bankruptcy');
+    expect(body.current.priceUsd).toBe(300);
+    expect(body.result.currentValueUsd).toBe(600);
   });
 });

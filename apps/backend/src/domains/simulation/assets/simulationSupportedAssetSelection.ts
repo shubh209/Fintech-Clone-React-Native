@@ -15,8 +15,7 @@ function hasRequiredSupportFields(
     typeof asset.coinGeckoId === 'string' &&
     asset.coinGeckoId.length > 0 &&
     typeof asset.firstImportedDate === 'string' &&
-    typeof asset.lastImportedDate === 'string' &&
-    typeof asset.marketRank === 'number'
+    typeof asset.lastImportedDate === 'string'
   );
 }
 
@@ -30,14 +29,12 @@ function compareByMarketRank(
   return left.symbol.localeCompare(right.symbol);
 }
 
-export function selectTopSimulationAssets(
-  assets: SimulationSupportedAssetCandidate[],
-  limit: number
+export function selectReadySimulationAssets(
+  assets: SimulationSupportedAssetCandidate[]
 ): SimulationSupportedAsset[] {
   return assets
     .filter(hasRequiredSupportFields)
     .sort(compareByMarketRank)
-    .slice(0, limit)
     .map((asset) => ({
       assetId: asset.assetId,
       symbol: asset.symbol,

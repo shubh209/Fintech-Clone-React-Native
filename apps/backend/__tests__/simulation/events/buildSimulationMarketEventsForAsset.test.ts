@@ -1,9 +1,8 @@
-import { TOP_SIMULATION_ASSET_SYMBOLS } from '../../../src/domains/simulation/assets/topSimulationAssetScope';
 import { buildSimulationMarketEventsForAsset } from '../../../src/domains/simulation/events/buildSimulationMarketEventsForAsset';
 
 describe('buildSimulationMarketEventsForAsset', () => {
-  it('creates five sourced fallback events for every top-20 simulation asset', () => {
-    for (const symbol of TOP_SIMULATION_ASSET_SYMBOLS) {
+  it('creates five sourced fallback events for any ready simulation asset symbol', () => {
+    for (const symbol of ['BTC', 'BNB', 'AAVE']) {
       const events = buildSimulationMarketEventsForAsset(symbol);
 
       expect(events).toHaveLength(5);

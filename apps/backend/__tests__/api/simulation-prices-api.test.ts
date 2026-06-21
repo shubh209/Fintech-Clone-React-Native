@@ -23,6 +23,7 @@ const defaultAssetRows = [
   supportedAssetRow('ETH', 'ethereum', 2),
   supportedAssetRow('SOL', 'solana', 7),
   supportedAssetRow('BNB', 'binancecoin', 4),
+  supportedAssetRow('AAVE', 'aave', 64),
 ];
 
 const top20AssetSpecs = [
@@ -144,7 +145,7 @@ describe('simulation prices API', () => {
 
   it('returns validation errors for unsupported assets', async () => {
     const response = await app.request(
-      '/api/simulation/prices?asset=AAVE&date=2021-01-01&amountUsd=100',
+      '/api/simulation/prices?asset=UNKNOWN&date=2021-01-01&amountUsd=100',
       {},
       env
     );
@@ -155,6 +156,43 @@ describe('simulation prices API', () => {
     expect(response.status).toBe(400);
   });
 
+  it('combines historical and current prices for a ready asset outside the former top-20 scope', async () => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        bitcoin: { usd: 250, last_updated_at: 1_780_000_000 },
+        ethereum: { usd: 200, last_updated_at: 1_780_000_000 },
+        solana: { usd: 50, last_updated_at: 1_780_000_000 },
+        binancecoin: { usd: 500, last_updated_at: 1_780_000_000 },
+        aave: { usd: 300, last_updated_at: 1_780_000_000 },
+      }),
+    } as Response);
+
+    const response = await app.request(
+      '/api/simulation/prices?asset=AAVE&date=2021-01-01&amountUsd=100',
+      {},
+      {
+        ...env,
+        HISTORICAL_PRICES_DB: fakeHistoricalDb([
+          {
+            ...historicalRow,
+            asset_symbol: 'AAVE',
+            asset_name: 'aave',
+            close_usd: 50,
+            source_path: 'crypto_top100/aave_AAVE.csv',
+          },
+        ]),
+      }
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe('success');
+    expect(body.asset.symbol).toBe('AAVE');
+    expect(body.current.priceUsd).toBe(300);
+    expect(body.result.currentValueUsd).toBe(600);
+  });
+
   it('combines historical and current prices for a supported top-20 non-v1 asset', async () => {
     jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
@@ -163,6 +201,7 @@ describe('simulation prices API', () => {
         ethereum: { usd: 200, last_updated_at: 1_780_000_000 },
         solana: { usd: 50, last_updated_at: 1_780_000_000 },
         binancecoin: { usd: 500, last_updated_at: 1_780_000_000 },
+        aave: { usd: 300, last_updated_at: 1_780_000_000 },
       }),
     } as Response);
 
@@ -182,8 +221,9 @@ describe('simulation prices API', () => {
     expect(body.result.currentValueUsd).toBe(1250);
   });
 
-  it('runs price simulations for every top-20 ready asset', async () => {
-    const historicalRows = top20AssetSpecs.map(([symbol, coinGeckoId], index) => ({
+  it('runs price simulations for every ready asset in the support set', async () => {
+    const readyAssetSpecs = [...top20AssetSpecs, ['AAVE', 'aave', 64] as const];
+    const historicalRows = readyAssetSpecs.map(([symbol, coinGeckoId], index) => ({
       ...historicalRow,
       asset_symbol: symbol,
       asset_name: coinGeckoId,
@@ -191,7 +231,7 @@ describe('simulation prices API', () => {
       source_path: `crypto_top100/${coinGeckoId}_${symbol}.csv`,
     }));
     const currentPrices = Object.fromEntries(
-      top20AssetSpecs.map(([, coinGeckoId], index) => [
+      readyAssetSpecs.map(([, coinGeckoId], index) => [
         coinGeckoId,
         { usd: 100 + index, last_updated_at: 1_780_000_000 },
       ])
@@ -201,14 +241,17 @@ describe('simulation prices API', () => {
       json: async () => currentPrices,
     } as Response);
 
-    for (const [symbol] of top20AssetSpecs) {
+    for (const [symbol] of readyAssetSpecs) {
       clearCurrentPriceCache();
       const response = await app.request(
         `/api/simulation/prices?asset=${symbol}&date=2021-01-01&amountUsd=100`,
         {},
         {
           ...env,
-          HISTORICAL_PRICES_DB: fakeHistoricalDb(historicalRows, top20AssetRows),
+          HISTORICAL_PRICES_DB: fakeHistoricalDb(historicalRows, [
+            ...top20AssetRows,
+            supportedAssetRow('AAVE', 'aave', 64),
+          ]),
         }
       );
       const body = await response.json();
@@ -228,6 +271,7 @@ describe('simulation prices API', () => {
         ethereum: { usd: 200, last_updated_at: 1_780_000_000 },
         solana: { usd: 50, last_updated_at: 1_780_000_000 },
         binancecoin: { usd: 500, last_updated_at: 1_780_000_000 },
+        aave: { usd: 300, last_updated_at: 1_780_000_000 },
       }),
     } as Response);
 
@@ -278,6 +322,7 @@ describe('simulation prices API', () => {
         ethereum: { usd: 200, last_updated_at: 1_780_000_000 },
         solana: { usd: 50, last_updated_at: 1_780_000_000 },
         binancecoin: { usd: 500, last_updated_at: 1_780_000_000 },
+        aave: { usd: 300, last_updated_at: 1_780_000_000 },
       }),
     } as Response);
 

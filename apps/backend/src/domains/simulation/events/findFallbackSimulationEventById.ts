@@ -1,11 +1,13 @@
-import { TOP_SIMULATION_ASSET_SYMBOLS } from '../assets/topSimulationAssetScope';
 import { buildSimulationMarketEventsForAsset } from './buildSimulationMarketEventsForAsset';
 
-export function findFallbackSimulationEventById(eventId: string) {
-  for (const assetSymbol of TOP_SIMULATION_ASSET_SYMBOLS) {
-    const event = buildSimulationMarketEventsForAsset(assetSymbol).find((item) => item.id === eventId);
-    if (event) return event;
-  }
+function getSymbolFromFallbackEventId(eventId: string) {
+  const [symbol] = eventId.split('-', 1);
+  return symbol ? symbol.toUpperCase() : null;
+}
 
-  return null;
+export function findFallbackSimulationEventById(eventId: string) {
+  const assetSymbol = getSymbolFromFallbackEventId(eventId);
+  if (!assetSymbol) return null;
+
+  return buildSimulationMarketEventsForAsset(assetSymbol).find((item) => item.id === eventId) ?? null;
 }

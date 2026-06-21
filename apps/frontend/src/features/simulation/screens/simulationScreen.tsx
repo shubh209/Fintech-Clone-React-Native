@@ -28,6 +28,14 @@ import {
   SimulationAssetFilter,
   sortCatalogAssets,
 } from '@/features/simulation/asset-picker/simulationAssetFilters';
+import {
+  clampDateToAssetHistory,
+  getAssetHistoryEndDate,
+  getAssetHistoryStartDate,
+  getYearRange,
+  MAX_SIMULATION_DATE,
+  MIN_SIMULATION_DATE,
+} from '@/features/simulation/asset-picker/simulationAssetHistoryRange';
 import { getSelectedAssetAvailability } from '@/features/simulation/asset-picker/simulationAssetSupport';
 import {
   listSavedSimulations,
@@ -50,9 +58,6 @@ import {
   PurchasingPowerComparison,
 } from '@shared/purchasingPowerTypes';
 import { SimulationAssetCatalogItem } from '@shared/simulationAssetCatalogTypes';
-
-const MIN_SIMULATION_DATE = '2014-09-17';
-const MAX_SIMULATION_DATE = '2026-03-22';
 
 type SimulationMode = 'date' | 'event';
 
@@ -120,13 +125,6 @@ function getMonthPoints(points: SimulationHistoryPoint[]) {
   });
 
   return [...byMonth.values()];
-}
-
-function getYearRange(startDate: string, endDate: string) {
-  const startYear = Number(startDate.slice(0, 4));
-  const endYear = Number(endDate.slice(0, 4));
-
-  return Array.from({ length: endYear - startYear + 1 }, (_, index) => startYear + index);
 }
 
 function isSuccessfulResult(
@@ -209,7 +207,8 @@ export default function SimulationScreen() {
     () => selectableAssets.find((item) => item.symbol === asset) ?? selectableAssets[0] ?? null,
     [asset, selectableAssets]
   );
-  const selectedAssetStartDate = selectedAsset?.historical.firstDate ?? MIN_SIMULATION_DATE;
+  const selectedAssetStartDate = getAssetHistoryStartDate(selectedAsset);
+  const selectedAssetEndDate = getAssetHistoryEndDate(selectedAsset);
   const selectedAssetAvailability = getSelectedAssetAvailability(selectedAsset);
   const canSelectedAssetSimulate = selectedAssetAvailability.canSimulate;
   const selectedAssetName = selectedAsset?.name ?? asset;
@@ -218,8 +217,8 @@ export default function SimulationScreen() {
     [assetSearchQuery, selectableAssets, selectedAssetFilter]
   );
   const simulationYears = useMemo(
-    () => getYearRange(selectedAssetStartDate, MAX_SIMULATION_DATE),
-    [selectedAssetStartDate]
+    () => getYearRange(selectedAssetStartDate, selectedAssetEndDate),
+    [selectedAssetEndDate, selectedAssetStartDate]
   );
 
   const historyQuery = useQuery({
@@ -305,10 +304,31 @@ export default function SimulationScreen() {
     if (selectableAssets.some((item) => item.symbol === asset)) return;
 
     const nextAsset = selectableAssets[0];
+    const nextStartDate = getAssetHistoryStartDate(nextAsset);
     setAsset(nextAsset.symbol);
-    setSelectedYear(Number((nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE).slice(0, 4)));
-    setDate(nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE);
+    setSelectedYear(Number(nextStartDate.slice(0, 4)));
+    setDate(nextStartDate);
   }, [asset, selectableAssets]);
+
+  useEffect(() => {
+    const clampedDate = clampDateToAssetHistory({
+      date,
+      startDate: selectedAssetStartDate,
+      endDate: selectedAssetEndDate,
+    });
+    if (clampedDate !== date) {
+      setDate(clampedDate);
+      setSelectedYear(Number(clampedDate.slice(0, 4)));
+      return;
+    }
+
+    const endYear = Number(selectedAssetEndDate.slice(0, 4));
+    const startYear = Number(selectedAssetStartDate.slice(0, 4));
+    if (selectedYear < startYear || selectedYear > endYear) {
+      const nextYear = Math.min(Math.max(selectedYear, startYear), endYear);
+      setSelectedYear(nextYear);
+    }
+  }, [date, selectedAssetEndDate, selectedAssetStartDate, selectedYear]);
 
   useEffect(() => {
     if (!history || history.points.length === 0) return;
@@ -325,7 +345,9 @@ export default function SimulationScreen() {
     numericAmount > 0 &&
     /^\d{4}-\d{2}-\d{2}$/.test(date) &&
     date >= MIN_SIMULATION_DATE &&
-    date <= MAX_SIMULATION_DATE;
+    date <= MAX_SIMULATION_DATE &&
+    date >= selectedAssetStartDate &&
+    date <= selectedAssetEndDate;
   const canRunEventSimulation =
     canSelectedAssetSimulate &&
     Number.isFinite(numericAmount) &&
@@ -333,9 +355,10 @@ export default function SimulationScreen() {
     selectedEvent !== null;
 
   const selectAsset = (nextAsset: SimulationAssetCatalogItem) => {
+    const nextStartDate = getAssetHistoryStartDate(nextAsset);
     setAsset(nextAsset.symbol);
-    setSelectedYear(Number((nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE).slice(0, 4)));
-    setDate(nextAsset.historical.firstDate ?? MIN_SIMULATION_DATE);
+    setSelectedYear(Number(nextStartDate.slice(0, 4)));
+    setDate(nextStartDate);
     setIsAssetPickerVisible(false);
     setAssetSearchQuery('');
     setSelectedAssetFilter('recommended');
@@ -765,7 +788,7 @@ export default function SimulationScreen() {
             style={styles.input}
           />
           <Text style={styles.helperText}>
-            Use a date from {MIN_SIMULATION_DATE} through {MAX_SIMULATION_DATE}.
+            Use a date from {selectedAssetStartDate} through {selectedAssetEndDate}.
           </Text>
         </View>
         )}

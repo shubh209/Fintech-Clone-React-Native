@@ -83,9 +83,8 @@ describe('Simulation screen product boundaries', () => {
 
     const pickerSource = assetPickerSource();
 
-    expect(pickerSource).toContain('SUPPORTED_SIMULATION_SYMBOLS');
+    expect(pickerSource).toContain("asset.status === 'ready'");
     expect(source).toContain('getSelectedAssetAvailability');
-    expect(pickerSource).toContain('Simulation supports the top 20 ready coins.');
     expect(source).toContain('selectedAssetAvailability');
     expect(source).toContain('Selected coin is unavailable');
     expect(source).toContain('selectedAssetAvailability.reason');

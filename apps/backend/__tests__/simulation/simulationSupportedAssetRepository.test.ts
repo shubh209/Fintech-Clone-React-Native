@@ -56,7 +56,6 @@ describe('supported simulation asset repository', () => {
     const result = await listSupportedSimulationAssetCandidates({ db });
 
     expect(calls[0].query).toContain('FROM simulation_assets');
-    expect(calls[0].query).toContain('market_rank');
     expect(result).toEqual([
       {
         assetId: 'bnb',
@@ -74,16 +73,18 @@ describe('supported simulation asset repository', () => {
   });
 
   it('returns only top supported assets from the service', async () => {
-    const approved = ['BTC', 'ETH', 'USDT', 'BNB'];
     const { db } = fakeDb([
       row('AAVE', 64),
-      ...approved.map((symbol, index) => row(symbol, index + 1)),
+      row('BTC', 1),
+      row('ETH', 2),
+      row('USDT', 3),
+      row('BNB', 4),
       row('BAD', 2, { status: 'historical_invalid' }),
       row('MISS', 3, { coin_gecko_id: null }),
     ]);
 
-    const result = await listSupportedSimulationAssets({ db, limit: 4 });
+    const result = await listSupportedSimulationAssets({ db });
 
-    expect(result.map((asset) => asset.symbol)).toEqual(approved);
+    expect(result.map((asset) => asset.symbol)).toEqual(['BTC', 'ETH', 'USDT', 'BNB', 'AAVE']);
   });
 });

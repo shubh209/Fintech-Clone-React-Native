@@ -1,4 +1,4 @@
-import { selectTopSimulationAssets } from './simulationSupportedAssetSelection';
+import { selectReadySimulationAssets } from './simulationSupportedAssetSelection';
 import { SimulationSupportedAssetCandidate } from './simulationSupportedAssetTypes';
 
 function candidate(
@@ -21,52 +21,34 @@ function candidate(
   };
 }
 
-describe('selectTopSimulationAssets', () => {
-  it('returns the approved top 20 ready assets by market rank', () => {
-    const approvedSymbols = [
-      'BTC',
-      'ETH',
-      'USDT',
-      'BNB',
-      'USDC',
-      'XRP',
-      'SOL',
-      'TRX',
-      'HYPE',
-      'DOGE',
-      'USDS',
-      'RAIN',
-      'LEO',
-      'ZEC',
-      'XLM',
-      'WBT',
-      'ADA',
-      'LINK',
-      'CC',
-      'XMR',
-    ];
+describe('selectReadySimulationAssets', () => {
+  it('returns all ready assets by market rank without a top-20 limit', () => {
     const rows = [
       candidate('AAVE', 64),
-      ...approvedSymbols.map((symbol, index) => candidate(symbol, index + 1)),
+      candidate('BTC', 1),
+      candidate('ETH', 2),
+      candidate('BNB', 4),
     ];
 
-    expect(selectTopSimulationAssets(rows, 20).map((asset) => asset.symbol)).toEqual(
-      approvedSymbols
-    );
+    expect(selectReadySimulationAssets(rows).map((asset) => asset.symbol)).toEqual([
+      'BTC',
+      'ETH',
+      'BNB',
+      'AAVE',
+    ]);
   });
 
   it('excludes non-ready rows and rows without CoinGecko IDs', () => {
-    const selected = selectTopSimulationAssets(
+    const selected = selectReadySimulationAssets(
       [
         candidate('BTC', 1),
         candidate('BAD', 2, { status: 'historical_invalid' }),
         candidate('MISS', 3, { coinGeckoId: null }),
         candidate('OUT', null),
         candidate('ETH', 4),
-      ],
-      20
+      ]
     );
 
-    expect(selected.map((asset) => asset.symbol)).toEqual(['BTC', 'ETH']);
+    expect(selected.map((asset) => asset.symbol)).toEqual(['BTC', 'ETH', 'OUT']);
   });
 });
